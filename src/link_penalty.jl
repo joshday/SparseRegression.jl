@@ -4,14 +4,16 @@ predict{T <: Real}(l::Link, η::Vector{T}) = [predict(l, ηi) for ηi in η]
 immutable IdentityLink  <: Link end
 immutable LogitLink     <: Link end
 immutable LogLink       <: Link end
+immutable ProbitLink    <: Link end
 
-canonical(::Ds.Normal)    = IdentityLink()
-canonical(::Ds.Bernoulli) = LogitLink()
-canonical(::Ds.Poisson)   = Logink()
+canonical(::Normal)    = IdentityLink()
+canonical(::Bernoulli) = LogitLink()
+canonical(::Poisson)   = Logink()
 
 predict(l::IdentityLink, η::Real)   = η
 predict(l::LogitLink, η::Real)      = 1.0 / (1.0 + exp(-η))
 predict(l::LogLink, η::Real)        = exp(η)
+predict(l::ProbitLink, η::Real)     = Distributions.cdf(Normal(), η)
 
 
 ############################################################################# Penalty

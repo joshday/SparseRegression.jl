@@ -1,8 +1,11 @@
 module StatisticalLearning
 
-import StatsBase, Distributions
+import StatsBase
 import StatsBase: predict
-Ds = Distributions
+import UnicodePlots
+
+import Distributions
+using Distributions: UnivariateDistribution, Bernoulli, Normal, Poisson
 
 
 #-----------------------------------------------------------------------------# types
