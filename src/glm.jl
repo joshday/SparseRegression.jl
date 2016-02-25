@@ -2,13 +2,15 @@
 type GLM{
         D<:Ds.UnivariateDistribution,
         L<:Link,
-        P<:Penalty
+        P<:Penalty,
+        Tx <: Real,
+        Ty <: Real
     }
     β0::Float64
     β::Vector{Float64}
     intercept::Bool
-    x::Matrix{Float64}
-    y::Vector{Float64}
+    x::Matrix{Tx}
+    y::Vector{Ty}
     family::D
     link::L
     penalty::P
@@ -55,6 +57,7 @@ function fista!(o::GLM;
     for i in 1:maxit
         iters += 1
         oldcost = newcost
+        # TODO: Noncanonical links
         resid = o.y - predict(o)
         ∇f = o.x' * resid
         o.β += s * ∇f / n
@@ -74,11 +77,15 @@ function fista!(o::GLM;
 end
 
 
-n, p = 100, 10
+n, p = 10000, 11
 x = randn(n, p)
-y = x * collect(1.:p) + randn(n)
+β = collect(linspace(-.5, .5, p))
+# y = x * collect(1.:p) + randn(n)
+y = Int[rand(Ds.Bernoulli(1 / (1 + exp(-η)))) for η in x*β]
 
-o = GLM(x, y; family = Ds.Normal(), penalty = L1Penalty(3))
+
+
+o = GLM(x, y; family = Ds.Bernoulli(), penalty = L1Penalty(.03))
 @time fista!(o)
 
 @display o
