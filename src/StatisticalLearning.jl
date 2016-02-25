@@ -1,12 +1,14 @@
 module StatisticalLearning
 
 import StatsBase
-import StatsBase: predict
+import StatsBase: predict, coef
 import UnicodePlots
 
 import Distributions
 using Distributions: UnivariateDistribution, Bernoulli, Normal, Poisson
 
+
+export predict, coef, GLM
 
 #-----------------------------------------------------------------------------# types
 abstract Penalty
@@ -14,7 +16,7 @@ abstract Link
 
 
 #--------------------------------------------------------------------------# printing
-print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "▌ $s \n")
+print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "■■■■■■ $s ■■■■■■\n")
 
 function print_item(io::IO, name::AbstractString, value)
     println(io, "  >" * @sprintf("%12s", name * ": "), value)

@@ -23,6 +23,9 @@ immutable L1Penalty             <: Penalty λ::Float64               end
 immutable ElasticNetPenalty     <: Penalty λ::Float64; α::Float64   end
 immutable SCADPenalty           <: Penalty λ::Float64; a::Float64   end
 
+ElasticNetPenalty(λ::Real, α::Real = .5) = ElasticNetPenalty(λ, α)
+SCADPenalty(λ::Real, a::Real = 3.7) = SCADPenalty(λ, a)
+
 Base.show(io::IO, p::NoPenalty)         = print(io, "NoPenalty")
 Base.show(io::IO, p::L2Penalty)         = print(io, "L2Penalty (λ = $(p.λ))")
 Base.show(io::IO, p::L1Penalty)         = print(io, "L1Penalty (λ = $(p.λ))")

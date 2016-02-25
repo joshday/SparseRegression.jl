@@ -26,17 +26,21 @@ function Base.show(io::IO, o::GLM)
     print_item(io, "Link", typeof(o.link))
     print_item(io, "Penalty", o.penalty)
 end
+
+# todo: error handling
 function GLM(x::Matrix, y::Vector;
         intercept::Bool = true,
         family::UnivariateDistribution = Normal(),
         link::Link = canonical(family),
         penalty::Penalty = NoPenalty()
     )
-    GLM(0.0, zeros(size(x, 2)), intercept, x, y, family, link, penalty)
+    o = GLM(0.0, zeros(size(x, 2)), intercept, x, y, family, link, penalty)
+    fit!(o)
 end
 has_canonical_link(o::GLM) = o.link == canonical(o.family)
 StatsBase.predict{T <: Real}(o::GLM, x::Matrix{T}) = predict(o.link, x * o.β + o.β0)
 StatsBase.predict(o::GLM) = predict(o, o.x)
+StatsBase.coef(o::GLM) = o.β
 
 
 #------------------------------------------------------------------------------# cost
@@ -78,10 +82,10 @@ end
 # http://www.seas.ucla.edu/~vandenbe/236C/lectures/fgrad.pdf
 
 
-# todo: actually use FISTA (currently just proximal gradient)
 # todo: weights
 # todo: solution path
-function fista!(o::GLM;
+# todo: coeftable
+function fit!(o::GLM;
         maxit::Int = 100,
         eps::Real = 1e-4,
         verbose::Bool = true
@@ -90,10 +94,10 @@ function fista!(o::GLM;
     # setup
     n, p = size(o.x)
     newcost = Inf
-    s = 1.0
+    s = 1.0             # step size for FISTA
     iters = 0
-    β1 = zeros(p)   # last iteration
-    β2 = zeros(p)   # two iterations ago
+    β1 = zeros(p)       # last iteration
+    β2 = zeros(p)       # two iterations ago
 
     # main loop
     for k in 1:maxit
@@ -120,24 +124,21 @@ function fista!(o::GLM;
             break
         end
     end
+    iters == maxit && print_with_color(:red, "Did NOT converge in $iters iterations \n")
     o
 end
 
 
-n, p = 10000, 20
+
+
+n, p = 10000, 30
 x = randn(n, p)
 β = collect(linspace(-.5, .5, p))
-# β = 3 * randn(p)
 
 y = x * β + randn(n)
-o = GLM(x, y; family = Normal(), penalty = L1Penalty(.1))
-@time fista!(o)
+@time o = GLM(x, y; family = Normal(), penalty = L1Penalty(.1))
 @display o
 
 y = Float64[rand(Bernoulli(1 / (1 + exp(-η)))) for η in x*β]
-o = GLM(x, y; family = Bernoulli(), link = ProbitLink(), penalty = L1Penalty(.01))
-@time fista!(o)
+@time o = GLM(x, y; family = Bernoulli(), link = ProbitLink(), penalty = L2Penalty(.01))
 @display o
-
-@display has_canonical_link(o)
-@display cost(o)
