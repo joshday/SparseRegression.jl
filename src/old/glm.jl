@@ -6,14 +6,15 @@ type GLM{
         Tx <: Real,
         Ty <: Real
     }
-    β0::Float64             # intercept term
-    β::Vector{Float64}      # coefficients
-    intercept::Bool         # should intercept be estimated?
-    x::Matrix{Tx}           # design matrix
-    y::Vector{Ty}           # response vector
-    family::D               # Bernoulli, Normal, or Poisson
-    link::L                 # link function: canonical_link(family) by default
-    penalty::P              # regularization term
+    β0::Float64                 # intercept term
+    β::Vector{Float64}          # coefficients
+    intercept::Bool             # should intercept be estimated?
+    x::Matrix{Tx}               # design matrix
+    y::Vector{Ty}               # response vector
+    wts::Vector{Float64}        # weights
+    family::D                   # Bernoulli, Normal, or Poisson
+    link::L                     # link function: canonical_link(family) by default
+    penalty::P                  # regularization term
 end
 function Base.show(io::IO, o::GLM)
     print_header(io, "GLM")
@@ -27,41 +28,51 @@ function Base.show(io::IO, o::GLM)
     print_item(io, "Penalty", o.penalty)
 end
 
-# todo: error handling
 function GLM(x::Matrix, y::Vector;
         intercept::Bool = true,
         family::UnivariateDistribution = Normal(),
         link::Link = canonical(family),
-        penalty::Penalty = NoPenalty()
+        penalty::Penalty = NoPenalty(),
+        wts::VecF = ones(0)
     )
-    o = GLM(0.0, zeros(size(x, 2)), intercept, x, y, family, link, penalty)
+    n, p = size(x)
+    @assert length(y) == n "length(y) != size(x, 1)"
+    if length(wts) == n
+        wts = wgts / sum(wgts) * n
+    end
+    o = GLM(0.0, zeros(p), intercept, x, y, wts, family, link, penalty)
     fit!(o)
 end
 has_canonical_link(o::GLM) = o.link == canonical(o.family)
 StatsBase.predict{T <: Real}(o::GLM, x::Matrix{T}) = predict(o.link, x * o.β + o.β0)
 StatsBase.predict(o::GLM) = predict(o, o.x)
 StatsBase.coef(o::GLM) = o.β
+penalty(o::GLM) = penalty(o.penalty, o.β)
 
 
 #------------------------------------------------------------------------------# cost
 # cost = objective function we are trying to minimize
 # cost = f(β) + g(β) where f() is proportional to negative loglikelihood and g() is regularization
 
-# canonical link
-cost(o::GLM{Normal}) = 0.5 * mean(abs2(o.y - predict(o))) + penalty(o.penalty, o.β)
-function cost(o::GLM{Bernoulli, LogitLink})
+# canonical links
+lossvector(o::GLM{Normal, IdentityLink}) = 0.5 * abs2(o.y - predict(o))
+function lossvector(o::GLM{Bernoulli})  # for both Logit and Probit
     probs = predict(o)
-    mean(o.y .* log(probs) + (1.0 - o.y) .* log(1.0 - probs)) + penalty(o.penalty, o.β)
+    o.y .* log(probs ./ (1.0 - probs)) + log(1.0 - probs)
 end
-function cost(o::GLM{Poisson, LogLink})
-    mean(o.y .* o.x * o.β - predict(o))
+lossvector(o::GLM{Poisson, LogLink}) = o.y .* o.x * o.β - predict(o)
+
+
+function cost(o::GLM)
+    if length(o.wts) == length(o.y)
+        return mean(o.wts .* lossvector(o)) + penalty(o)
+    else
+        return mean(lossvector(o)) + penalty(o)
+    end
 end
 
-# noncanonical link
-function cost(o::GLM{Bernoulli, ProbitLink})
-    probs = predict(o)
-    mean(o.y .* log(probs) + (1.0 - o.y) .* log(1.0 - probs)) + penalty(o.penalty, o.β)
-end
+
+
 
 #--------------------------------------------------------------------------# gradient
 # canonical link
@@ -82,7 +93,6 @@ end
 # http://www.seas.ucla.edu/~vandenbe/236C/lectures/fgrad.pdf
 
 
-# todo: weights
 # todo: solution path
 # todo: coeftable
 function fit!(o::GLM;
@@ -93,6 +103,7 @@ function fit!(o::GLM;
 
     # setup
     n, p = size(o.x)
+    usewts = (n == length(o.wts))
     newcost = Inf
     s = 1.0             # step size for FISTA
     iters = 0
@@ -109,6 +120,9 @@ function fit!(o::GLM;
             o.β += ((k - 2) / (k + 1)) * (β1 - β2)
         end
         resid = o.y - predict(o)
+        if usewts
+            resid .* o.wts
+        end
         ∇f = deriv(o, resid)
         o.β += s * ∇f / n
         prox!(o.penalty, o.β, s)
@@ -116,7 +130,11 @@ function fit!(o::GLM;
             o.β0 += mean(resid)
         end
 
-        newcost = cost(o)
+        if usewts
+            newcost = weightedcost(o)
+        else
+            newcost = cost(o)
+        end
 
         # check for convergence
         if abs(newcost - oldcost) < eps * abs(oldcost + 1.0)
@@ -136,7 +154,7 @@ x = randn(n, p)
 β = collect(linspace(-.5, .5, p))
 
 y = x * β + randn(n)
-@time o = GLM(x, y; family = Normal(), penalty = L1Penalty(.1))
+@time o = GLM(x, y; family = Normal(), penalty = SCADPenalty(.1))
 @display o
 
 y = Float64[rand(Bernoulli(1 / (1 + exp(-η)))) for η in x*β]
