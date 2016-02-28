@@ -90,6 +90,7 @@ end
 
 
 #--------------------------------------------------------------------# main algorithm
+# Fast Iterative Shrinkage-Thresholding Algorithm
 function fista!(o::GLMPath;
         maxit::Integer = 100,
         eps::Float64 = 1e-4,
