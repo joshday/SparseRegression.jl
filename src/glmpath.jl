@@ -103,9 +103,9 @@ function fista!(o::GLMPath;
                 s *= 0.75
             end
             abs(newcost - oldcost) < eps * abs(oldcost + 1.0) && break
-            if iters == maxit
-                converged = false
-            end
+        end
+        if iters == maxit
+            converged = false
         end
         @inbounds o.β[:, k] = β
     end
