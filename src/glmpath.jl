@@ -32,6 +32,12 @@ function Base.show(io::IO, o::GLMPath)
     print_item(io, "Intercept", o.intercept)
     print_item(io, "λs", "$(length(o.λs))")
 end
+function coef(o::GLMPath, λ::Real = o.λs[1])
+    i = findfirst(o.λs, λ)
+    i != 0 ?
+        vcat(o.β0[i], o.β[:, i]) :
+        error("λ = $λ was not fit by GLMPath")
+end
 
 
 

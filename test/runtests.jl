@@ -1,5 +1,13 @@
+module StatisticalLearningTests
 using StatisticalLearning
-using Base.Test
+using FactCheck
 
-# write your own tests here
-@test 1 == 1
+macro title(s)
+    return :("■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ " * $s)
+end
+macro subtitle(s)
+    return :("████████████████████████████████████████████████ " * $s)
+end
+
+include("testglm.jl")
+end
