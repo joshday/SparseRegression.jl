@@ -5,5 +5,6 @@ facts(@title "Show Methods") do
     y = x*β + randn(n)
 
     o = GLMPath(x, y, λs = collect(.1:.1:.9))
+    show(o)
     coef(o)
 end
