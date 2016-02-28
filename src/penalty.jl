@@ -1,4 +1,5 @@
 #---------------------------------------------------------------------------# Penalty
+abstract Penalty
 immutable NoPenalty             <: Penalty              end
 immutable L2Penalty             <: Penalty              end
 immutable L1Penalty             <: Penalty              end

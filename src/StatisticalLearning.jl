@@ -10,7 +10,6 @@ export
     L2Regression, LogisticRegression, ProbitRegression, PoissonRegression,
     NoPenalty, L1Penalty, L2Penalty, ElasticNetPenalty, SCADPenalty
 
-export x, y
 
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}
@@ -20,11 +19,7 @@ typealias AMat{T} AbstractMatrix{T}
 typealias AVecF AVec{Float64}
 typealias AMatF AMat{Float64}
 
-abstract Penalty
 abstract ModelPath
-
-
-
 
 #--------------------------------------------------------------------------# printing
 print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "■ $s \n")
@@ -32,13 +27,10 @@ function print_item(io::IO, name::AbstractString, value)
     println(io, "  >" * @sprintf("%12s", name * ": "), value)
 end
 
-macro display(expr) :(display($expr)) end
 
 #----------------------------------------------------------------------# source files
 include("penalty.jl")
+include("models.jl")
 include("glmpath.jl")
 
 end # module
-
-
-S = StatisticalLearning
