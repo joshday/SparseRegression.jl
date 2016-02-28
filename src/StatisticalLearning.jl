@@ -5,7 +5,12 @@ import Distributions
 import Base.LinAlg.BLAS: BlasFloat
 
 
-export predict, coef, GLM
+export
+    predict, coef, GLMPath,
+    L2Regression, LogisticRegression, ProbitRegression, PoissonRegression,
+    NoPenalty, L1Penalty, L2Penalty, ElasticNetPenalty, SCADPenalty
+
+export x, y
 
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}

@@ -6,30 +6,52 @@ end
 
 # loss vector, proportional to negative loglikelihood
 # log f(y | β) ∝ y * Θ + b(Θ)
-function lossvector(m::GLMModel, y::VecF, η::VecF)
-    Θ = _Θ(m, η)
-    -y .* Θ + _b(m, Θ)
+function lossvector!(m::GLMModel, storage::VecF, y::VecF, η::VecF)
+    for j in eachindex(storage)
+        @inbounds Θ = _Θ(m, η[j])
+        @inbounds storage[j] = -y[j] * Θ + _b(m, Θ)
+    end
 end
 
+
 immutable L2Regression <: GLMModel end
+predict!(m::L2Regression, storage::VecF, η::VecF) = copy!(storage, η)
 predict(m::L2Regression, η::VecF) = η
-_Θ(m::L2Regression, η::VecF) = η
-_b(m::L2Regression, Θ::VecF) = 0.5 * Θ .^ 2
+_Θ(m::L2Regression, η::Float64) = η
+_b(m::L2Regression, Θ::Float64) = 0.5 * Θ * Θ
+
 
 immutable LogisticRegression <: GLMModel end
+function  predict!(m::LogisticRegression, storage::VecF, η::VecF)
+    for i in eachindex(storage)
+        @inbounds storage[i] = 1.0 / (1.0 + exp(-η[i]))
+    end
+end
 predict(m::LogisticRegression, η::VecF) = 1.0 ./ (1.0 + exp(-η))
-_Θ(m::LogisticRegression, η::VecF) = η
-_b(m::LogisticRegression, Θ::VecF) = log(1.0 + exp(Θ))
+_Θ(m::LogisticRegression, η::Float64) = η
+_b(m::LogisticRegression, Θ::Float64) = log(1.0 + exp(Θ))
+
 
 immutable ProbitRegression <: GLMModel end
+function predict!(m::ProbitRegression, storage::VecF, η::VecF)
+    for i in eachindex(storage)
+        @inbounds storage[i] = Distributions.cdf(Normal(), η[i])
+    end
+end
 predict(m::ProbitRegression, η::VecF) = Distributions.cdf(Normal(), η)
-_Θ(m::ProbitRegression, η::VecF) = Distributions.logcdf(Normal(), η)
-_b(m::ProbitRegression, Θ::VecF) = log(1.0 + exp(Θ))
+_Θ(m::ProbitRegression, η::Float64) = Distributions.logcdf(Normal(), η)
+_b(m::ProbitRegression, Θ::Float64) = log(1.0 + exp(Θ))
+
 
 immutable PoissonRegression <: GLMModel end
+function predict!(m::PoissonRegression, storage::VecF, η::VecF)
+    for i in eachindex(storage)
+        @inbounds storage[i] = exp(η[i])
+    end
+end
 predict(m::PoissonRegression, η::VecF) = exp(η)
-_Θ(m::PoissonRegression, η::VecF) = η
-_b(m::PoissonRegression, Θ::VecF) = exp(Θ)
+_Θ(m::PoissonRegression, η::Float64) = η
+_b(m::PoissonRegression, Θ::Float64) = exp(Θ)
 
 
 #---------------------------------------------------------------------------# GLMPath
@@ -49,34 +71,26 @@ function GLMPath(x::Matrix, y::Vector;
         model::GLMModel     = L2Regression(),
         penalty::Penalty    = NoPenalty(),
         weights::Vector     = ones(0),
-        λs::Vector          = zeros(1)
+        λs::Vector          = zeros(1),
+        kw...
     )
     n, p = size(x)
     @assert length(y) == n "size(x, 2) != length(y)"
     nλ = length(λs)
-    GLMPath(
-        zeros(nλ),
-        zeros(p, nλ),
-        intercept,
-        model,
-        penalty,
-        x,
-        y,
-        weights,
-        λs
-    )
+    o = GLMPath(zeros(nλ), zeros(p, nλ), intercept, model, penalty, x, y, weights, λs)
+    fista!(o; kw...)
 end
 function Base.show(io::IO, o::GLMPath)
     print_header(io, "GLMPath")
     print_item(io, "Model", o.model)
     print_item(io, "Penalty", o.penalty)
-    print_item(io, "Path of", "$(length(o.λs)) λs")
+    print_item(io, "λs", "$(length(o.λs))")
 end
 
 
 
 #--------------------------------------------------------------------# main algorithm
-function fista!(o::GLMPath, k::UnitRange{Int} = 1:length(o.λs);
+function fista!(o::GLMPath;
         maxit::Integer = 100,
         eps::Float64 = 1e-4,
         verbose::Bool = true,
@@ -84,7 +98,6 @@ function fista!(o::GLMPath, k::UnitRange{Int} = 1:length(o.λs);
     )
     # setup
     n, p = size(o.x)
-
     β = zeros(p)
     β1 = zeros(p)       # last iteration
     β2 = zeros(p)       # two iterations ago
@@ -92,13 +105,15 @@ function fista!(o::GLMPath, k::UnitRange{Int} = 1:length(o.λs);
     resids = zeros(n)
     ŷ = zeros(n)
     η = zeros(n)
+    lossvec = zeros(n)
+    converged = true
 
     # main loop
-    for ki in k
+    for ki in 1:length(o.λs)
         iters = 0
         newcost = Inf
-        λ = o.λs[ki]
-        s = stepsize        # step size for FISTA
+        @inbounds λ = o.λs[ki]
+        s = stepsize / sqrt(ki)        # step size for FISTA
         for rep in 1:maxit
             iters += 1
             oldcost = newcost
@@ -110,36 +125,41 @@ function fista!(o::GLMPath, k::UnitRange{Int} = 1:length(o.λs);
                 β += ((rep - 2) / (rep + 1)) * (β1 - β2)
             end
 
+            # get η
+            BLAS.gemv!('N', 1.0, x, β, 0.0, η)
+            @inbounds β0 = o.β0[ki]
+            for i in eachindex(η)
+                @inbounds η[i] += β0
+            end
+            # get ŷ
+            predict!(o.model, ŷ, η)
+            # get residuals
+            for j in eachindex(resids)
+                @inbounds resids[j] = o.y[j] - ŷ[j]
+            end
             # get gradient
-            η = o.x*β + o.β0[ki]
-            ŷ = predict(o.model, η)
-            resids = o.y - ŷ
             gradient!(o.model, Δ, o.x, resids, η)
-
             # take step
             if o.intercept
-                o.β0[ki] += mean(resids)
+                @inbounds o.β0[ki] += mean(resids)
             end
             β -= s * Δ / n
-
             # evaluate prox operator
             prox!(o.penalty, λ, β, s)
-
             # check for convergence
-            newcost = mean(lossvector(o.model, o.y, η)) + penalty(o.penalty, λ, o.β[:, ki])
+            lossvector!(o.model, lossvec, o.y, η)
+            newcost = mean(lossvec) + penalty(o.penalty, λ, β)
             if newcost < oldcost  # decrease step size if cost doesn't decrease
-                s *= 0.9
+                s *= 0.75
             end
-            if abs(newcost - oldcost) < eps * abs(oldcost + 1.0)
-                verbose && println("λ = $(o.λs[ki]) converged in $iters iterations")
-                verbose && println("tolerance = $(abs(newcost - oldcost) / (abs(1.0 + oldcost)))")
-                break
+            abs(newcost - oldcost) < eps * abs(oldcost + 1.0) && break
+            if iters == maxit
+                converged = false
             end
-            iters == maxit &&
-                print_with_color(:red, "λ = $(o.λs[ki]) did not converge in $iters iterations!\n")
         end
-        o.β[:, ki] = β
+        @inbounds o.β[:, ki] = β
     end
+    converged || warn("Not converged for at least one λ")
     o
 end
 
@@ -151,42 +171,35 @@ end
 # TEST
 using GLMNet
 using Distributions
-n, p = 10000, 11
+n, p = 10000, 100
 x = randn(n, p)
 β = collect(linspace(-.5, .5, p))
 
-print_with_color(:green, "\nL2Regression\n\n")
+print_with_color(:green, "\nL2Regression\n")
 y = x*β + randn(n)
 o = GLMPath(x, y, model = L2Regression(), penalty = L1Penalty(), λs = collect(.1:.1:.4))
-fista!(o)
-@time fista!(o)
+@time o = GLMPath(x, y, model = L2Regression(), penalty = L1Penalty(), λs = collect(.1:.1:.4))
+@display o
 @time glmnet(x, y, lambda = collect(.1:.1:.4))
-@display o
-@display o.β
+# @display o.β
 
 
-print_with_color(:green, "\nLogisticRegression\n\n")
+print_with_color(:green, "\nLogisticRegression\n")
 y = Float64[rand(Bernoulli(1 / (1 + exp(-η)))) for η in x*β]
-o = GLMPath(x, y, model = LogisticRegression(), penalty = L1Penalty(), λs = collect(.01:.01:.04))
-fista!(o)
-@time fista!(o)
+@time o = GLMPath(x, y, model = LogisticRegression(), penalty = L1Penalty(), λs = collect(.01:.01:.04))
 @display o
-@display o.β
+# @display o.β
 
 
-print_with_color(:green, "\nProbitRegression\n\n")
+print_with_color(:green, "\nProbitRegression\n")
 y = Float64[rand(Bernoulli(1 / (1 + exp(-η)))) for η in x*β]
-o = GLMPath(x, y, model = ProbitRegression(), penalty = L1Penalty(), λs = collect(.01:.01:.04))
-fista!(o)
-@time fista!(o)
+@time o = GLMPath(x, y, model = ProbitRegression(), penalty = L1Penalty(), λs = collect(.01:.01:.04))
 @display o
-@display o.β
+# @display o.β
 
 
-print_with_color(:green, "\nPoissonRegression\n\n")
+print_with_color(:green, "\nPoissonRegression\n")
 y = Float64[rand(Poisson(exp(η))) for η in x*β]
-o = GLMPath(x, y, model = PoissonRegression(), penalty = L1Penalty(), λs = collect(.01:.01:.04))
-# fista!(o)
-@time fista!(o, stepsize = .1)
+@time o = GLMPath(x, y, model = PoissonRegression(), penalty = L1Penalty(), λs = collect(1.:4))
 @display o
-@display o.β
+# @display o.β
