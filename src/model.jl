@@ -30,9 +30,18 @@ immutable LogisticRegression <: LinPredModel end
 loss(m::LogisticRegression, y::Float64, η::Float64) = log(1.0 + exp(-y * η))
 lossderiv(m::LogisticRegression, y::Float64, η::Float64) = -y / (1.0 + exp(y * η))
 function predict!(m::LogisticRegression, storage::VecF, η::VecF)
-    @assert length(storage) == length(η) "Check that @inbounds is safe"
     for i in eachindex(storage)
         @inbounds storage[i] = 1.0 / (1.0 + exp(-η[i]))
+    end
+end
+
+#----------------------------------------------------------------# PoissonRegression
+immutable PoissonRegression <: LinPredModel end
+loss(m::PoissonRegression, y::Float64, η::Float64) = -y * η + exp(η)
+lossderiv(m::PoissonRegression, y::Float64, η::Float64) = -y + exp(η)
+function predict!(m::PoissonRegression, storage::VecF, η::VecF)
+    for i in eachindex(storage)
+        @inbounds storage[i] = exp(η[i])
     end
 end
 

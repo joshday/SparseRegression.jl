@@ -6,7 +6,7 @@ export
     StatLearnPath,
     NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
-    HuberRegression
+    HuberRegression, PoissonRegression
 
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}
