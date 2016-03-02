@@ -23,7 +23,7 @@ function StatLearnPath(x::MatF, y::VecF;
     )
     n, p = size(x)
     if typeof(penalty) == NoPenalty && length(lambdas) > 1
-        info("NoPenalty: Setting lambdas = zeros(1)")
+        info("NoPenalty: Setting lambdas = [0.0]")
     else
         lambdas = lambda_check(lambdas)
     end
@@ -77,3 +77,9 @@ function scaled_to_original!(o::StatLearnPath)
     end
 end
 StatsBase.coef(o::StatLearnPath) = vcat(o.β0', o.β)
+function StatsBase.coef(o::StatLearnPath, λ::Real)
+    ff = findfirst(o.λs, λ)
+    ff == 0 ?
+        error("Coefficients not available for unfitted λ = $λ") : 
+        vcat(o.β0[ff], o.β[:, ff])
+end

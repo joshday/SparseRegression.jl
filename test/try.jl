@@ -18,11 +18,12 @@ x = randn(n, p)
 
 # L
 y = x*β + randn(n)
-λs = collect(0.:.1:1)
+λs = collect(0.:.01:1)
 
 print_with_color(:green, "L2egression\n")
 @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty())
 @display coef(o)
+@display coef(o, .05)
 
 print_with_color(:green, "L1Regression\n")
 @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(), model = S.L1Regression())
@@ -31,6 +32,11 @@ print_with_color(:green, "L1Regression\n")
 print_with_color(:green, "QuantileRegression\n")
 @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
     model = S.QuantileRegression(.7))
+@display coef(o)
+
+print_with_color(:green, "HuberRegression\n")
+@time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
+    model = S.HuberRegression(.7))
 @display coef(o)
 
 

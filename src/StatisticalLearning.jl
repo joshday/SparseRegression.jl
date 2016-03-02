@@ -2,6 +2,12 @@ module StatisticalLearning
 
 import StatsBase
 
+export
+    StatLearnPath,
+    NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
+    L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
+    HuberRegression
+
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}
 typealias MatF Matrix{Float64}

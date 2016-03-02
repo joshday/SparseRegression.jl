@@ -2,9 +2,11 @@
 # note: lossderiv is derivative with respect to η
 
 abstract Model
+data_check(m::Model, y) = nothing
 
 # =====================================================================# LinPredModel
-abstract LinPredModel <: Model # Models that make predictions from f(η) where η = Xβ
+# Models with prediction f(η) where η = Xβ
+abstract LinPredModel <: Model
 function lossvector!(m::LinPredModel, storage::VecF, y::VecF, η::VecF)
     for i in eachindex(y)
         @inbounds storage[i] = loss(m, y[i], η[i])
@@ -48,3 +50,15 @@ function loss(m::QuantileRegression, y::Float64, η::Float64)
 end
 lossderiv(m::QuantileRegression, y::Float64, η::Float64) = (y - η < 0.0) - m.τ
 predict!(m::QuantileRegression, storage::VecF, η::VecF) = copy!(storage, η)
+
+#-------------------------------------------------------------------# HuberRegression
+immutable HuberRegression <: LinPredModel δ::Float64 end
+function loss(m::HuberRegression, y::Float64, η::Float64)
+    r = y - η
+    r < m.δ ? 0.5 * r * r : m.δ * (abs(r) - 0.5 * m.δ)
+end
+function lossderiv(m::HuberRegression, y::Float64, η::Float64)
+    r = y - η
+    abs(r) <= m.δ ? -r : m.δ * sign(-r)
+end
+predict!(m::HuberRegression, storage::VecF, η::VecF) = copy!(storage, η)
