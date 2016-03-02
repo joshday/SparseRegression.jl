@@ -1,4 +1,5 @@
-#---------------------------------------------------------------# FISTA for ErrorLoss
+#-----------------------------------------------------------------------------# FISTA 
+# todo: weights
 function fit!{M <: LinPredModel}(o::StatLearnPath{M};
         maxit::Integer = 100,
         tol::Float64 = 1e-6,

@@ -10,13 +10,13 @@ FISTA algorithm for solving statistical learning problems of the form `f(Î˜) + Î
 
 ### Keyword arguments:
 
-| keyword       | type              | description                                         |
-|:--------------|:------------------|:----------------------------------------------------|
-| `intercept`   | `Bool`            | Should an intercept be included in the model?       |
-| `model`       | `Model`           | The type of model.  default = `L2Regression()`      |
-| `penalty`     | `Penalty`         | The type of penalty. default = `NoPenalty()`        |
-| `lambdas`     | `Vector{Float64}` | The lambdas for which to get a solution path        |
-| `standardize` | `Bool`            | Should `x` values be standardized? default = `true` |
+| keyword       | type              | description                                                                                      |
+|:--------------|:------------------|:-------------------------------------------------------------------------------------------------|
+| `intercept`   | `Bool`            | Should an intercept be included in the model?                                                    |
+| `model`       | `Model`           | The type of model.  default = `L2Regression()`                                                   |
+| `penalty`     | `Penalty`         | The type of penalty. default = `NoPenalty()`                                                     |
+| `lambdas`     | `Vector{Float64}` | The lambdas for which to get a solution path                                                     |
+| `standardize` | `Bool`            | Should `x` values be standardized? Coefficients are returned in original scale. default = `true` |
 
 
 # Models

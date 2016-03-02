@@ -1,8 +1,4 @@
-# This file is not included.  Just working out thoughts on combining link/loss
-# note: lossderiv is derivative with respect to η
-
 abstract Model
-data_check(m::Model, y) = nothing
 
 # =====================================================================# LinPredModel
 # Models with prediction f(η) where η = Xβ
