@@ -55,7 +55,7 @@ function prox(p::SCADPenalty, βj, λ, s)
 end
 
 function prox!{T <: Real}(p::Penalty, β::Vector{T}, λ::T, s::T)
-    for j in 1:length(β)
-        β[j] = prox(p, β[j], λ, s)
+    for j in eachindex(β)
+        @inbounds β[j] = prox(p, β[j], λ, s)
     end
 end

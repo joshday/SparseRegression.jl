@@ -1,7 +1,7 @@
 #---------------------------------------------------------------# FISTA for ErrorLoss
-function fit!{L <: ErrorLoss}(o::StatLearnPath{L};
+function fit!{M <: LinPredModel}(o::StatLearnPath{M};
         maxit::Integer = 100,
-        tol::Float64 = 1e-4,
+        tol::Float64 = 1e-6,
         verbose::Bool = true,
         stepsize::Float64 = 1.0
     )
@@ -16,7 +16,6 @@ function fit!{L <: ErrorLoss}(o::StatLearnPath{L};
     ŷ = zeros(n)
     η = zeros(n)
     lossvec = zeros(n)
-    converged = true
     intercept = o.intercept
     useweights = length(o.weights) == n
     reltol = -Inf
@@ -27,6 +26,10 @@ function fit!{L <: ErrorLoss}(o::StatLearnPath{L};
         ######## Check to see if βs have been zeroed out
         if k > 1
             if β == zeros(p)
+                # fill in intercept values since we don't need to estimate coefs
+                for j in k:length(o.β0)
+                    o.β0[j] = β0
+                end
                 verbose && info("All coefficients zero: Algorithm stopped early\n")
                 break
             end
@@ -43,7 +46,7 @@ function fit!{L <: ErrorLoss}(o::StatLearnPath{L};
             copy!(β2, β1)
             copy!(β1, β)
             if rep > 2
-                β += ((rep - 2) / (rep + 1)) * (β1 - β2)
+                β = β1 + ((rep - 2) / (rep + 1)) * (β1 - β2)
             end
             ############ η
             BLAS.gemv!('N', 1.0, o.x, β, 0.0, η)
@@ -53,36 +56,39 @@ function fit!{L <: ErrorLoss}(o::StatLearnPath{L};
                 end
             end
             ############ ŷ
-            predict!(o.link, ŷ, η)
+            predict!(o.model, ŷ, η)
             ############ derivative vector
-            for j in eachindex(deriv_vec)
-                @inbounds deriv_vec[j] = deriv(o.loss, o.y[j] - ŷ[j])
+            for i in eachindex(deriv_vec)
+                @inbounds deriv_vec[i] = lossderiv(o.model, o.y[i], η[i])
             end
             ############ gradient
             BLAS.gemv!('T', 1/n, o.x, deriv_vec, 0.0, Δ)
             ############ gradient descent
             if intercept
-                β0 += mean(deriv_vec)
+                β0 -= mean(deriv_vec)
             end
-            β += s * Δ
+            β -= s * Δ
             ############ prox operator
             prox!(o.penalty, β, λ, s)
             ############ check for convergence
-            lossvector!(o.loss, lossvec, deriv_vec)
+            lossvector!(o.model, lossvec, o.y, η)
             newcost = mean(lossvec) + penalty(o.penalty, β, λ)
             if abs(newcost - oldcost) < tol * abs(oldcost)
                 reltol = abs(newcost - oldcost) / abs(oldcost)
                 break
             end
-            ############ decrease step size of objective increases
+            ############ decrease step size
             if newcost > oldcost
-                s *= .9
+                s *= .5
+                copy!(β, β1)
+            else
+                s = stepsize
             end
         end
         ############ Did the algorithm reach convergence?
         if maxit == iters
             reltol = abs(newcost - oldcost) / abs(oldcost)
-            converged = false
+            warn("Not converged for λ = $(o.λs[k]).  Tolerance = $(round(reltol, 8))")
         end
         ############ Get maximum relative difference
         maxreltol = max(maxreltol, reltol)
@@ -92,7 +98,6 @@ function fit!{L <: ErrorLoss}(o::StatLearnPath{L};
         end
         o.β[:, k] = β
     end  # end main loop
-    converged || warn("Not converged for at least one λ")
-    verbose && info("Worst Relative Tolerance: ", maxreltol)
+    # verbose && info("Worst Relative Tolerance: ", maxreltol)
     o
 end

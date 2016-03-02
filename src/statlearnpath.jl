@@ -1,11 +1,9 @@
-# TODO: put βs back into original scale
 # ===================================================================== StatLearnPath
-immutable StatLearnPath{Lo <: Loss, Li <: Link, P <: Penalty}
+immutable StatLearnPath{M <: Model, P <: Penalty}
     β0::VecF            # intercepts
     β::MatF             # coefficients
     intercept::Bool     # should intercept be estimated?
-    link::Li            # Link g(y) = x*β
-    loss::Lo            # Loss function
+    model::M            # Model
     penalty::P          # regularization
     x::MatF             # design matrix
     μx::VecF            # column means of x
@@ -16,8 +14,7 @@ immutable StatLearnPath{Lo <: Loss, Li <: Link, P <: Penalty}
 end
 function StatLearnPath(x::MatF, y::VecF;
         intercept::Bool = true,
-        link::Link = IdentityLink(),
-        loss::Loss = SquaredErrorLoss(),
+        model::Model = L2Regression(),
         penalty::Penalty = NoPenalty(),
         weights::VecF = ones(0),
         lambdas::AVecF = zeros(1),
@@ -25,6 +22,11 @@ function StatLearnPath(x::MatF, y::VecF;
         algkw...
     )
     n, p = size(x)
+    if typeof(penalty) == NoPenalty && length(lambdas) > 1
+        info("NoPenalty: Setting lambdas = zeros(1)")
+    else
+        lambdas = lambda_check(lambdas)
+    end
     lambdas = lambda_check(lambdas)
     d = length(lambdas)
     @assert length(y) == n "size(x, 1) != length(y)"
@@ -33,17 +35,19 @@ function StatLearnPath(x::MatF, y::VecF;
     o = StatLearnPath(
         zeros(d),
         zeros(p, d),
-        intercept, link, loss, penalty,
+        intercept, model, penalty,
         _standardize(standardize, x, μx, σx), vec(μx), vec(σx), y,
         weights, lambdas
     )
     fit!(o; algkw...)
+    if standardize
+        scaled_to_original!(o)
+    end
     o
 end
 function Base.show(io::IO, o::StatLearnPath)
     print_header(io, "StatLearnPath")
-    print_item(io, "Link", o.link)
-    print_item(io, "Loss", o.loss)
+    print_item(io, "Model", o.model)
     print_item(io, "Penalty", o.penalty)
     print_item(io, "Intercept", o.intercept)
     print_item(io, "λs", "$(length(o.λs))")
@@ -61,5 +65,15 @@ function lambda_check(lambdas::AVecF)
         @assert lambdas[j] < lambdas[j + 1]
     end
     collect(lambdas)
+end
+# Get coefficients in terms of the original predictors
+function scaled_to_original!(o::StatLearnPath)
+    p, d = size(o.β)
+    scale!(1. ./ o.σx, o.β)
+    if o.intercept
+        for j in 1:d
+            o.β[j] = o.β[j] - dot(o.μx, o.β[:, j])
+        end
+    end
 end
 StatsBase.coef(o::StatLearnPath) = vcat(o.β0', o.β)
