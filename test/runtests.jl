@@ -9,5 +9,5 @@ macro subtitle(s)
     return :("████████████████████████████████████████████████ " * $s)
 end
 
-include("testglm.jl")
+
 end

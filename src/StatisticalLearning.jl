@@ -19,6 +19,7 @@ end
 
 #----------------------------------------------------------------------# source files
 include("penalty.jl")
+include("link_loss.jl")
 include("statlearnpath.jl")
 include("algorithms/fista.jl")
 
