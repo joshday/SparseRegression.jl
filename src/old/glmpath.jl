@@ -16,7 +16,7 @@ function GLMPath(x::Matrix, y::Vector;
         penalty::Penalty    = NoPenalty(),
         weights::Vector     = ones(0),
         λs::Vector          = zeros(1),
-        standardize::Bool   = true,  # TODO
+        standardize::Bool   = true,  #todo
         algkw...
     )
     n, p = size(x)
@@ -47,7 +47,8 @@ function fista!(o::GLMPath;
         maxit::Integer = 100,
         eps::Float64 = 1e-4,
         verbose::Bool = true,
-        stepsize::Float64 = 1.0
+        stepsize::Float64 = 1.0,
+        ηmax::Float64 = 10.0
     )
     # setup
     n, p = size(o.x)
@@ -105,9 +106,6 @@ function fista!(o::GLMPath;
                 weightedlossvector!(o.model, lossvec, o.y, η, o.weights) :
                 lossvector!(o.model, lossvec, o.y, η)
             newcost = mean(lossvec) + penalty(o.penalty, λ, β)
-            if newcost > oldcost  # decrease step size if cost doesn't decrease
-                s *= 0.75
-            end
             abs(newcost - oldcost) < eps * abs(oldcost + 1.0) && break
         end
         if iters == maxit

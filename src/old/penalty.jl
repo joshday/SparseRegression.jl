@@ -1,8 +1,8 @@
 #---------------------------------------------------------------------------# Penalty
 abstract Penalty
 immutable NoPenalty             <: Penalty              end
-immutable RidgePenalty          <: Penalty              end
-immutable LassoPenalty          <: Penalty              end
+immutable L2Penalty             <: Penalty              end
+immutable L1Penalty             <: Penalty              end
 immutable ElasticNetPenalty     <: Penalty α::Float64   end
 immutable SCADPenalty           <: Penalty a::Float64   end
 
@@ -11,18 +11,18 @@ ElasticNetPenalty(α::Real = .5) = ElasticNetPenalty(α)
 SCADPenalty(a::Real = 3.7) = SCADPenalty(a)
 
 Base.show(io::IO, p::NoPenalty)         = print(io, "NoPenalty")
-Base.show(io::IO, p::RidgePenalty)      = print(io, "RidgePenalty")
-Base.show(io::IO, p::LassoPenalty)      = print(io, "LassoPenalty")
+Base.show(io::IO, p::L2Penalty)         = print(io, "L2Penalty")
+Base.show(io::IO, p::L1Penalty)         = print(io, "L1Penalty")
 Base.show(io::IO, p::ElasticNetPenalty) = print(io, "ElasticNetPenalty (α = $(p.α))")
 Base.show(io::IO, p::SCADPenalty)       = print(io, "SCADPenalty (a = $(p.a))")
 
-penalty(p::NoPenalty, β, λ) = 0.0
-penalty(p::RidgePenalty, β, λ) = 0.5 * λ * sumabs2(β)
-penalty(p::LassoPenalty, β, λ) = λ * sumabs(β)
-penalty(p::ElasticNetPenalty, β, λ) = λ * (p.α * sumabs(β) + (1. - p.α) * 0.5 * sumabs2(β))
-function penalty(p::SCADPenalty, β, λ)
+penalty(p::NoPenalty, λ, β) = 0.0
+penalty(p::L2Penalty, λ, β) = 0.5 * λ * sumabs2(β)
+penalty(p::L1Penalty, λ, β) = λ * sumabs(β)
+penalty(p::ElasticNetPenalty, λ, β) = λ * (p.α * sumabs(β) + (1. - p.α) * 0.5 * sumabs2(β))
+function penalty(p::SCADPenalty, λ, β)
     val = 0.0
-    for j in eachindex(β)
+    for j in 1:length(β)
         βj = abs(β[j])
         if βj < λ
             val += λ * βj
@@ -35,16 +35,12 @@ function penalty(p::SCADPenalty, β, λ)
     return val
 end
 
-
-# Setup for proximal gradient algorithm (FISTA):
-# For ℓ(β) = f(β) + g(β),
-# βnew = prox_{s * g}(βold - s * ∇f(βold))
-prox(p::NoPenalty, βj, λ, s) = βj
-prox(p::RidgePenalty, βj, λ, s) = βj / (1.0 + s * λ)
-prox(p::LassoPenalty, βj, λ, s) = sign(βj) * max(abs(βj) - s * λ, 0.0)
-prox(p::ElasticNetPenalty, βj, λ, s) =
+prox(p::NoPenalty, λ, βj, s) = βj
+prox(p::L2Penalty, λ, βj, s) = βj / (1.0 + s * λ)
+prox(p::L1Penalty, λ, βj, s) = sign(βj) * max(abs(βj) - s * λ, 0.0)
+prox(p::ElasticNetPenalty, λ, βj, s) =
     sign(βj) * max(abs(βj) - s * λ * p.α, 0.0) / (1.0 + s * λ * (1.0 - p.α))
-function prox(p::SCADPenalty, βj, λ, s)
+function prox(p::SCADPenalty, λ, βj, s)
     if abs(βj) > p.a * λ
     elseif abs(βj) < 2.0 * λ
         βj = sign(βj) * max(abs(βj) - s * λ, 0.0)
@@ -54,8 +50,8 @@ function prox(p::SCADPenalty, βj, λ, s)
     βj
 end
 
-function prox!{T <: Real}(p::Penalty, β::Vector{T}, λ::T, s::T)
+function prox!(p::Penalty, λ::Float64, β::VecF, s::Float64)
     for j in 1:length(β)
-        β[j] = prox(p, β[j], λ, s)
+        β[j] = prox(p, λ, β[j], s)
     end
 end

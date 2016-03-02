@@ -18,15 +18,15 @@ function weightedgradient!(m::GLMModel, Δ::VecF, x::MatF, resids::VecF, η::Vec
 end
 # loss vector, proportional to negative loglikelihood: log f(y | β) ∝ y * Θ + b(Θ)
 function lossvector!(m::GLMModel, storage::VecF, y::VecF, η::VecF)
-    for j in eachindex(storage)
-        @inbounds Θ = _Θ(m, η[j])
-        @inbounds storage[j] = -y[j] * Θ + _b(m, Θ)
+    @inbounds for j in eachindex(storage)
+        Θ = _Θ(m, η[j])
+        storage[j] = -y[j] * Θ + _b(m, Θ)
     end
 end
 function weightedlossvector!(m::GLMModel, storage::VecF, y::VecF, η::VecF, wts::VecF)
-    for j in eachindex(storage)
-        @inbounds Θ = _Θ(m, η[j])
-        @inbounds storage[j] = (-y[j] * Θ + _b(m, Θ)) * wts[j]
+    @inbounds for j in eachindex(storage)
+        Θ = _Θ(m, η[j])
+        storage[j] = (-y[j] * Θ + _b(m, Θ)) * wts[j]
     end
 end
 
