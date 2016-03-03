@@ -1,5 +1,4 @@
-#-----------------------------------------------------------------------------# FISTA 
-# todo: weights
+#-----------------------------------------------------------------------------# FISTA
 function fit!{M <: LinPredModel}(o::StatLearnPath{M};
         maxit::Integer = 100,
         tol::Float64 = 1e-6,
@@ -62,6 +61,11 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
             for i in eachindex(deriv_vec)
                 @inbounds deriv_vec[i] = lossderiv(o.model, o.y[i], η[i])
             end
+            if useweights
+                for i in eachindex(deriv_vec)
+                    @inbounds deriv_vec[i] *= o.weights[i]
+                end
+            end
             ############ gradient
             BLAS.gemv!('T', 1/n, o.x, deriv_vec, 0.0, Δ)
             ############ gradient descent
@@ -73,6 +77,11 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
             prox!(o.penalty, β, λ, s)
             ############ check for convergence
             lossvector!(o.model, lossvec, o.y, η)
+            if useweights
+                for i in eachindex(lossvec)
+                    @inbounds lossvec[i] *= o.weights[i]
+                end
+            end
             newcost = mean(lossvec) + penalty(o.penalty, β, λ)
             if abs(newcost - oldcost) < tol * abs(oldcost)
                 reltol = abs(newcost - oldcost) / abs(oldcost)

@@ -13,10 +13,11 @@ Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β
 | keyword       | type              | description                                                                                      |
 |:--------------|:------------------|:-------------------------------------------------------------------------------------------------|
 | `intercept`   | `Bool`            | Should an intercept be included in the model?                                                    |
-| `model`       | `Model`           | The type of model.  default = `L2Regression()`                                                   |
-| `penalty`     | `Penalty`         | The type of penalty. default = `NoPenalty()`                                                     |
+| `model`       | `Model`           | The type of model.  Default = `L2Regression()`                                                   |
+| `penalty`     | `Penalty`         | The type of penalty. Default = `NoPenalty()`                                                     |
 | `lambdas`     | `Vector{Float64}` | The lambdas for which to get a solution path                                                     |
 | `standardize` | `Bool`            | Should `x` values be standardized? Coefficients are returned in original scale. default = `true` |
+| `weights`     | `Vector{Float64}` | Weights for each observation.                                                                    |
 
 
 # Models

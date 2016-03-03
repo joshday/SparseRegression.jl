@@ -22,35 +22,36 @@ y = x*β + randn(n)
 λs = collect(0.:.1:1)
 
 print_with_color(:green, "L2egression\n")
-@time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty())
+@time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
+    weights = rand(n))
 @display coef(o)
 @display coef(o, .5)
 
-print_with_color(:green, "L1Regression\n")
-@time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(), model = S.L1Regression())
-@display coef(o)
-@display plot(o)
-
-print_with_color(:green, "QuantileRegression\n")
-@time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
-    model = S.QuantileRegression(.7))
-@display coef(o)
-
-print_with_color(:green, "HuberRegression\n")
-@time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
-    model = S.HuberRegression(.7))
-@display coef(o)
-
-
-y2 = 2.0 * [rand(Bernoulli(1 / (1 + exp(-η)))) for η in x*β] - 1.0
-print_with_color(:green, "LogisticRegression\n")
-@time o = S.StatLearnPath(x, y2, lambdas = λs, penalty = S.LassoPenalty(),
-    model = S.LogisticRegression())
-@display coef(o)
-
-print_with_color(:green, "SVMLike\n")
-@time o = S.StatLearnPath(x, y2, lambdas = λs, penalty = S.LassoPenalty(),
-    model = S.SVMLike())
-@display coef(o)
+# print_with_color(:green, "L1Regression\n")
+# @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(), model = S.L1Regression())
+# @display coef(o)
+# @display plot(o)
+#
+# print_with_color(:green, "QuantileRegression\n")
+# @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
+#     model = S.QuantileRegression(.7))
+# @display coef(o)
+#
+# print_with_color(:green, "HuberRegression\n")
+# @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
+#     model = S.HuberRegression(.7))
+# @display coef(o)
+#
+#
+# y2 = 2.0 * [rand(Bernoulli(1 / (1 + exp(-η)))) for η in x*β] - 1.0
+# print_with_color(:green, "LogisticRegression\n")
+# @time o = S.StatLearnPath(x, y2, lambdas = λs, penalty = S.LassoPenalty(),
+#     model = S.LogisticRegression())
+# @display coef(o)
+#
+# print_with_color(:green, "SVMLike\n")
+# @time o = S.StatLearnPath(x, y2, lambdas = λs, penalty = S.LassoPenalty(),
+#     model = S.SVMLike())
+# @display coef(o)
 
 end

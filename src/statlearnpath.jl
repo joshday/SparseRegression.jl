@@ -22,14 +22,16 @@ function StatLearnPath(x::MatF, y::VecF;
         algkw...
     )
     n, p = size(x)
-    if typeof(penalty) == NoPenalty && length(lambdas) > 1
+    # set lambdas = [0.0] if NoPenalty
+    d = length(lambdas)
+    if typeof(penalty) == NoPenalty && d > 1
         info("NoPenalty: Setting lambdas = [0.0]")
-    else
-        lambdas = lambda_check(lambdas)
     end
     lambdas = lambda_check(lambdas)
-    d = length(lambdas)
+    # check that y and x are compatable dimensions
     @assert length(y) == n "size(x, 1) != length(y)"
+    # check that weights are nonnegative
+    @assert all(weights .>= 0) "Negative weights are not allowed"
     μx = mean(x, 1)
     σx = std(x, 1)
     o = StatLearnPath(
