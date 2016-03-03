@@ -6,7 +6,7 @@
 FISTA algorithm for solving statistical learning problems of the form `f(Θ) + λ * g(Θ)`.  
 
 
-# `StatLearn(x, y; kw...)`
+# `StatLearnPath(x, y; kw...)`
 
 ### Keyword arguments:
 
