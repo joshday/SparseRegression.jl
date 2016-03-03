@@ -3,9 +3,20 @@ abstract Model
 # =====================================================================# LinPredModel
 # Models with prediction f(η) where η = Xβ
 abstract LinPredModel <: Model
+abstract BivariateLinPredModel <: LinPredModel
 function lossvector!(m::LinPredModel, storage::VecF, y::VecF, η::VecF)
     for i in eachindex(y)
         @inbounds storage[i] = loss(m, y[i], η[i])
+    end
+end
+function predict!(m::LinPredModel, storage::VecF, η::VecF)
+    for i in eachindex(η)
+        @inbounds storage[i] = predict(m, η[i])
+    end
+end
+function classify!(m::BivariateLinPredModel, storage::VecF, η::VecF)
+    for i in eachindex(η)
+        @inbounds storage[i] = classify(m, η[i])
     end
 end
 
@@ -13,39 +24,33 @@ end
 immutable L2Regression <: LinPredModel end
 loss(m::L2Regression, y::Float64, η::Float64) = 0.5 * (y - η) ^ 2
 lossderiv(m::L2Regression, y::Float64, η::Float64) = -(y - η)
-predict!(m::L2Regression, storage::VecF, η::VecF) = copy!(storage, η)
+predict(m::L2Regression, η::Float64) = η
 
 #----------------------------------------------------------------------# L1Regression
 immutable L1Regression <: LinPredModel end
 loss(m::L1Regression, y::Float64, η::Float64) = abs(y - η)
 lossderiv(m::L1Regression, y::Float64, η::Float64) = -sign(y - η)
-predict!(m::L1Regression, storage::VecF, η::VecF) = copy!(storage, η)
+predict(m::L1Regression, η::Float64) = η
 
 #----------------------------------------------------------------# LogisticRegression
-immutable LogisticRegression <: LinPredModel end
+immutable LogisticRegression <: BivariateLinPredModel end
 loss(m::LogisticRegression, y::Float64, η::Float64) = log(1.0 + exp(-y * η))
 lossderiv(m::LogisticRegression, y::Float64, η::Float64) = -y / (1.0 + exp(y * η))
-function predict!(m::LogisticRegression, storage::VecF, η::VecF)
-    for i in eachindex(storage)
-        @inbounds storage[i] = 1.0 / (1.0 + exp(-η[i]))
-    end
-end
+predict(m::LogisticRegression, η::Float64) = 1.0 / (1.0 + exp(η))
+classify(m::LogisticRegression, η::Float64) = sign(η)
 
 #----------------------------------------------------------------# PoissonRegression
 immutable PoissonRegression <: LinPredModel end
 loss(m::PoissonRegression, y::Float64, η::Float64) = -y * η + exp(η)
 lossderiv(m::PoissonRegression, y::Float64, η::Float64) = -y + exp(η)
-function predict!(m::PoissonRegression, storage::VecF, η::VecF)
-    for i in eachindex(storage)
-        @inbounds storage[i] = exp(η[i])
-    end
-end
+predict(m::PoissonRegression, η::Float64) = exp(η)
 
 #---------------------------------------------------------------------------# SVMLike
-immutable SVMLike <: LinPredModel end
+immutable SVMLike <: BivariateLinPredModel end
 loss(m::SVMLike, y::Float64, η::Float64) = max(0.0, 1.0 - y * η)
 lossderiv(m::SVMLike, y::Float64, η::Float64) = 1.0 < y*η ? 0.0: -y
-predict!(m::SVMLike, storage::VecF, η::VecF) = copy!(storage, η)
+predict(m::SVMLike, η::Float64) = η
+classify(m::SVMLike, η::Float64) = sign(η)
 
 #----------------------------------------------------------------# QuantileRegression
 immutable QuantileRegression <: LinPredModel τ::Float64 end
@@ -54,7 +59,7 @@ function loss(m::QuantileRegression, y::Float64, η::Float64)
     r * (m.τ - (r < 0.0))
 end
 lossderiv(m::QuantileRegression, y::Float64, η::Float64) = (y - η < 0.0) - m.τ
-predict!(m::QuantileRegression, storage::VecF, η::VecF) = copy!(storage, η)
+predict(m::QuantileRegression, η::Float64) = η
 
 #-------------------------------------------------------------------# HuberRegression
 immutable HuberRegression <: LinPredModel δ::Float64 end
@@ -66,4 +71,4 @@ function lossderiv(m::HuberRegression, y::Float64, η::Float64)
     r = y - η
     abs(r) <= m.δ ? -r : m.δ * sign(-r)
 end
-predict!(m::HuberRegression, storage::VecF, η::VecF) = copy!(storage, η)
+predict(m::HuberRegression, η::Float64) = η

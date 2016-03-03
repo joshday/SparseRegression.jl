@@ -29,7 +29,7 @@ include("penalty.jl")
 include("model.jl")
 include("statlearnpath.jl")
 include("algorithms/fista.jl")
+include("crossvalidate.jl")
 Requires.@require Plots include("plots.jl")
 
 end # module
-s = StatisticalLearning

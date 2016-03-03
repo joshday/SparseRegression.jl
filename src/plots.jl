@@ -11,16 +11,38 @@ function Plots.plot(o::StatLearnPath)
 end
 
 
-function Plots.plot(o::StatLearnPath, xtest::Matrix, ytest::Vector)
+function Plots.plot(o::StatLearnPath, x::Matrix, y::Vector)
     d = length(o.β0)
-    @assert size(xtest, 2) == size(o.β, 1)
-    lossvalues = zeros(d)
-    lossvec = zeros(size(xtest, 1))
+    n, p = size(x)
+    @assert p == size(o.β, 1) "x is incompatable with coefficient vector"
+    @assert n == length(y) "x is incompatable with y"
+    err = zeros(d)
+    η = zeros(n)
+    ŷ = zeros(n)
+
     for j in 1:d
-        lossvector!(o.model, lossvec, ytest, xtest * o.β[:, j] + o.β0[j])
-        lossvalues[j] = mean(lossvec)
+        # η
+        BLAS.gemv!('N', 1.0, x, o.β[:, j], 0.0, η)
+        if o.intercept
+            for i in eachindex(η)
+                @inbounds η[i] += o.β0[j]
+            end
+        end
+        # calculate err
+        if typeof(o.model) <: BivariateLinPredModel
+            classify!(o.model, ŷ, η)
+            err[j] = mean(y .!= ŷ)
+        else
+            predict!(o.model, ŷ, η)
+            err[j] = sumabs2(y - ŷ) / n
+        end
+    end
+    if typeof(o.model) <: BivariateLinPredModel
+        ylab = "Misclassification Rate"
+    else
+        ylab = "MSE"
     end
     p1 = Plots.plot(o)
-    p2 = Plots.plot(o.λs, lossvalues, xlabel = "lambda", ylabel = "loss", title = "Test Error")
+    p2 = Plots.plot(o.λs, err, xlabel = "lambda", ylabel = ylab, title = "Test Set Error")
     Plots.subplot(p1, p2)
 end

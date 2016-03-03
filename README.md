@@ -19,7 +19,8 @@ Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β
 | `standardize` | `Bool`            | Should `x` values be standardized? Default = `true` |
 | `weights`     | `Vector{Float64}` | Weights for each observation                        |
 | `tol`         | `Float64`         | tolerance for convergence.  Default = `1e-6`        |
-| `maxit`       | `Int`             | Maximum number of iterations.  Defaault = `100`     |
+| `maxit`       | `Int`             | Maximum number of iterations.  Default = `100`      |
+| `stepsize`    | `Float64`         | Step size for gradient descent part of algorithm    |
 
 
 # Models

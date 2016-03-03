@@ -1,11 +1,11 @@
 # ===================================================================== StatLearnPath
-immutable StatLearnPath{M <: Model, P <: Penalty}
+immutable StatLearnPath{M <: LinPredModel, P <: Penalty}
     β0::VecF            # intercepts
     β::MatF             # coefficients
     intercept::Bool     # should intercept be estimated?
     model::M            # Model
     penalty::P          # regularization
-    x::MatF             # design matrix
+    x::MatF             # design matrix (standardized if standardize=true)
     μx::VecF            # column means of x
     σx::VecF            # column stds of x
     y::VecF             # response vector
@@ -92,3 +92,4 @@ function StatsBase.predict(o::StatLearnPath, x::Matrix, λ::Real = o.λs[1])
         error("Prediction not available for unfitted λ = $λ") :
         predict!(o.model, storage, x*o.β[:, ff] + o.β0[ff])
 end
+Base.copy(o::StatLearnPath) = deepcopy(o)
