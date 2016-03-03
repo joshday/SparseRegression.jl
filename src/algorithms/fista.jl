@@ -1,3 +1,12 @@
+# TODO: For parity with glmnet:
+#   - penalty_factor
+#   - contraints
+#   - automatic choice of λs
+#       - dfmax
+#       - nlambda
+#       - lambda_min_ratio
+#       - pmax
+
 #-----------------------------------------------------------------------------# FISTA
 function fit!{M <: LinPredModel}(o::StatLearnPath{M};
         maxit::Integer = 100,

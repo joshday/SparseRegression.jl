@@ -10,14 +10,16 @@ Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β
 
 ### Keyword arguments:
 
-| keyword       | type              | description                                                                                      |
-|:--------------|:------------------|:-------------------------------------------------------------------------------------------------|
-| `intercept`   | `Bool`            | Should an intercept be included in the model?                                                    |
-| `model`       | `Model`           | The type of model.  Default = `L2Regression()`                                                   |
-| `penalty`     | `Penalty`         | The type of penalty. Default = `NoPenalty()`                                                     |
-| `lambdas`     | `Vector{Float64}` | The lambdas for which to get a solution path                                                     |
-| `standardize` | `Bool`            | Should `x` values be standardized? Coefficients are returned in original scale. default = `true` |
-| `weights`     | `Vector{Float64}` | Weights for each observation.                                                                    |
+| keyword       | type              | description                                         |
+|:--------------|:------------------|:----------------------------------------------------|
+| `intercept`   | `Bool`            | Should an intercept be included in the model?       |
+| `model`       | `Model`           | The type of model.  Default = `L2Regression()`      |
+| `penalty`     | `Penalty`         | The type of penalty. Default = `NoPenalty()`        |
+| `lambda`      | `Vector{Float64}` | The lambdas for which to get a solution path        |
+| `standardize` | `Bool`            | Should `x` values be standardized? Default = `true` |
+| `weights`     | `Vector{Float64}` | Weights for each observation                        |
+| `tol`         | `Float64`         | tolerance for convergence.  Default = `1e-6`        |
+| `maxit`       | `Int`             | Maximum number of iterations.  Defaault = `100`     |
 
 
 # Models
@@ -46,6 +48,6 @@ x = randn(n, p)
 β = collect(linspace(-5, 5, p))
 y = x*β + randn(n)
 
-o = StatLearnPath(x, y, penalty = LassoPenalty(), lambdas = 0:.1:6)
+o = StatLearnPath(x, y, penalty = LassoPenalty(), lambda = 0:.1:6)
 plot(o)
 ```

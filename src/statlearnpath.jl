@@ -17,17 +17,17 @@ function StatLearnPath(x::MatF, y::VecF;
         model::Model = L2Regression(),
         penalty::Penalty = NoPenalty(),
         weights::VecF = ones(0),
-        lambdas::AVecF = zeros(1),
+        lambda::AVecF = zeros(1),
         standardize::Bool = true,
         algkw...
     )
     n, p = size(x)
-    # set lambdas = [0.0] if NoPenalty
-    d = length(lambdas)
+    # set lambda = [0.0] if NoPenalty
+    d = length(lambda)
     if typeof(penalty) == NoPenalty && d > 1
-        info("NoPenalty: Setting lambdas = [0.0]")
+        info("NoPenalty: Setting lambda = [0.0]")
     end
-    lambdas = lambda_check(lambdas)
+    lambda = lambda_check(lambda)
     # check that y and x are compatable dimensions
     @assert length(y) == n "size(x, 1) != length(y)"
     # check that weights are nonnegative
@@ -39,7 +39,7 @@ function StatLearnPath(x::MatF, y::VecF;
         zeros(p, d),
         intercept, model, penalty,
         _standardize(standardize, x, μx, σx), vec(μx), vec(σx), y,
-        weights, lambdas
+        weights, lambda
     )
     fit!(o; algkw...)
     if standardize
