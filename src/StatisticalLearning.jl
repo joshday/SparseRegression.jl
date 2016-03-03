@@ -1,6 +1,7 @@
 module StatisticalLearning
 
 import StatsBase
+import Requires
 
 export
     StatLearnPath,
@@ -28,6 +29,7 @@ include("penalty.jl")
 include("model.jl")
 include("statlearnpath.jl")
 include("algorithms/fista.jl")
+Requires.@require Plots include("plots.jl")
 
 end # module
 s = StatisticalLearning

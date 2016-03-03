@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/joshday/StatisticalLearning.jl.svg?branch=master)](https://travis-ci.org/joshday/StatisticalLearning.jl)
 
 
-FISTA algorithm for solving statistical learning problems of the form `f(Θ) + λ * g(Θ)`.  
+Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β)`.  
 
 
 # `StatLearnPath(x, y; kw...)`
@@ -36,3 +36,15 @@ FISTA algorithm for solving statistical learning problems of the form `f(Θ) + �
 - `LassoPenalty()`
 - `ElasticNetPenalty(α = .5)`
 - `SCADPenalty(a = 3.7)`
+
+# Example
+```julia
+using StatisticalLearning, Plots; plotly()
+n, p = 10000, 11
+x = randn(n, p)
+β = collect(linspace(-5, 5, p))
+y = x*β + randn(n)
+
+o = StatLearnPath(x, y, penalty = LassoPenalty(), lambdas = 0:.1:6)
+plot(o)
+```

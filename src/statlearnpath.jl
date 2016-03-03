@@ -80,6 +80,13 @@ StatsBase.coef(o::StatLearnPath) = vcat(o.β0', o.β)
 function StatsBase.coef(o::StatLearnPath, λ::Real)
     ff = findfirst(o.λs, λ)
     ff == 0 ?
-        error("Coefficients not available for unfitted λ = $λ") : 
+        error("Coefficients not available for unfitted λ = $λ") :
         vcat(o.β0[ff], o.β[:, ff])
+end
+function StatsBase.predict(o::StatLearnPath, x::Matrix, λ::Real = o.λs[1])
+    ff = findfirst(o.λs, λ)
+    storage = zeros(size(x, 1))
+    ff == 0 ?
+        error("Prediction not available for unfitted λ = $λ") :
+        predict!(o.model, storage, x*o.β[:, ff] + o.β0[ff])
 end

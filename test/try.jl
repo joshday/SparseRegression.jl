@@ -1,7 +1,8 @@
 # Sandbox for testing code
 
 module Try
-using StatsBase, Distributions
+using StatsBase, Distributions, Plots
+plotly()
 import StatisticalLearning
 S = StatisticalLearning
 
@@ -18,16 +19,17 @@ x = randn(n, p)
 
 # L
 y = x*β + randn(n)
-λs = collect(0.:.01:1)
+λs = collect(0.:.1:1)
 
 print_with_color(:green, "L2egression\n")
 @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty())
 @display coef(o)
-@display coef(o, .05)
+@display coef(o, .5)
 
 print_with_color(:green, "L1Regression\n")
 @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(), model = S.L1Regression())
 @display coef(o)
+@display plot(o)
 
 print_with_color(:green, "QuantileRegression\n")
 @time o = S.StatLearnPath(x, y, lambdas = λs, penalty = S.LassoPenalty(),
