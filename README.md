@@ -10,17 +10,18 @@ Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β
 
 ### Keyword arguments:
 
-| keyword       | type              | description                                         |
-|:--------------|:------------------|:----------------------------------------------------|
-| `intercept`   | `Bool`            | Should an intercept be included in the model?       |
-| `model`       | `Model`           | The type of model.  Default = `L2Regression()`      |
-| `penalty`     | `Penalty`         | The type of penalty. Default = `NoPenalty()`        |
-| `lambda`      | `Vector{Float64}` | The lambdas for which to get a solution path        |
-| `standardize` | `Bool`            | Should `x` values be standardized? Default = `true` |
-| `weights`     | `Vector{Float64}` | Weights for each observation                        |
-| `tol`         | `Float64`         | tolerance for convergence.  Default = `1e-6`        |
-| `maxit`       | `Int`             | Maximum number of iterations.  Default = `100`      |
-| `stepsize`    | `Float64`         | Step size for gradient descent part of algorithm    |
+| keyword          | type              | description                                         |
+|:-----------------|:------------------|:----------------------------------------------------|
+| `intercept`      | `Bool`            | Should an intercept be included in the model?       |
+| `model`          | `Model`           | The type of model.  Default = `L2Regression()`      |
+| `penalty`        | `Penalty`         | The type of penalty. Default = `NoPenalty()`        |
+| `penalty_factor` | `Vector{Float64}` | Weights applied to the penalty.  Default is ones.   |
+| `lambda`         | `Vector{Float64}` | The lambdas for which to get a solution path        |
+| `standardize`    | `Bool`            | Should `x` values be standardized? Default = `true` |
+| `weights`        | `Vector{Float64}` | Weights for each observation                        |
+| `tol`            | `Float64`         | tolerance for convergence.  Default = `1e-6`        |
+| `maxit`          | `Int`             | Maximum number of iterations.  Default = `100`      |
+| `stepsize`       | `Float64`         | Step size for gradient descent part of algorithm    |
 
 
 # Models

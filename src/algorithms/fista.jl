@@ -1,5 +1,4 @@
 # TODO: For parity with glmnet:
-#   - penalty_factor
 #   - contraints
 #   - automatic choice of λs
 #       - dfmax
@@ -83,7 +82,7 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
             end
             β -= s * Δ
             ############ prox operator
-            prox!(o.penalty, β, λ, s)
+            prox!(o.penalty, β, λ * o.penalty_factor, s)
             ############ check for convergence
             lossvector!(o.model, lossvec, o.y, η)
             if useweights

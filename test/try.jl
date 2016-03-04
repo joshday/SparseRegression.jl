@@ -16,6 +16,8 @@ x = randn(n, p)
 #     x[:, j] *= j
 # end
 β = collect(linspace(-.5, .5, p))
+pfac = ones(p)
+pfac[3] = 0.0
 
 # Linear Regression
 y = x*β + randn(n)
@@ -23,7 +25,7 @@ y = x*β + randn(n)
 
 print_with_color(:green, "L2egression\n")
 @time o = S.StatLearnPath(x, y, lambda = 0:.01:.3, penalty = S.LassoPenalty(),
-    weights = rand(n))
+    weights = rand(n), penalty_factor = pfac)
 @display coef(o)
 @display plot(o, x, y)
 
