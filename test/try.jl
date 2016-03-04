@@ -1,5 +1,4 @@
 # Sandbox for testing code
-
 module Try
 using StatsBase, Distributions, Plots
 plotly()
@@ -10,24 +9,24 @@ S = StatisticalLearning
 macro display(expr) :(display($expr)) end
 
 
-n, p = 10000, 20
+n, p = 1000, 20
 x = randn(n, p)
 # for j in 1:p
 #     x[:, j] *= j
 # end
 β = collect(linspace(-.5, .5, p))
 pfac = ones(p)
-pfac[3] = 0.0
+# pfac[3] = 0.0
 
 # Linear Regression
 y = x*β + randn(n)
 λs = collect(0.:.1:1)
 
 print_with_color(:green, "L2egression\n")
-@time o = S.StatLearnPath(x, y, lambda = 0:.01:.3, penalty = S.LassoPenalty(),
+@time o = S.StatLearnPath(x, y, lambda = 0:.01:1, penalty = S.LassoPenalty(),
     weights = rand(n), penalty_factor = pfac)
 @display coef(o)
-@display plot(o, x, y)
+# @display plot(o, x, y)
 
 # print_with_color(:green, "L1Regression\n")
 # @time o = S.StatLearnPath(x, y, lambda = 0:.01:.5, penalty = S.LassoPenalty(), model = S.L1Regression())

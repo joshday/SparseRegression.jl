@@ -26,11 +26,9 @@ function StatLearnPath(x::MatF, y::VecF;
     n, p = size(x)
     # set lambda = [0.0] if NoPenalty
     d = length(lambda)
-    if typeof(penalty) == NoPenalty && d > 1
-        info("NoPenalty: Setting lambda = [0.0]")
-    end
-    lambda = lambda_check(lambda)
-    @assert length(penalty_factor) == p "penalty_factor needs to be length $p"
+    typeof(penalty) == NoPenalty && d > 1 && info("NoPenalty: Setting lambda = [0.0]")
+    @assert all(diff(lambda) .> 0)
+    @assert length(penalty_factor) == p "`penalty_factor` must have length $p"
     @assert all(penalty_factor .>= 0) "`penalty_factor` cannot have negative values"
     @assert length(y) == n "x and y have incompatable dimensions"
     @assert all(weights .>= 0) "`weights` cannot have negative values"
@@ -41,7 +39,7 @@ function StatLearnPath(x::MatF, y::VecF;
         zeros(p, d),
         intercept, model, penalty, collect(penalty_factor),
         _standardize(standardize, x, μx, σx), vec(μx), vec(σx), y,
-        weights, lambda
+        weights, collect(lambda)
     )
     fit!(o; algkw...)
     if standardize
@@ -62,13 +60,6 @@ function _standardize(stdz::Bool, x::MatF, μx::MatF, σx::MatF)
     else
         return StatsBase.zscore(x, μx, σx)
     end
-end
-# ensure lambdas are increasing
-function lambda_check(lambdas::AVecF)
-    for j in 1:length(lambdas) - 1
-        @assert lambdas[j] < lambdas[j + 1]
-    end
-    collect(lambdas)
 end
 # Get coefficients in terms of the original predictors
 function scaled_to_original!(o::StatLearnPath)
@@ -95,3 +86,8 @@ function StatsBase.predict(o::StatLearnPath, x::Matrix, λ::Real = o.λs[1])
         predict!(o.model, storage, x*o.β[:, ff] + o.β0[ff])
 end
 Base.copy(o::StatLearnPath) = deepcopy(o)
+function null_loss(o::StatLearnPath)
+    lossvec = zeros(length(o.y))
+    lossvector!(o.model, lossvec, o.y, zeros(length(o.y)))
+    mean(lossvec)
+end

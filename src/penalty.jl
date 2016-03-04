@@ -59,7 +59,7 @@ function prox!(p::Penalty, β::VecF, λ::Float64, s::Float64)
         @inbounds β[j] = prox(p, β[j], λ, s)
     end
 end
-
+# if λs are weighted by penalty_factor:
 function prox!(p::Penalty, β::VecF, λ::VecF, s::Float64)
     for j in eachindex(β)
         @inbounds β[j] = prox(p, β[j], λ[j], s)

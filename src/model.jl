@@ -20,6 +20,7 @@ function classify!(m::BivariateLinPredModel, storage::VecF, η::VecF)
     end
 end
 
+
 #----------------------------------------------------------------------# L2Regression
 immutable L2Regression <: LinPredModel end
 loss(m::L2Regression, y::Float64, η::Float64) = 0.5 * (y - η) ^ 2

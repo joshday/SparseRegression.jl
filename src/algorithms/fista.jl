@@ -5,6 +5,8 @@
 #       - nlambda
 #       - lambda_min_ratio
 #       - pmax
+# TODO: Issues
+#   - p > n behaves strangely
 
 #-----------------------------------------------------------------------------# FISTA
 function fit!{M <: LinPredModel}(o::StatLearnPath{M};
@@ -26,8 +28,6 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
     lossvec = zeros(n)
     intercept = o.intercept
     useweights = length(o.weights) == n
-    reltol = -Inf
-    maxreltol = -Inf
 
     # main loop
     for k in eachindex(o.λs)
@@ -38,7 +38,7 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
                 for j in k:length(o.β0)
                     o.β0[j] = β0
                 end
-                verbose && info("All coefficients zero: Algorithm stopped early\n")
+                verbose && info("All coefficients zero at λ = $(o.λs[k-1])\n")
                 break
             end
         end
@@ -78,7 +78,7 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
             BLAS.gemv!('T', 1/n, o.x, deriv_vec, 0.0, Δ)
             ############ gradient descent
             if intercept
-                β0 -= mean(deriv_vec)
+                β0 -= s * mean(deriv_vec)
             end
             β -= s * Δ
             ############ prox operator
@@ -92,7 +92,6 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
             end
             newcost = mean(lossvec) + penalty(o.penalty, β, λ)
             if abs(newcost - oldcost) < tol * abs(oldcost)
-                reltol = abs(newcost - oldcost) / abs(oldcost)
                 break
             end
             ############ decrease step size
@@ -109,13 +108,11 @@ function fit!{M <: LinPredModel}(o::StatLearnPath{M};
             warn("Not converged for λ = $(o.λs[k]).  Tolerance = $(round(reltol, 8))")
         end
         ############ Get maximum relative difference
-        maxreltol = max(maxreltol, reltol)
         ############ update parameters
         if intercept
             o.β0[k] = β0
         end
         o.β[:, k] = β
     end  # end main loop
-    # verbose && info("Worst Relative Tolerance: ", maxreltol)
     o
 end
