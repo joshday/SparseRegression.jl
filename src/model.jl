@@ -19,6 +19,7 @@ function classify!(m::BivariateLinPredModel, storage::VecF, η::VecF)
         @inbounds storage[i] = classify(m, η[i])
     end
 end
+maxlambda(m::Model, x::MatF, y::VecF) = maxlambda(L2Regression(), x, y)
 
 
 

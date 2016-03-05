@@ -2,8 +2,8 @@
 module Try
 using StatsBase, Distributions, Plots
 plotly()
-import StatisticalLearning
-S = StatisticalLearning
+import SparseRegression
+S = SparseRegression
 
 
 macro display(expr) :(display($expr)) end

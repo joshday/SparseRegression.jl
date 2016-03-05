@@ -6,7 +6,7 @@ function Plots.plot(o::StatLearnPath)
         labels = ["B_$j" for j in 1:size(o.β, 1)]',
         xlabel = "lambda",
         ylabel = "value",
-        title = "Solution Path for $(replace(string(typeof(o)), "StatisticalLearning.", ""))"
+        title = "Solution Path for $(replace(string(typeof(o)), "SparseRegression.", ""))"
     )
 end
 

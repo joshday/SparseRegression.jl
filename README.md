@@ -1,6 +1,6 @@
-# StatisticalLearning
+# SparseRegression
 
-[![Build Status](https://travis-ci.org/joshday/StatisticalLearning.jl.svg?branch=master)](https://travis-ci.org/joshday/StatisticalLearning.jl)
+[![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
 
 
 Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β)`.  
@@ -45,12 +45,12 @@ Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β
 
 # Example
 ```julia
-using StatisticalLearning, Plots; plotly()
+using SparseRegression, Plots; plotly()
 n, p = 10000, 11
 x = randn(n, p)
 β = collect(linspace(-5, 5, p))
 y = x*β + randn(n)
 
-o = StatLearnPath(x, y, penalty = LassoPenalty(), lambda = 0:.1:6)
+o = StatLearnPath(x, y, penalty = LassoPenalty())
 plot(o)
 ```

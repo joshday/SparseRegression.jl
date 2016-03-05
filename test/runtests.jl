@@ -1,5 +1,5 @@
-module StatisticalLearningTests
-using StatisticalLearning
+module SparseRegressionTests
+using SparseRegression
 using FactCheck, Distributions
 
 macro title(s)

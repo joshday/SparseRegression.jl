@@ -1,4 +1,4 @@
-module StatisticalLearning
+module SparseRegression
 
 import StatsBase
 import Requires
