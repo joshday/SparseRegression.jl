@@ -17,6 +17,8 @@ typealias AMat{T} AbstractMatrix{T}
 typealias AVecF AVec{Float64}
 typealias AMatF AMat{Float64}
 
+abstract Algorithm
+
 #--------------------------------------------------------------------------# printing
 print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "■ $s \n")
 function print_item(io::IO, name::AbstractString, value)

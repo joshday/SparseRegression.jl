@@ -21,11 +21,17 @@ function classify!(m::BivariateLinPredModel, storage::VecF, η::VecF)
 end
 
 
+
 #----------------------------------------------------------------------# L2Regression
 immutable L2Regression <: LinPredModel end
 loss(m::L2Regression, y::Float64, η::Float64) = 0.5 * (y - η) ^ 2
 lossderiv(m::L2Regression, y::Float64, η::Float64) = -(y - η)
 predict(m::L2Regression, η::Float64) = η
+function maxlambda(m::L2Regression, x::MatF, y::VecF)
+    n = length(y)
+    bias = (n - 1) / n
+    maximum(abs(StatsBase.zscore(x)'StatsBase.zscore(y) * bias)) / length(y)
+end
 
 #----------------------------------------------------------------------# L1Regression
 immutable L1Regression <: LinPredModel end

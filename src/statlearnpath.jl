@@ -19,19 +19,25 @@ function StatLearnPath(x::MatF, y::VecF;
         penalty::Penalty = NoPenalty(),
         penalty_factor::AVecF = ones(size(x, 2)),
         weights::VecF = ones(0),
-        lambda::AVecF = zeros(1),
+        verbose::Bool = true,
+        lambda::AVecF = get_lambda(nlambda, model, x, y, verbose),
+        nlambda::Integer = 100,
         standardize::Bool = true,
+        algorithm::Algorithm = default_alg(model),
         algkw...
     )
     n, p = size(x)
-    # set lambda = [0.0] if NoPenalty
     d = length(lambda)
-    typeof(penalty) == NoPenalty && d > 1 && info("NoPenalty: Setting lambda = [0.0]")
-    @assert all(diff(lambda) .> 0)
+    # set lambda = [0.0] if NoPenalty
+    if typeof(penalty) == NoPenalty && d > 1
+        info("NoPenalty: Setting lambda = [0.0]")
+        lambda = [0.0]
+    end
+    @assert all(diff(lambda) .> 0)      "lambda must be an increasing vector"
     @assert length(penalty_factor) == p "`penalty_factor` must have length $p"
-    @assert all(penalty_factor .>= 0) "`penalty_factor` cannot have negative values"
-    @assert length(y) == n "x and y have incompatable dimensions"
-    @assert all(weights .>= 0) "`weights` cannot have negative values"
+    @assert all(penalty_factor .>= 0)   "`penalty_factor` cannot have negative values"
+    @assert length(y) == n              "x and y have incompatable dimensions"
+    @assert all(weights .>= 0)          "`weights` cannot have negative values"
     μx = mean(x, 1)
     σx = std(x, 1)
     o = StatLearnPath(
@@ -41,7 +47,7 @@ function StatLearnPath(x::MatF, y::VecF;
         _standardize(standardize, x, μx, σx), vec(μx), vec(σx), y,
         weights, collect(lambda)
     )
-    fit!(o; algkw...)
+    fit!(algorithm, o; verbose = verbose, algkw...)
     if standardize
         scaled_to_original!(o)
     end
@@ -61,6 +67,12 @@ function _standardize(stdz::Bool, x::MatF, μx::MatF, σx::MatF)
         return StatsBase.zscore(x, μx, σx)
     end
 end
+function get_lambda(nlambda::Integer, model::LinPredModel, x::MatF, y::VecF, verbose::Bool)
+    maxλ = maxlambda(model, x, y)
+    verbose && info("Smallest lambda calculated as: $maxλ")
+    collect(linspace(0, maxλ, nlambda))
+end
+
 # Get coefficients in terms of the original predictors
 function scaled_to_original!(o::StatLearnPath)
     p, d = size(o.β)

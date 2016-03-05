@@ -8,8 +8,11 @@
 # TODO: Issues
 #   - p > n behaves strangely
 
+immutable FISTA <: Algorithm end
+default_alg(m::LinPredModel) = FISTA()
+
 #-----------------------------------------------------------------------------# FISTA
-function fit!{M <: LinPredModel}(o::StatLearnPath{M};
+function fit!{M <: LinPredModel}(alg::FISTA, o::StatLearnPath{M};
         maxit::Integer = 100,
         tol::Float64 = 1e-6,
         verbose::Bool = true,

@@ -22,6 +22,7 @@ Solution paths for statistical learning problems of the form `f(Xβ) + λ * g(β
 | `tol`            | `Float64`         | tolerance for convergence.  Default = `1e-6`        |
 | `maxit`          | `Int`             | Maximum number of iterations.  Default = `100`      |
 | `stepsize`       | `Float64`         | Step size for gradient descent part of algorithm    |
+| `verbose`        | `Bool`            | Whether to print information.  Default = `true`     |
 
 
 # Models
