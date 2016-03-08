@@ -15,7 +15,7 @@ default_measure(m::HuberRegression)     = :mse
 
 
 function crossvalidate!(
-        o::StatLearnPath,
+        o::SparseReg,
         cv::MCCV = MCCV(10, .7),
         measure::Symbol = default_measure(o.model);
         kw...

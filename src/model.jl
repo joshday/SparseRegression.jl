@@ -1,4 +1,9 @@
 abstract Model
+function Base.show(io::IO, m::Model)
+    s = string(typeof(m))
+    s = replace(s, "SparseRegression.", "")
+    print(s)
+end
 
 # =====================================================================# LinPredModel
 # Models with prediction f(η) where η = Xβ
@@ -20,6 +25,7 @@ function classify!(m::BivariateLinPredModel, storage::VecF, η::VecF)
     end
 end
 maxlambda(m::Model, x::MatF, y::VecF) = maxlambda(L2Regression(), x, y)
+
 
 
 

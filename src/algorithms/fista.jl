@@ -6,15 +6,15 @@
 #       - lambda_min_ratio
 #       - pmax
 # TODO: Issues
-#   - p > n behaves strangely
+#   - Lasso p > n behaves strangely
 
 immutable FISTA <: Algorithm end
 default_alg(m::LinPredModel) = FISTA()
 
 #-----------------------------------------------------------------------------# FISTA
-function fit!{M <: LinPredModel}(alg::FISTA, o::StatLearnPath{M};
+function fit!{M <: LinPredModel}(alg::FISTA, o::SparseReg{M};
         maxit::Integer = 100,
-        tol::Float64 = 1e-6,
+        tol::Float64 = 1e-7,
         verbose::Bool = true,
         stepsize::Float64 = 1.0
     )
@@ -24,8 +24,8 @@ function fit!{M <: LinPredModel}(alg::FISTA, o::StatLearnPath{M};
     β = zeros(p)
     β1 = zeros(p)       # last iteration
     β2 = zeros(p)       # two iterations ago
-    Δ = zeros(p)
-    deriv_vec = zeros(n)     # Δ = x' * deriv_vec
+    Δ = zeros(p)            # Δ = x' * deriv_vec
+    deriv_vec = zeros(n)    # derivative of loss with respect to η
     ŷ = zeros(n)
     η = zeros(n)
     lossvec = zeros(n)

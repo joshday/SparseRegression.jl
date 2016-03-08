@@ -4,7 +4,7 @@ import StatsBase
 import Requires
 
 export
-    StatLearnPath,
+    SparseReg,
     NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression
@@ -29,7 +29,7 @@ end
 #----------------------------------------------------------------------# source files
 include("penalty.jl")
 include("model.jl")
-include("statlearnpath.jl")
+include("sparsereg.jl")
 include("algorithms/fista.jl")
 include("crossvalidate.jl")
 Requires.@require Plots include("plots.jl")

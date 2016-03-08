@@ -1,7 +1,7 @@
 import Plots
 
 
-function Plots.plot(o::StatLearnPath)
+function Plots.plot(o::SparseReg)
     Plots.plot(o.λs, o.β',
         labels = ["B_$j" for j in 1:size(o.β, 1)]',
         xlabel = "lambda",
@@ -11,7 +11,7 @@ function Plots.plot(o::StatLearnPath)
 end
 
 
-function Plots.plot(o::StatLearnPath, x::Matrix, y::Vector)
+function Plots.plot(o::SparseReg, x::Matrix, y::Vector)
     d = length(o.β0)
     n, p = size(x)
     @assert p == size(o.β, 1) "x is incompatable with coefficient vector"

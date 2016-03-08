@@ -6,7 +6,7 @@
 Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  
 
 
-# `StatLearnPath(x, y; kw...)`
+# `SparseReg(x, y; kw...)`
 
 ### Keyword arguments:
 
@@ -56,8 +56,8 @@ using SparseRegression, Plots; plotly()
 n, p = 10000, 11
 x = randn(n, p)
 β = collect(linspace(-5, 5, p))
-y = x*β + randn(n)
+y = x * β + randn(n)
 
-o = StatLearnPath(x, y, penalty = LassoPenalty())
+o = SparseReg(x, y, penalty = LassoPenalty())
 plot(o)
 ```
