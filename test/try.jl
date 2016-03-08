@@ -9,18 +9,16 @@ S = SparseRegression
 macro display(expr) :(display($expr)) end
 
 
-n, p = 10000, 20
+n, p = 10000, 11
 x = randn(n, p)
 xtest = randn(n, p)
 # for j in 1:p
 #     x[:, j] *= j
 # end
 β = collect(linspace(-.5, .5, p))
-pfac = ones(p)
-# pfac[3] = 0.0
 
 # Linear Regression
-y = x*β + randn(n)
+y = x * β + randn(n)
 ytest = xtest * β + randn(n)
 λs = collect(0.:.1:1)
 
