@@ -19,7 +19,7 @@ Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.
 | `lambda`         | `Vector{Float64}` | The lambdas for which to get a solution path        |
 | `standardize`    | `Bool`            | Should `x` values be standardized? Default = `true` |
 | `weights`        | `Vector{Float64}` | Weights for each observation                        |
-| `tol`            | `Float64`         | tolerance for convergence.  Default = `1e-6`        |
+| `tol`            | `Float64`         | tolerance for convergence.  Default = `1e-7`        |
 | `maxit`          | `Int`             | Maximum number of iterations.  Default = `100`      |
 | `stepsize`       | `Float64`         | Step size for gradient descent part of algorithm    |
 | `verbose`        | `Bool`            | Whether to print information.  Default = `true`     |

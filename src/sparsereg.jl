@@ -7,6 +7,7 @@ immutable SparseReg{M <: LinPredModel, P <: Penalty}
     penalty::P              # regularization
     penalty_factor::VecF    # weights for coefficients
     x::MatF                 # design matrix (standardized if standardize=true)
+    standardize::Bool       # Is x centered and scaled?
     μx::VecF                # column means of x
     σx::VecF                # column stds of x
     y::VecF                 # response vector
@@ -44,13 +45,12 @@ function SparseReg(x::MatF, y::VecF;
         zeros(d),
         zeros(p, d),
         intercept, model, penalty, collect(penalty_factor),
-        _standardize(standardize, x, μx, σx), vec(μx), vec(σx), y,
+        x, standardize, vec(μx), vec(σx), y,
         weights, collect(lambda)
     )
+    o.standardize && StatsBase.zscore!(o.x, o.μx', o.σx')
     fit!(algorithm, o; verbose = verbose, algkw...)
-    if standardize
-        scaled_to_original!(o)
-    end
+    o.standardize && scaled_to_original!(o)
     o
 end
 function Base.show(io::IO, o::SparseReg)
@@ -60,19 +60,11 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Intercept", o.intercept)
     print_item(io, "λs", "$(length(o.λs))")
 end
-function _standardize(stdz::Bool, x::MatF, μx::MatF, σx::MatF)
-    if !stdz
-        return x
-    else
-        return StatsBase.zscore(x, μx, σx)
-    end
-end
 function get_lambda(nlambda::Integer, model::LinPredModel, x::MatF, y::VecF, verbose::Bool)
     maxλ = maxlambda(model, x, y)
     verbose && info("Smallest lambda calculated as: $maxλ")
     collect(linspace(0, maxλ, nlambda))
 end
-
 # Get coefficients in terms of the original predictors
 function scaled_to_original!(o::SparseReg)
     p, d = size(o.β)

@@ -1,5 +1,5 @@
 # TODO: For parity with glmnet:
-#   - contraints
+#   - constraints
 #   - automatic choice of λs
 #       - dfmax
 #       - nlambda

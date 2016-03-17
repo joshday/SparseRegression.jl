@@ -1,12 +1,3 @@
-# function fit!(alg::FISTA, o::SparseReg{L2Regression, NoPenalty}; verbose::Bool = true)
-#     n, p = size(o.x)
-#     xy = hcat(o.x, o.y)
-#     A = xy'xy
-#     sweep!(A, 1:p)
-#
-# end
-
-
 """
 `sweep!(A, k, inv = false)`, `sweep!(A, k, v, inv = false)`
 
