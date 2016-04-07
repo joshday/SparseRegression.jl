@@ -37,7 +37,7 @@ predict(m::L2Regression, η::Float64) = η
 function maxlambda(m::L2Regression, x::MatF, y::VecF)
     n = length(y)
     bias = (n - 1) / n
-    maximum(abs(StatsBase.zscore(x)'StatsBase.zscore(y) * bias)) / length(y)
+    maximum(abs(StatsBase.zscore(x)' * y * bias)) / length(y)
 end
 
 #----------------------------------------------------------------------# L1Regression

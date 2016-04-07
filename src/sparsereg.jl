@@ -62,7 +62,7 @@ function Base.show(io::IO, o::SparseReg)
 end
 function get_lambda(nlambda::Integer, model::LinPredModel, x::MatF, y::VecF, verbose::Bool)
     maxλ = maxlambda(model, x, y)
-    verbose && info("Smallest lambda calculated as: $maxλ")
+    verbose && info("Max lambda calculated as: $maxλ")
     collect(linspace(0, maxλ, nlambda))
 end
 # Get coefficients in terms of the original predictors

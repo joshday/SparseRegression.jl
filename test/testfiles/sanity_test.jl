@@ -1,5 +1,7 @@
+module SanityCheck
+using SparseRegression, FactCheck, Distributions
 
-facts(@title "LinPredModel") do
+facts("SanityCheck") do
     n, p = 1000, 11
     x = randn(n, p)
     β = collect(linspace(-.5, .5, p))
@@ -8,25 +10,26 @@ facts(@title "LinPredModel") do
     y3 = Float64[rand(Poisson(exp(η))) for η in x*β]
     tol = 1e-4
 
-    context(@subtitle "L2Regression") do
+    context("L2Regression") do
         o = SparseReg(x, y1, tol = tol)
     end
-    context(@subtitle "L1Regression") do
+    context("L1Regression") do
         o = SparseReg(x, y1, model = L1Regression(), tol = tol)
     end
-    context(@subtitle "LogisticRegression") do
+    context("LogisticRegression") do
         o = SparseReg(x, y2, model = LogisticRegression(), tol = tol)
     end
-    context(@subtitle "PoissonRegression") do
+    context("PoissonRegression") do
         o = SparseReg(x, y3, model = PoissonRegression(), tol = tol)
     end
-    context(@subtitle "SVMLike") do
+    context("SVMLike") do
         o = SparseReg(x, y2, model = SVMLike(), tol = tol)
     end
-    context(@subtitle "QuantileRegression") do
+    context("QuantileRegression") do
         o = SparseReg(x, y1, model = QuantileRegression(.7), tol = tol)
     end
-    context(@subtitle "HuberRegression") do
+    context("HuberRegression") do
         o = SparseReg(x, y1, model = HuberRegression(.7), tol = tol)
     end
+end
 end
