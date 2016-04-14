@@ -9,14 +9,14 @@
 #   - Lasso p > n behaves strangely
 
 immutable FISTA <: Algorithm end
-default_alg(m::LinPredModel) = FISTA()
+default_alg(m::Model) = FISTA()
 
 #-----------------------------------------------------------------------------# FISTA
-function fit!{M <: LinPredModel}(alg::FISTA, o::SparseReg{M};
-        maxit::Integer = 100,
-        tol::Float64 = 1e-7,
-        verbose::Bool = true,
-        stepsize::Float64 = 1.0
+function fit!{M <: Model}(alg::FISTA, o::SparseReg{M};
+        maxit::Integer      = 100,
+        tol::Float64        = 1e-7,
+        verbose::Bool       = true,
+        stepsize::Float64   = 1.0
     )
     # setup
     n, p = size(o.x)

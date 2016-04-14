@@ -1,5 +1,5 @@
 # ========================================================================= SparseReg
-immutable SparseReg{M <: LinPredModel, P <: Penalty}
+immutable SparseReg{M <: Model, P <: Penalty}
     β0::VecF                # intercepts
     β::MatF                 # coefficients
     intercept::Bool         # should intercept be estimated?
@@ -60,7 +60,7 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Intercept", o.intercept)
     print_item(io, "λs", "$(length(o.λs))")
 end
-function get_lambda(nlambda::Integer, model::LinPredModel, x::MatF, y::VecF, verbose::Bool)
+function get_lambda(nlambda::Integer, model::Model, x::MatF, y::VecF, verbose::Bool)
     maxλ = maxlambda(model, x, y)
     verbose && info("Max lambda calculated as: $maxλ")
     collect(linspace(0, maxλ, nlambda))

@@ -29,7 +29,7 @@ function Plots.plot(o::SparseReg, x::Matrix, y::Vector)
             end
         end
         # calculate err
-        if typeof(o.model) <: BivariateLinPredModel
+        if typeof(o.model) <: BivariateModel
             classify!(o.model, ŷ, η)
             err[j] = mean(y .!= ŷ)
         else
@@ -37,7 +37,7 @@ function Plots.plot(o::SparseReg, x::Matrix, y::Vector)
             err[j] = sumabs2(y - ŷ) / n
         end
     end
-    if typeof(o.model) <: BivariateLinPredModel
+    if typeof(o.model) <: BivariateModel
         ylab = "Misclassification Rate"
     else
         ylab = "MSE"

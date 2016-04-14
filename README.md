@@ -28,19 +28,12 @@ Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.
 # Models
 
 - `L2Regression()`
-    - Ordinary least squares
 - `L1Regression()`
-    - Absolute Error Loss
 - `LogisticRegression()`
-    - For y ∈ {-1.0, 1.0}
 - `PoissonRegression()`
-    - For y ∈ {0.0, 1.0, 2.0, ...}
 - `SVMLike()`
-    - For y ∈ {-1.0, 1.0}
 - `HuberRegression(δ)`
-    - Robust Huber loss regression
 - `QuantileRegression(τ)`
-    - Conditional quantiles
 
 # Penalties
 
