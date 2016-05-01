@@ -2,7 +2,7 @@ import Plots
 
 
 function Plots.plot(o::SparseReg)
-    Plots.plot(o.λs, o.β',
+    Plots.plot(o.λ, o.β',
         labels = ["B_$j" for j in 1:size(o.β, 1)]',
         xlabel = "lambda",
         ylabel = "value",
@@ -43,6 +43,6 @@ function Plots.plot(o::SparseReg, x::Matrix, y::Vector)
         ylab = "MSE"
     end
     p1 = Plots.plot(o)
-    p2 = Plots.plot(o.λs, err, xlabel = "lambda", ylabel = ylab, title = "Test Set Error")
+    p2 = Plots.plot(o.λ, err, xlabel = "lambda", ylabel = ylab, title = "Test Set Error")
     Plots.subplot(p1, p2)
 end

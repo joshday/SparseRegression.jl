@@ -1,121 +1,140 @@
-# TODO: For parity with glmnet:
-#   - constraints
-#   - automatic choice of λs
-#       - dfmax
-#       - nlambda
-#       - lambda_min_ratio
-#       - pmax
-# TODO: Issues
-#   - Lasso p > n behaves strangely
-
-immutable FISTA <: Algorithm end
-default_alg(m::Model) = FISTA()
-
 #-----------------------------------------------------------------------------# FISTA
-function fit!{M <: Model}(alg::FISTA, o::SparseReg{M};
+immutable FISTA <: Algorithm end
+
+"""
+Fast Iterative Shrinkage and Thresholding Algorithm
+
+`fista!(o::SparseReg, X, y; kw...)`
+"""
+function fit!{M <: Model}(o::SparseReg{M}, alg::FISTA, x::AMatF, y::AVecF;
         maxit::Integer      = 100,
         tol::Float64        = 1e-7,
         verbose::Bool       = true,
-        stepsize::Float64   = 1.0
+        step::Float64       = 0.5,
+        weights::AVecF      = ones(0),
+        standardize::Bool   = true
     )
-    # setup
-    n, p = size(o.x)
+    #-------------------------------------------------------------------------# setup
+    n, p = size(x)
+    @assert size(o.β, 1) == p "Columns of `x` don't match columns in `β`"
     β0 = 0.0
     β = zeros(p)
-    β1 = zeros(p)       # last iteration
-    β2 = zeros(p)       # two iterations ago
+    Θ1 = zeros(p)           # last iteration
+    Θ2 = zeros(p)           # two iterations ago
     Δ = zeros(p)            # Δ = x' * deriv_vec
     deriv_vec = zeros(n)    # derivative of loss with respect to η
-    ŷ = zeros(n)
-    η = zeros(n)
-    lossvec = zeros(n)
+    ŷ = zeros(n)            # vector of predicted values
+    η = zeros(n)            # linear predictor
+    if o.crit == :obj       # need lossvec if using objective as convergence criteria
+        lossvec = zeros(n)
+    elseif o.crit == :coef
+        lossvec = zeros(0)
+    end
+    if standardize          # standardize columns of x
+        x = zscore(x, 1)
+    end
     intercept = o.intercept
-    useweights = length(o.weights) == n
+    useweights = length(weights) > 0  # use weights if they are provided
+    @assert !useweights || length(weights) == n "`weights` must have length $n"
 
     # main loop
-    for k in eachindex(o.λs)
-        ######## Check to see if βs have been zeroed out
+    for k in eachindex(o.λ)
+        #-----------------------------------# Check to see if βs have been zeroed out
         if k > 1
             if β == zeros(p)
                 # fill in intercept values since we don't need to estimate coefs
                 for j in k:length(o.β0)
                     o.β0[j] = β0
                 end
-                verbose && info("All coefficients zero at λ = $(o.λs[k-1])\n")
+                verbose && info("All coefficients zero at λ = $(o.λ[k-1])\n")
                 break
             end
         end
+        #----------------------------------------------------------# setup for next λ
         iters = 0
         newcost = Inf
         oldcost = Inf
-        @inbounds λ = o.λs[k]
-        s = stepsize
+        @inbounds λ = o.λ[k]
+        s = step
         for rep in 1:maxit
             iters += 1
             oldcost = newcost
-            ############ FISTA momentum
-            copy!(β2, β1)
-            copy!(β1, β)
+            #--------------------------------------------------------# FISTA momentum
+            copy!(Θ2, Θ1)
+            copy!(Θ1, β)
             if rep > 2
-                β = β1 + ((rep - 2) / (rep + 1)) * (β1 - β2)
+                ratio = (rep - 2) / (rep + 1)
+                for j in eachindex(β)
+                    @inbounds β[j] = Θ1[j] + ratio * (Θ1[j] - Θ2[j])
+                end
             end
-            ############ η
-            BLAS.gemv!('N', 1.0, o.x, β, 0.0, η)
+            #--------------------------------------------# linear predictor η = x * β
+            BLAS.gemv!('N', 1.0, x, β, 0.0, η)
             if intercept
                 for i in eachindex(η)
                     @inbounds η[i] += β0
                 end
             end
-            ############ ŷ
+            # ŷ
             predict!(o.model, ŷ, η)
-            ############ derivative vector
+            #-----------------------------------------------------# derivative vector
             for i in eachindex(deriv_vec)
-                @inbounds deriv_vec[i] = lossderiv(o.model, o.y[i], η[i])
+                @inbounds deriv_vec[i] = lossderiv(o.model, y[i], η[i])
             end
             if useweights
                 for i in eachindex(deriv_vec)
-                    @inbounds deriv_vec[i] *= o.weights[i]
+                    @inbounds deriv_vec[i] *= weights[i]
                 end
             end
-            ############ gradient
-            BLAS.gemv!('T', 1/n, o.x, deriv_vec, 0.0, Δ)
-            ############ gradient descent
+            #-------------------------------------# calculate gradient from deriv_vec
+            BLAS.gemv!('T', 1 / n, x, deriv_vec, 0.0, Δ)
+            #---------------------------------------------# gradient descent and prox
             if intercept
                 β0 -= s * mean(deriv_vec)
             end
             β -= s * Δ
-            ############ prox operator
             prox!(o.penalty, β, λ * o.penalty_factor, s)
-            ############ check for convergence
-            lossvector!(o.model, lossvec, o.y, η)
-            if useweights
-                for i in eachindex(lossvec)
-                    @inbounds lossvec[i] *= o.weights[i]
+            #-------------------------------------------------# check for convergence
+            if o.crit == :obj
+                lossvector!(o.model, lossvec, y, η)
+                if useweights
+                    for i in eachindex(lossvec)
+                        @inbounds lossvec[i] *= weights[i]
+                    end
                 end
+                newcost = mean(lossvec) + penalty(o.penalty, β, λ)
+            elseif o.crit == :coef
+                newcost = maxabs(β - Θ1)
             end
-            newcost = mean(lossvec) + penalty(o.penalty, β, λ)
-            if abs(newcost - oldcost) < tol * abs(oldcost)
+            if abs(newcost - oldcost) < tol * (min(abs(oldcost), abs(newcost)) + 1.0)
                 break
             end
-            ############ decrease step size
-            if newcost > oldcost
-                s *= .5
-                copy!(β, β1)
-            else
-                s = stepsize
-            end
         end
-        ############ Did the algorithm reach convergence?
+        #--------------------------------------# Did the algorithm reach convergence?
+        reltol = abs(newcost - oldcost) / min(abs(oldcost), abs(newcost))
         if maxit == iters
-            reltol = abs(newcost - oldcost) / abs(oldcost)
-            warn("Not converged for λ = $(o.λs[k]).  Tolerance = $(round(reltol, 8))")
+            warn("Not converged for λ = $(o.λ[k]).  Tolerance = $(round(reltol, 12))")
         end
-        ############ Get maximum relative difference
-        ############ update parameters
+        #---------------------------------------------------------# update parameters
         if intercept
             o.β0[k] = β0
         end
         o.β[:, k] = β
     end  # end main loop
+    standardize && scaled_to_original!(o, x)
     o
+end
+
+
+
+function scaled_to_original!(o::SparseReg, x)
+    p, d = size(o.β)
+    σx = vec(std(x, 1))
+    μx = vec(mean(x, 1))
+    scale!(1.0 ./ σx, o.β)
+    if o.intercept
+        for j in 1:d
+            o.β[j] = o.β[j] - dot(μx, o.β[:, j])
+        end
+    end
 end

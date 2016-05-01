@@ -1,13 +1,14 @@
 module SparseRegression
 
-import StatsBase
+import StatsBase: coef, predict, zscore
 import Requires
 
 export
     SparseReg,
     NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
-    HuberRegression, PoissonRegression
+    HuberRegression, PoissonRegression,
+    coef, predict, fista!
 
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}
@@ -31,7 +32,9 @@ include("penalty.jl")
 include("model.jl")
 include("sparsereg.jl")
 include("algorithms/fista.jl")
-include("crossvalidate.jl")
+include("algorithms/coordinate_descent.jl")
+# include("crossvalidate.jl")
 Requires.@require Plots include("plots.jl")
 
 end # module
+sp = SparseRegression

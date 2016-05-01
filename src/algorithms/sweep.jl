@@ -1,3 +1,15 @@
+#-----------------------------------------------------------------------------# FISTA
+function sweep!(o::SparseReg{L2Regression, NoPenalty}, x::AMatF, y::AVecF;
+        maxit::Integer      = 100,
+        tol::Float64        = 1e-7,
+        verbose::Bool       = true,
+        weights::AVecF      = ones(0),
+        standardize::Bool   = false
+    )
+    error("Not implemented yet")
+end
+
+
 """
 `sweep!(A, k, inv = false)`, `sweep!(A, k, v, inv = false)`
 
