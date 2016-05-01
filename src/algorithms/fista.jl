@@ -5,6 +5,8 @@ immutable FISTA <: Algorithm end
 Fast Iterative Shrinkage and Thresholding Algorithm
 
 `fista!(o::SparseReg, X, y; kw...)`
+
+While FISTA works for every model/penalty pair, it may not be the most efficient.
 """
 function fit!{M <: Model}(o::SparseReg{M}, alg::FISTA, x::AMatF, y::AVecF;
         maxit::Integer      = 100,

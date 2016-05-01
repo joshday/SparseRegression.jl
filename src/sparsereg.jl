@@ -63,24 +63,19 @@ end
 coef(o::SparseReg) = o.intercept? vcat(o.β0', o.β) : o.β
 
 function coef(o::SparseReg, λ::Real)
-    ff = findfirst(o.λs, λ)
+    ff = findfirst(o.λ, λ)
     ff == 0 ?
         error("Coefficients not available for unfitted λ = $λ") :
         vcat(o.β0[ff], o.β[:, ff])
 end
 
-function predict(o::SparseReg, x::Matrix, λ::Real = o.λs[1])
-    ff = findfirst(o.λs, λ)
+function predict(o::SparseReg, x::Matrix, λ::Real = o.λ[1])
+    ff = findfirst(o.λ, λ)
     storage = zeros(size(x, 1))
     ff == 0 ?
         error("Prediction not available for unfitted λ = $λ") :
-        predict!(o.model, storage, x*o.β[:, ff] + o.β0[ff])
+        predict!(o.model, storage, x * o.β[:, ff] + o.β0[ff])
+    storage
 end
 
 Base.copy(o::SparseReg) = deepcopy(o)
-
-function null_loss(o::SparseReg)
-    lossvec = zeros(length(o.y))
-    lossvector!(o.model, lossvec, o.y, zeros(length(o.y)))
-    mean(lossvec)
-end
