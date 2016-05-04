@@ -1,4 +1,5 @@
 abstract Model
+abstract BivariateModel <: Model  # LogisticRegression and SVMLike
 function Base.show(io::IO, m::Model)
     s = string(typeof(m))
     s = replace(s, "SparseRegression.", "")
@@ -6,11 +7,14 @@ function Base.show(io::IO, m::Model)
 end
 
 # =====================================================================# Model
-# Models with prediction f(η) where η = Xβ
-abstract BivariateModel <: Model
 function lossvector!(m::Model, storage::VecF, y::VecF, η::VecF)
     for i in eachindex(y)
         @inbounds storage[i] = loss(m, y[i], η[i])
+    end
+end
+function loglikelihood!(m::Model, storage::VecF, y::VecF, η::VecF)
+    for i in eachindex(y)
+        @inbounds storage[i] = loglikelihood(m, y[i], η[i])
     end
 end
 function predict!(m::Model, storage::VecF, η::VecF)
@@ -23,17 +27,18 @@ function classify!(m::BivariateModel, storage::VecF, η::VecF)
         @inbounds storage[i] = classify(m, η[i])
     end
 end
-maxlambda(m::Model, x::MatF, y::VecF) = maxlambda(L2Regression(), x, y)
+maxlambda(m::Model, x::AMat, y::AVec) = maxlambda(L2Regression(), x, y)
 
 
 
 
 #----------------------------------------------------------------------# L2Regression
 immutable L2Regression <: Model end
-loss(m::L2Regression, y::Float64, η::Float64) = 0.5 * (y - η) ^ 2
-lossderiv(m::L2Regression, y::Float64, η::Float64) = -(y - η)
-predict(m::L2Regression, η::Float64) = η
-function maxlambda(m::L2Regression, x::MatF, y::VecF)
+loss(m::L2Regression, y::Real, η::Real) = 0.5 * (y - η) ^ 2
+loglikelihood(m::L2Regression, y::Real, η::Real) = -loss(m, y, η)
+lossderiv(m::L2Regression, y::Real, η::Real) = -(y - η)
+predict(m::L2Regression, η::Real) = η
+function maxlambda(m::L2Regression, x::AMat, y::AVec)
     n = length(y)
     bias = (n - 1) / n
     maximum(abs(StatsBase.zscore(x)' * y * bias)) / length(y)
@@ -41,47 +46,53 @@ end
 
 #----------------------------------------------------------------------# L1Regression
 immutable L1Regression <: Model end
-loss(m::L1Regression, y::Float64, η::Float64) = abs(y - η)
-lossderiv(m::L1Regression, y::Float64, η::Float64) = -sign(y - η)
-predict(m::L1Regression, η::Float64) = η
+loss(m::L1Regression, y::Real, η::Real) = abs(y - η)
+lossderiv(m::L1Regression, y::Real, η::Real) = -sign(y - η)
+predict(m::L1Regression, η::Real) = η
 
 #----------------------------------------------------------------# LogisticRegression
+"For data in {-1, 1}"
 immutable LogisticRegression <: BivariateModel end
-loss(m::LogisticRegression, y::Float64, η::Float64) = log(1.0 + exp(-y * η))
-lossderiv(m::LogisticRegression, y::Float64, η::Float64) = -y / (1.0 + exp(y * η))
-predict(m::LogisticRegression, η::Float64) = 1.0 / (1.0 + exp(η))
-classify(m::LogisticRegression, η::Float64) = sign(η)
+loss(m::LogisticRegression, y::Real, η::Real) = log(1.0 + exp(-y * η))
+function loglikelihood(m::LogisticRegression, y::Real, η::Real)
+    η * (y == 1.0) - log(1.0 + exp(η))
+end
+lossderiv(m::LogisticRegression, y::Real, η::Real) = -y / (1.0 + exp(y * η))
+predict(m::LogisticRegression, η::Real) = 1.0 / (1.0 + exp(-η))
+classify(m::LogisticRegression, η::Real) = sign(η)
 
 #----------------------------------------------------------------# PoissonRegression
 immutable PoissonRegression <: Model end
-loss(m::PoissonRegression, y::Float64, η::Float64) = -y * η + exp(η)
-lossderiv(m::PoissonRegression, y::Float64, η::Float64) = -y + exp(η)
-predict(m::PoissonRegression, η::Float64) = exp(η)
+loss(m::PoissonRegression, y::Real, η::Real) = -y * η + exp(η)
+loglikelihood(m::LogisticRegression, y::Real, η::Real) = -loss(m, y, η)
+lossderiv(m::PoissonRegression, y::Real, η::Real) = -y + exp(η)
+predict(m::PoissonRegression, η::Real) = exp(η)
 
 #---------------------------------------------------------------------------# SVMLike
+"For data in {-1, 1}"
 immutable SVMLike <: BivariateModel end
-loss(m::SVMLike, y::Float64, η::Float64) = max(0.0, 1.0 - y * η)
-lossderiv(m::SVMLike, y::Float64, η::Float64) = 1.0 < y*η ? 0.0: -y
-predict(m::SVMLike, η::Float64) = η
-classify(m::SVMLike, η::Float64) = sign(η)
+loss(m::SVMLike, y::Real, η::Real) = max(0.0, 1.0 - y * η)
+lossderiv(m::SVMLike, y::Real, η::Real) = 1.0 < y*η ? 0.0: -y
+predict(m::SVMLike, η::Real) = η
+classify(m::SVMLike, η::Real) = sign(η)
 
 #----------------------------------------------------------------# QuantileRegression
 immutable QuantileRegression <: Model τ::Float64 end
-function loss(m::QuantileRegression, y::Float64, η::Float64)
+function loss(m::QuantileRegression, y::Real, η::Real)
     r = y - η
     r * (m.τ - (r < 0.0))
 end
-lossderiv(m::QuantileRegression, y::Float64, η::Float64) = (y - η < 0.0) - m.τ
-predict(m::QuantileRegression, η::Float64) = η
+lossderiv(m::QuantileRegression, y::Real, η::Real) = (y - η < 0.0) - m.τ
+predict(m::QuantileRegression, η::Real) = η
 
 #-------------------------------------------------------------------# HuberRegression
 immutable HuberRegression <: Model δ::Float64 end
-function loss(m::HuberRegression, y::Float64, η::Float64)
+function loss(m::HuberRegression, y::Real, η::Real)
     r = y - η
     r < m.δ ? 0.5 * r * r : m.δ * (abs(r) - 0.5 * m.δ)
 end
-function lossderiv(m::HuberRegression, y::Float64, η::Float64)
+function lossderiv(m::HuberRegression, y::Real, η::Real)
     r = y - η
     abs(r) <= m.δ ? -r : m.δ * sign(-r)
 end
-predict(m::HuberRegression, η::Float64) = η
+predict(m::HuberRegression, η::Real) = η

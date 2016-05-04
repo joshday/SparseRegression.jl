@@ -95,6 +95,7 @@ function fit!{M <: Model}(o::SparseReg{M}, alg::FISTA, x::AMatF, y::AVecF;
                 β0 -= s * mean(deriv_vec)
             end
             β -= s * Δ
+
             prox!(o.penalty, β, λ * o.penalty_factor, s)
             #-------------------------------------------------# check for convergence
             if o.crit == :obj
@@ -110,6 +111,13 @@ function fit!{M <: Model}(o::SparseReg{M}, alg::FISTA, x::AMatF, y::AVecF;
             end
             if abs(newcost - oldcost) < tol * (min(abs(oldcost), abs(newcost)) + 1.0)
                 break
+            end
+            if (o.crit == :obj) && (newcost > oldcost)  # step-"halving"
+                s *= .5
+                copy!(β, Θ1)
+            end
+            if any(isnan(β))
+                error("NaNs in β after iteration $iters")
             end
         end
         #--------------------------------------# Did the algorithm reach convergence?

@@ -38,7 +38,7 @@ function SparseReg(x::AMatF, y::AVecF;
         penalty::Penalty        = NoPenalty(),
         penalty_factor::AVecF   = ones(size(x, 2)),
         lambda::AVecF           = .1:.1:1.0,
-        crit::Symbol            = :coef,
+        crit::Symbol            = :obj,
         alg::Algorithm          = default_algorithm(model, penalty),
         algkw...
     )
@@ -50,8 +50,6 @@ end
 default_algorithm(::Model, ::Penalty) = FISTA()
 # default_algorithm(::L2Regression, ::NoPenalty) = Sweep()
 
-
-
 function Base.show(io::IO, o::SparseReg)
     print_header(io, "SparseReg")
     print_item(io, "Model", o.model)
@@ -60,22 +58,55 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "nλ", "$(length(o.λ))")
 end
 
+Base.copy(o::SparseReg) = deepcopy(o)
+
 coef(o::SparseReg) = o.intercept? vcat(o.β0', o.β) : o.β
 
+function λindex(o::SparseReg, λ::Real)
+    i = findfirst(o.λ, λ)
+    i == 0 && error("Provided λ = $λ has not been fit")
+    i
+end
+
 function coef(o::SparseReg, λ::Real)
-    ff = findfirst(o.λ, λ)
-    ff == 0 ?
-        error("Coefficients not available for unfitted λ = $λ") :
-        vcat(o.β0[ff], o.β[:, ff])
+    i = λindex(o, λ)
+    vcat(o.β0[i], o.β[:, i])
 end
 
 function predict(o::SparseReg, x::Matrix, λ::Real = o.λ[1])
-    ff = findfirst(o.λ, λ)
+    i = λindex(o, λ)
     storage = zeros(size(x, 1))
-    ff == 0 ?
-        error("Prediction not available for unfitted λ = $λ") :
-        predict!(o.model, storage, x * o.β[:, ff] + o.β0[ff])
+    predict!(o.model, storage, x * o.β[:, i] + o.β0[i])
     storage
 end
 
-Base.copy(o::SparseReg) = deepcopy(o)
+function classify{M <: BivariateModel}(o::SparseReg{M}, x::Matrix, λ::Real = o.λ[1])
+    i = λindex(o, λ)
+    storage = zeros(size(x, 1))
+    classify!(o.model, storage, x * o.β[:, i] + o.β0[i])
+    storage
+end
+
+function loss(o::SparseReg, x::AMat, y::AVec, λ::Real = o.λ[1])
+    i = λindex(o, λ)
+    storage = zeros(length(y))
+    lossvector!(o.model, storage, y, o.β0[i] + x * o.β[:, i])
+    mean(storage)
+end
+
+function loglikelihood(o::SparseReg, x::AMat, y::AVec, λ::Real = o.λ[1]; penalized = false)
+    i = λindex(o, λ)
+    storage = zeros(length(y))
+    loglikelihood!(o.model, storage, y, o.β0[i] + x * o.β[:, i])
+    value = mean(storage)
+    if penalized
+        value -= penalty(o.penalty, o.β[:, i], λ)
+    end
+    value
+end
+
+
+function cost(o::SparseReg, x::AbstractArray, y::AbstractArray, λ::Real = o.λ[1])
+    i = λindex(o, λ)
+    loss(o, x, y) + penalty(o.penalty, o.β[:, i], λ)
+end

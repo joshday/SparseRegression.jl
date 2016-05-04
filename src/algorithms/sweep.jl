@@ -1,13 +1,23 @@
-#-----------------------------------------------------------------------------# FISTA
-function sweep!(o::SparseReg{L2Regression, NoPenalty}, x::AMatF, y::AVecF;
-        maxit::Integer      = 100,
-        tol::Float64        = 1e-7,
-        verbose::Bool       = true,
-        weights::AVecF      = ones(0),
-        standardize::Bool   = false
-    )
-    error("Not implemented yet")
-end
+immutable Sweep <: Algorithm end
+
+#-----------------------------------------------------------------------------# Sweep
+# function sweep!(o::SparseReg{L2Regression, NoPenalty}, x::AMatF, y::AVecF;
+#         maxit::Integer      = 100,
+#         verbose::Bool       = true,
+#         weights::AVecF      = ones(0),
+#         standardize::Bool   = false
+#     )
+#     n, p = size(x)
+#     if o.intercept
+#         μ, A = mean_and_cov([x y], WeightVec(weights))
+#     else
+#         μ = vec(mean(x, 1))
+#         xy = [x y]
+#         A = xy'xy / n
+#     end
+#     σ = diag(A)
+#     sweep!(A, 1:p)
+# end
 
 
 """
