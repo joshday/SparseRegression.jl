@@ -51,15 +51,13 @@ lossderiv(m::L1Regression, y::Real, η::Real) = -sign(y - η)
 predict(m::L1Regression, η::Real) = η
 
 #----------------------------------------------------------------# LogisticRegression
-"For data in {-1, 1}"
+"For data in {0, 1}"
 immutable LogisticRegression <: BivariateModel end
-loss(m::LogisticRegression, y::Real, η::Real) = log(1.0 + exp(-y * η))
-function loglikelihood(m::LogisticRegression, y::Real, η::Real)
-    η * (y == 1.0) - log(1.0 + exp(η))
-end
-lossderiv(m::LogisticRegression, y::Real, η::Real) = -y / (1.0 + exp(y * η))
+loss(m::LogisticRegression, y::Real, η::Real) = -y * η + log(1.0 + exp(η))
+loglikelihood(m::LogisticRegression, y::Real, η::Real) = -loss(m, y, η)
+lossderiv(m::LogisticRegression, y::Real, η::Real) = -(y - predict(m, η))
 predict(m::LogisticRegression, η::Real) = 1.0 / (1.0 + exp(-η))
-classify(m::LogisticRegression, η::Real) = sign(η)
+classify(m::LogisticRegression, η::Real) = Float64(predict(m, η) > .5)
 
 #----------------------------------------------------------------# PoissonRegression
 immutable PoissonRegression <: Model end

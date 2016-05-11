@@ -23,7 +23,7 @@ abstract Algorithm
 #--------------------------------------------------------------------------# printing
 print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "■ $s \n")
 function print_item(io::IO, name::AbstractString, value)
-    println(io, "  >" * @sprintf("%12s", name * ": "), value)
+    println(io, "  >" * @sprintf("%14s", name * ":  "), value)
 end
 
 
@@ -35,7 +35,7 @@ include("algorithms/fista.jl")
 include("algorithms/sweep.jl")
 include("algorithms/coordinate_descent.jl")
 
-# include("crossvalidate.jl")
+
 Requires.@require Plots include("plots.jl")
 
 end # module
