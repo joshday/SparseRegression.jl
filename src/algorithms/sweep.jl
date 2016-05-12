@@ -1,21 +1,22 @@
 immutable Sweep <: Algorithm end
 
 #-----------------------------------------------------------------------------# Sweep
-# function sweep!(o::SparseReg{L2Regression, NoPenalty}, x::AMatF, y::AVecF;
-#         maxit::Integer      = 100,
-#         verbose::Bool       = true,
-#         weights::AVecF      = ones(0),
-#         standardize::Bool   = false
+# function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMatF, y::AVecF,
+#         wts::AVecF = zeros(1)
 #     )
 #     n, p = size(x)
-#     if o.intercept
-#         μ, A = mean_and_cov([x y], WeightVec(weights))
+#     A = zeros(p + 1, p + 1)
+#     useweights = length(wts) == n
+#     if useweights
+#         W = Diagonal(wts)
+#         A[1:p, 1:p] = x' * W * x / n
+#         A[1:p, end] = x' * W * y / n
+#         A[end, end] = dot(y, W * y) / n
 #     else
-#         μ = vec(mean(x, 1))
-#         xy = [x y]
-#         A = xy'xy / n
+#         A[1:p, 1:p] = x'x / n
+#         A[1:p, end] = x'y / n
+#         A[end, end] = dot(y, y) / n
 #     end
-#     σ = diag(A)
 #     sweep!(A, 1:p)
 # end
 

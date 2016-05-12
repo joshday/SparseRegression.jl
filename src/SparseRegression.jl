@@ -2,12 +2,14 @@ module SparseRegression
 
 import StatsBase: coef, predict, zscore, fit!, loglikelihood
 import Requires
+import StandardizedMatrices; SM = StandardizedMatrices
 
 export
     SparseReg,
     NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression,
+    FISTA,
     coef, predict, fit!, loglikelihood
 
 #-----------------------------------------------------------------------------# types

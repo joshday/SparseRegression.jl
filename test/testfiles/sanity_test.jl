@@ -11,25 +11,25 @@ facts("SanityCheck") do
     tol = 1e-4
 
     context("L2Regression") do
-        o = SparseReg(x, y1, tol = tol)
+        o = SparseReg(x, y1, algorithm = FISTA(tol = tol))
     end
     context("L1Regression") do
-        o = SparseReg(x, y1, model = L1Regression(), tol = tol)
+        o = SparseReg(x, y1, model = L1Regression(), algorithm = FISTA(tol = tol))
     end
     context("LogisticRegression") do
-        o = SparseReg(x, y2, model = LogisticRegression(), tol = tol)
+        o = SparseReg(x, y2, model = LogisticRegression(), algorithm = FISTA(tol = tol))
     end
     context("PoissonRegression") do
-        o = SparseReg(x, y3, model = PoissonRegression(), tol = tol)
+        o = SparseReg(x, y3, model = PoissonRegression(), algorithm = FISTA(tol = tol))
     end
     context("SVMLike") do
-        o = SparseReg(x, y2, model = SVMLike(), tol = tol)
+        o = SparseReg(x, y2, model = SVMLike(), algorithm = FISTA(tol = tol))
     end
     context("QuantileRegression") do
-        o = SparseReg(x, y1, model = QuantileRegression(.7), tol = tol)
+        o = SparseReg(x, y1, model = QuantileRegression(.7), algorithm = FISTA(tol = tol))
     end
     context("HuberRegression") do
-        o = SparseReg(x, y1, model = HuberRegression(.7), tol = tol)
+        o = SparseReg(x, y1, model = HuberRegression(.7), algorithm = FISTA(tol = tol))
     end
 end
 end

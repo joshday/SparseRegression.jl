@@ -4,6 +4,7 @@
 - `SparseReg(p; kw...)`
 - `SparseReg(x, y, wts; kw...)`
 
+This setup should be completely agnostic to the algorithm (even online algorithms)
 """
 immutable SparseReg{M <: Model, P <: Penalty, A <: Algorithm}
     β0::VecF                # intercepts

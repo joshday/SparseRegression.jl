@@ -4,7 +4,7 @@ immutable FISTA <: Algorithm
     tol::Float64
     verbose::Bool
     step::Float64
-    criteria::Symbol
+    crit::Symbol
     standardize::Bool
 end
 function FISTA(;
@@ -12,63 +12,51 @@ function FISTA(;
         tol::Real           = 1e-7,
         verbose::Bool       = true,
         step::Real          = 0.5,
-        criteria::Symbol    = :obj,
-        standardize::Bool   = false
+        crit::Symbol    = :obj,
+        standardize::Bool   = true
     )
-    FISTA(maxit, tol, verbose, step, criteria, standardize)
+    FISTA(maxit, tol, verbose, step, crit, standardize)
 end
 Base.show(io::IO, o::FISTA) = println(io, "FISTA")
 
-
+#------------------------------------------------------------------------------# fit!
 """
 Fast Iterative Shrinkage and Thresholding Algorithm
 
 While FISTA works for every model/penalty pair, it may not be the most efficient.
 """
-function fit!{M <: Model, P <: Penalty}(
-        o::SparseReg{M, P, FISTA}, x::AMatF, y::AVecF, wts::AVecF = ones(0)
+# TODO: Use StandardizedMatrix
+function fit!{M <: Model, P <: Penalty, T <: Real}(
+        o::SparseReg{M, P, FISTA}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
     )
     #------------------------------------------------------------------------# checks
     n, p = size(x)
     @assert size(o.β, 1) == p "Columns of `x` don't match columns in `β`"
-    useweights = length(wts) > 0  # use weights if they are provided
-    @assert !useweights || length(wts) == n "`weights` must have length $n"
+    use_weights = length(wts) > 0  # use weights if they are provided
+    @assert !use_weights || length(wts) == n "`weights` must have length $n"
     @assert !(o.intercept == false && alg.standardize == true) "standardizing implies an intercept"
 
     #-------------------------------------------------------------------------# setup
+    is_sparse = typeof(x) == SparseMatrixCSC
     alg = o.algorithm
+    use_step_halving = (alg.crit == :obj)
     β0 = 0.0
     β = zeros(p)
     Θ1 = zeros(p)           # last iteration
     Θ2 = zeros(p)           # two iterations ago
     Δ = zeros(p)            # Δ = x' * deriv_vec
     deriv_vec = zeros(n)    # derivative of loss with respect to η
-    # ŷ = zeros(n)            # vector of predicted values
     η = zeros(n)            # linear predictor
-    if alg.criteria == :obj       # need lossvec if using objective as convergence criteria
+    if alg.crit == :obj       # need lossvec if using objective as convergence criteria
         lossvec = zeros(n)
-    elseif alg.criteria == :coef
+    elseif alg.crit == :coef
         lossvec = zeros(0)
     end
-    if alg.standardize          # standardize columns of x
-        x_original = x
-        x = zscore(x, 1)
-    end
+    x_std = SM.StandardizedMatrix(x)
     intercept = o.intercept
 
     # main loop
-    for k in eachindex(o.λ)
-        #-----------------------------------# Check to see if βs have been zeroed out
-        if k > 1
-            if β == zeros(p)
-                # fill in intercept values since we don't need to estimate coefs
-                for j in k:length(o.β0)
-                    o.β0[j] = β0
-                end
-                o.verbose && info("All coefficients zero at λ = $(o.λ[k-1])\n")
-                break
-            end
-        end
+    for k in reverse(eachindex(o.λ))
         #----------------------------------------------------------# setup for next λ
         iters = 0
         newcost = Inf
@@ -81,6 +69,7 @@ function fit!{M <: Model, P <: Penalty}(
             #--------------------------------------------------------# FISTA momentum
             copy!(Θ2, Θ1)
             copy!(Θ1, β)
+            β0_old = β0
             if rep > 2
                 ratio = (rep - 2) / (rep + 1)
                 for j in eachindex(β)
@@ -88,56 +77,40 @@ function fit!{M <: Model, P <: Penalty}(
                 end
             end
             #--------------------------------------------# linear predictor η = x * β
-            BLAS.gemv!('N', 1.0, x, β, 0.0, η)
-            if intercept
-                for i in eachindex(η)
-                    @inbounds η[i] += β0
-                end
-            end
-            # ŷ
-            # predict!(o.model, ŷ, η)
+
+            alg.standardize ? A_mul_B!(η, x_std, β) : A_mul_B!(η, x, β)
+            intercept && add_constant!(η, β0)
             #-----------------------------------------------------# derivative vector
             for i in eachindex(deriv_vec)
                 @inbounds deriv_vec[i] = lossderiv(o.model, y[i], η[i])
             end
-            if useweights
-                for i in eachindex(deriv_vec)
-                    @inbounds deriv_vec[i] *= wts[i]
-                end
-            end
-
-
-
+            use_weights && add_vector!(deriv_vec, wts)
             #-------------------------------------# calculate gradient from deriv_vec
-            BLAS.gemv!('T', 1 / n, x, deriv_vec, 0.0, Δ)
+            alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
+            scale!(Δ, 1 / n)
             #---------------------------------------------# gradient descent and prox
             if intercept
                 β0 -= s * mean(deriv_vec)
             end
-            β -= s * Δ
-
-            prox!(o.penalty, β, λ * o.penalty_factor, s)
+            for j in eachindex(β)
+                @inbounds β[j] -= s * Δ[j]
+            end
+            prox!(o.penalty, β, λ, o.penalty_factor, s)
             #-------------------------------------------------# check for convergence
-            if alg.criteria == :obj
+            if alg.crit == :obj
                 lossvector!(o.model, lossvec, y, η)
-                if useweights
-                    for i in eachindex(lossvec)
-                        @inbounds lossvec[i] *= wts[i]
-                    end
-                end
+                use_weights && add_vector!(lossvec, wts)
                 newcost = mean(lossvec) + penalty(o.penalty, β, λ)
-            elseif alg.criteria == :coef
+            elseif alg.crit == :coef
                 newcost = maxabs(β - Θ1)
             end
             if abs(newcost - oldcost) < alg.tol * (min(abs(oldcost), abs(newcost)) + 1.0)
                 break
             end
-            if (alg.criteria == :obj) && (newcost > oldcost)  # step-"halving"
+            if use_step_halving && (newcost > oldcost)
                 s *= .7
                 copy!(β, Θ1)
-            end
-            if any(isnan(β))
-                error("NaNs in β after iteration $iters")
+                β0 = β0_old
             end
         end
         #--------------------------------------# Did the algorithm reach convergence?
@@ -152,19 +125,34 @@ function fit!{M <: Model, P <: Penalty}(
         o.β[:, k] = β
     end  # end main loop
     if alg.standardize
-        scaled_to_original!(o, x_original)
+        scaled_to_original!(o, x_std)
     end
     o
 end
 
 
-
-function scaled_to_original!(o::SparseReg, x)
+#---------------------------------------------------------------------------# helpers
+# put scaled coefficients back in original scale
+function scaled_to_original!(o::SparseReg, x_std::SM.StandardizedMatrix)
     p, d = size(o.β)
-    σx = vec(std(x, 1))
-    μx = vec(mean(x, 1))
+    σx = x_std.σ
+    μx = x_std.μ
     scale!(1 ./ σx, o.β)
     for j in eachindex(o.β0)
         o.β0[j] = o.β0[j] - dot(μx, o.β[:, j])
+    end
+end
+
+# Add constant to an array
+function add_constant!(arr, c)
+    for i in eachindex(arr)
+        @inbounds arr[i] += c
+    end
+end
+
+# Add arrays, overwrite v1
+function add_vector!(v1, v2)
+    for i in eachindex(v1)
+        @inbounds v1[i] += v2[i]
     end
 end
