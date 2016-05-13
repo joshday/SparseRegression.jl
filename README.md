@@ -6,7 +6,8 @@
 Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
 
 
-# `SparseReg(x, y, weights = ones(length(y)); kw...)`
+# `SparseReg(x, y; kw...)`
+# `SparseReg(x, y, weights; kw...)`
 
 ### Keyword arguments:
 
