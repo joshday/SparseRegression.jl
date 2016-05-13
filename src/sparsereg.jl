@@ -21,7 +21,7 @@ function SparseReg(p::Integer;
         model::Model            = L2Regression(),
         penalty::Penalty        = NoPenalty(),
         penalty_factor::AVecF   = ones(p),
-        lambda::AVecF           = .1:.1:1.0,
+        lambda::AVecF           = linspace(0, maxlambda(model, penalty)),
         algorithm::Algorithm    = default_algorithm(model, penalty)
     )
     if typeof(penalty) == NoPenalty
@@ -43,7 +43,7 @@ function SparseReg(x::AMatF, y::AVecF, wts::AVecF = ones(0);
         model::Model            = L2Regression(),
         penalty::Penalty        = NoPenalty(),
         penalty_factor::AVecF   = ones(size(x, 2)),
-        lambda::AVecF           = .1:.1:1.0,
+        lambda::AVecF           = 0.0:.1:1.0,
         algorithm::Algorithm    = default_algorithm(model, penalty)
     )
     o = SparseReg(size(x, 2);
@@ -65,8 +65,6 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Algorithm", o.algorithm)
 end
 default_algorithm(::Model, ::Penalty) = FISTA()
-
-
 
 #---------------------------------------------------------------------------# Methods
 Base.copy(o::SparseReg) = deepcopy(o)

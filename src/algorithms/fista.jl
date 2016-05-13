@@ -44,6 +44,8 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
     β = zeros(p)
     Θ1 = zeros(p)           # last iteration
     Θ2 = zeros(p)           # two iterations ago
+    Θ0_1 = 0.0              # last iteration
+    Θ0_2 = 0.0              # two iterations ago
     Δ = zeros(p)            # Δ = x' * deriv_vec
     deriv_vec = zeros(n)    # derivative of loss with respect to η
     η = zeros(n)            # linear predictor
@@ -69,11 +71,15 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
             #--------------------------------------------------------# FISTA momentum
             copy!(Θ2, Θ1)
             copy!(Θ1, β)
-            β0_old = β0
+            Θ0_2 = Θ0_1
+            Θ0_1 = β0
             if rep > 2
                 ratio = (rep - 2) / (rep + 1)
                 for j in eachindex(β)
                     @inbounds β[j] = Θ1[j] + ratio * (Θ1[j] - Θ2[j])
+                end
+                if intercept
+                    β0 = Θ0_1 + ratio * (Θ0_1 - Θ0_2)
                 end
             end
             #--------------------------------------------# linear predictor η = x * β
@@ -108,9 +114,9 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
                 break
             end
             if use_step_halving && (newcost > oldcost)
-                s *= .7
+                s *= .5
                 copy!(β, Θ1)
-                β0 = β0_old
+                β0 = Θ0_1
             end
         end
         #--------------------------------------# Did the algorithm reach convergence?
@@ -135,9 +141,9 @@ end
 # put scaled coefficients back in original scale
 function scaled_to_original!(o::SparseReg, x_std::SM.StandardizedMatrix)
     p, d = size(o.β)
-    σx = x_std.σ
+    σx = x_std.σinv
     μx = x_std.μ
-    scale!(1 ./ σx, o.β)
+    scale!(1 .* σx, o.β)
     for j in eachindex(o.β0)
         o.β0[j] = o.β0[j] - dot(μx, o.β[:, j])
     end

@@ -3,10 +3,10 @@ abstract BivariateModel <: Model  # LogisticRegression and SVMLike
 function Base.show(io::IO, m::Model)
     s = string(typeof(m))
     s = replace(s, "SparseRegression.", "")
-    print(s)
+    print(is)
 end
 
-# =====================================================================# Model
+# ====================================================================# Model methods
 function lossvector!(m::Model, storage::VecF, y::VecF, η::VecF)
     for i in eachindex(y)
         @inbounds storage[i] = loss(m, y[i], η[i])
@@ -27,9 +27,6 @@ function classify!(m::BivariateModel, storage::VecF, η::VecF)
         @inbounds storage[i] = classify(m, η[i])
     end
 end
-maxlambda(m::Model, x::AMat, y::AVec) = maxlambda(L2Regression(), x, y)
-
-
 
 
 #----------------------------------------------------------------------# L2Regression
@@ -38,11 +35,6 @@ loss(m::L2Regression, y::Real, η::Real) = 0.5 * (y - η) ^ 2
 loglikelihood(m::L2Regression, y::Real, η::Real) = -loss(m, y, η)
 lossderiv(m::L2Regression, y::Real, η::Real) = -(y - η)
 predict(m::L2Regression, η::Real) = η
-function maxlambda(m::L2Regression, x::AMat, y::AVec)
-    n = length(y)
-    bias = (n - 1) / n
-    maximum(abs(StatsBase.zscore(x)' * y * bias)) / length(y)
-end
 
 #----------------------------------------------------------------------# L1Regression
 immutable L1Regression <: Model end
@@ -57,7 +49,23 @@ loss(m::LogisticRegression, y::Real, η::Real) = -y * η + log(1.0 + exp(η))
 loglikelihood(m::LogisticRegression, y::Real, η::Real) = -loss(m, y, η)
 lossderiv(m::LogisticRegression, y::Real, η::Real) = -(y - predict(m, η))
 predict(m::LogisticRegression, η::Real) = 1.0 / (1.0 + exp(-η))
-classify(m::LogisticRegression, η::Real) = Float64(predict(m, η) > .5)
+classify(m::LogisticRegression, η::Real) = Float64(η > 0.0)
+
+#------------------------------------------------------------------# ProbitRegression
+# TODO
+"For data in {0, 1}"
+immutable ProbitRegression <: BivariateModel end
+d = Ds.Normal()
+function loss(m::ProbitRegression, y::Real, η::Real)
+    -y * Ds.logcdf(d, η) - (1 - y) * Ds.logccdf(d, η)
+end
+loglikelihood(m::ProbitRegression, y::Real, η::Real) = -loss(m, y, η)
+function lossderiv(m::ProbitRegression, y::Real, η::Real)
+    (y - Ds.logcdf(d, η)) * Ds.pdf(η) / (Ds.cdf(d, η) * Ds.ccdf(d, η))
+end
+predict(m::ProbitRegression, η::Real) = Ds.cdf(d, η)
+classify(m::ProbitRegression, η::Real) = Float64(η > 0.0)
+
 
 #----------------------------------------------------------------# PoissonRegression
 immutable PoissonRegression <: Model end

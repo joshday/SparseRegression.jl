@@ -6,7 +6,7 @@
 Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
 
 
-# `SparseReg(x, y; kw...)`
+# `SparseReg(x, y, weights = ones(length(y)); kw...)`
 
 ### Keyword arguments:
 
@@ -20,29 +20,29 @@ Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main ty
 | `algorithm`      | `Algorithm`       | The algorithm/settings for the fitting procedure  |
 
 
-### Algorithms
+# Algorithms
+### `FISTA(;kw...)` (Fast Iterative Shrinkage-Thresholding Algorithm)
 
-##### `FISTA` (Fast Iterative Shrinkage-Thresholding Algorithm)
+| keyword       | type              | description                                                |
+|:--------------|:------------------|:-----------------------------------------------------------|
+| `standardize` | `Bool`            | Should `x` values be standardized? Default = `true`        |
+| `weights`     | `Vector{Float64}` | Weights for each observation                               |
+| `tol`         | `Float64`         | tolerance for convergence.  Default = `1e-7`               |
+| `maxit`       | `Int`             | Maximum number of iterations.  Default = `100`             |
+| `stepsize`    | `Float64`         | Step size for gradient descent part of algorithm           |
+| `verbose`     | `Bool`            | Whether to print information.  Default = `true`            |
+| `crit`        | `Symbol`          | Convergence criteria: `:coef` or `:obj`.  Default = `true` |
 
-| keyword       | type              | description                                         |
-|:--------------|:------------------|:----------------------------------------------------|
-| `standardize` | `Bool`            | Should `x` values be standardized? Default = `true` |
-| `weights`     | `Vector{Float64}` | Weights for each observation                        |
-| `tol`         | `Float64`         | tolerance for convergence.  Default = `1e-7`        |
-| `maxit`       | `Int`             | Maximum number of iterations.  Default = `100`      |
-| `stepsize`    | `Float64`         | Step size for gradient descent part of algorithm    |
-| `verbose`     | `Bool`            | Whether to print information.  Default = `true`     |
 
-
-##### `CD` (Coordinate Descent)
+### `CD(;kw...)` (Coordinate Descent)
 - not yet implemented
 
 
-##### `Sweep` (Only for `L2Regression` and `NoPenalty`)
+### `Sweep()` (Only for `L2Regression` and `NoPenalty`)
 - not yet implemented
+
 
 # Models
-
 - `L2Regression()`
 - `L1Regression()`
 - `LogisticRegression()`
@@ -51,15 +51,17 @@ Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main ty
 - `HuberRegression(δ)`
 - `QuantileRegression(τ)`
 
-# Penalties
 
+# Penalties
 - `NoPenalty()`
 - `RidgePenalty()`
 - `LassoPenalty()`
 - `ElasticNetPenalty(α = .5)`
 - `SCADPenalty(a = 3.7)`
 
+
 # Example
+
 ```julia
 using SparseRegression, Plots; plotly()
 n, p = 10000, 11
