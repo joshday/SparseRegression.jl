@@ -25,12 +25,12 @@ Fast Iterative Shrinkage and Thresholding Algorithm
 
 While FISTA works for every model/penalty pair, it may not be the most efficient.
 """
-# TODO: Use StandardizedMatrix
 function fit!{M <: Model, P <: Penalty, T <: Real}(
         o::SparseReg{M, P, FISTA}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
     )
     #------------------------------------------------------------------------# checks
     n, p = size(x)
+    alg = o.algorithm
     @assert size(o.β, 1) == p "Columns of `x` don't match columns in `β`"
     use_weights = length(wts) > 0  # use weights if they are provided
     @assert !use_weights || length(wts) == n "`weights` must have length $n"
@@ -38,7 +38,6 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
 
     #-------------------------------------------------------------------------# setup
     is_sparse = typeof(x) == SparseMatrixCSC
-    alg = o.algorithm
     use_step_halving = (alg.crit == :obj)
     β0 = 0.0
     β = zeros(p)
@@ -55,7 +54,6 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
         lossvec = zeros(0)
     end
     x_std = SM.StandardizedMatrix(x)
-    intercept = o.intercept
 
     # main loop
     for k in reverse(eachindex(o.λ))
@@ -71,21 +69,21 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
             #--------------------------------------------------------# FISTA momentum
             copy!(Θ2, Θ1)
             copy!(Θ1, β)
-            Θ0_2 = Θ0_1
-            Θ0_1 = β0
             if rep > 2
                 ratio = (rep - 2) / (rep + 1)
                 for j in eachindex(β)
                     @inbounds β[j] = Θ1[j] + ratio * (Θ1[j] - Θ2[j])
                 end
-                if intercept
+                if o.intercept
+                    Θ0_2 = Θ0_1
+                    Θ0_1 = β0
                     β0 = Θ0_1 + ratio * (Θ0_1 - Θ0_2)
                 end
             end
             #--------------------------------------------# linear predictor η = x * β
 
             alg.standardize ? A_mul_B!(η, x_std, β) : A_mul_B!(η, x, β)
-            intercept && add_constant!(η, β0)
+            o.intercept && add_constant!(η, β0)
             #-----------------------------------------------------# derivative vector
             for i in eachindex(deriv_vec)
                 @inbounds deriv_vec[i] = lossderiv(o.model, y[i], η[i])
@@ -95,7 +93,7 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
             alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
             scale!(Δ, 1 / n)
             #---------------------------------------------# gradient descent and prox
-            if intercept
+            if o.intercept
                 β0 -= s * mean(deriv_vec)
             end
             for j in eachindex(β)
@@ -114,7 +112,7 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
                 break
             end
             if use_step_halving && (newcost > oldcost)
-                s *= .5
+                s *= .8
                 copy!(β, Θ1)
                 β0 = Θ0_1
             end
@@ -125,7 +123,7 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
             warn("Not converged for λ = $(o.λ[k]).  Tolerance = $(round(reltol, 12))")
         end
         #---------------------------------------------------------# update parameters
-        if intercept
+        if o.intercept
             o.β0[k] = β0
         end
         o.β[:, k] = β
@@ -143,7 +141,7 @@ function scaled_to_original!(o::SparseReg, x_std::SM.StandardizedMatrix)
     p, d = size(o.β)
     σx = x_std.σinv
     μx = x_std.μ
-    scale!(1 .* σx, o.β)
+    scale!(σx, o.β)
     for j in eachindex(o.β0)
         o.β0[j] = o.β0[j] - dot(μx, o.β[:, j])
     end

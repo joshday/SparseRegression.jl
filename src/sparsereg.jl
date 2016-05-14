@@ -35,7 +35,7 @@ function SparseReg(p::Integer;
 
     SparseReg(
         zeros(d), zeros(p, d), intercept, model, penalty, collect(penalty_factor),
-        collect(lambda), algorithm
+        VecF(collect(lambda)), algorithm
     )
 end
 function SparseReg(x::AMatF, y::AVecF, wts::AVecF = ones(0);
