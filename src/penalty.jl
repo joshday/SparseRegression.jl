@@ -65,3 +65,9 @@ function prox!(p::Penalty, β::VecF, λ::Float64, penalty_factor::VecF, s::Float
         @inbounds β[j] = prox(p, β[j], λ * penalty_factor[j], s)
     end
 end
+# For prox.jl
+function prox!(p::Penalty, β::VecF, λ::Float64, penalty_factor::VecF, s::VecF)
+    for j in eachindex(β)
+        @inbounds β[j] = prox(p, β[j], λ * penalty_factor[j], s[j])
+    end
+end

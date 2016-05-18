@@ -10,7 +10,7 @@ export
     NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression,
-    FISTA,
+    FISTA, Fista, Sweep, Prox,
     coef, predict, fit!, loglikelihood
 
 #-----------------------------------------------------------------------------# types
@@ -35,6 +35,7 @@ include("penalty.jl")
 include("model.jl")
 include("sparsereg.jl")
 include("algorithms/fista.jl")
+include("algorithms/prox.jl")
 include("algorithms/sweep.jl")
 include("algorithms/coordinate_descent.jl")
 

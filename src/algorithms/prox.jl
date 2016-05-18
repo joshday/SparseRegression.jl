@@ -1,10 +1,8 @@
-#-----------------------------------------------------------------------------# FISTA
+#-----------------------------------------------------------------------------# Prox
 """
-Fast Iterative Shrinkage and Thresholding Algorithm
-
-While FISTA works for every model/penalty pair, it may not be the most efficient.
+Experimental Algorithm similar to FISTA.
 """
-immutable FISTA <: Algorithm
+immutable Prox <: Algorithm
     maxit::Int
     tol::Float64
     verbose::Bool
@@ -12,22 +10,21 @@ immutable FISTA <: Algorithm
     crit::Symbol
     standardize::Bool
 end
-function FISTA(;
+function Prox(;
         maxit::Integer      = 100,
         tol::Real           = 1e-7,
         verbose::Bool       = true,
         step::Real          = 0.5,
-        crit::Symbol    = :obj,
+        crit::Symbol        = :obj,
         standardize::Bool   = true
     )
-    FISTA(maxit, tol, verbose, step, crit, standardize)
+    Prox(maxit, tol, verbose, step, crit, standardize)
 end
-Fista(;kw...) = FISTA(;kw...)
-Base.show(io::IO, o::FISTA) = println(io, "FISTA")
+Base.show(io::IO, o::Prox) = println(io, "Prox")
 
 #------------------------------------------------------------------------------# fit!
 function fit!{M <: Model, P <: Penalty, T <: Real}(
-        o::SparseReg{M, P, FISTA}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
+        o::SparseReg{M, P, Prox}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
     )
     #------------------------------------------------------------------------# checks
     n, p = size(x)
@@ -38,7 +35,6 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
     @assert !(o.intercept == false && alg.standardize == true) "standardizing implies an intercept"
 
     #-------------------------------------------------------------------------# setup
-    is_sparse = typeof(x) == SparseMatrixCSC
     use_step_halving = (alg.crit == :obj)
     β0 = 0.0
     β = zeros(p)
@@ -55,6 +51,8 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
         lossvec = zeros(0)
     end
     x_std = SM.StandardizedMatrix(x)
+    H0 = 0.0 + .001
+    H = zeros(p) + .01
 
     # main loop
     for k in reverse(eachindex(o.λ))
@@ -67,20 +65,6 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
         for rep in 1:alg.maxit
             iters += 1
             oldcost = newcost
-            #--------------------------------------------------------# FISTA momentum
-            copy!(Θ2, Θ1)
-            copy!(Θ1, β)
-            if rep > 2
-                ratio = (rep - 2) / (rep + 1)
-                for j in eachindex(β)
-                    @inbounds β[j] = Θ1[j] + ratio * (Θ1[j] - Θ2[j])
-                end
-                if o.intercept
-                    Θ0_2 = Θ0_1
-                    Θ0_1 = β0
-                    β0 = Θ0_1 + ratio * (Θ0_1 - Θ0_2)
-                end
-            end
             #--------------------------------------------# linear predictor η = x * β
 
             alg.standardize ? A_mul_B!(η, x_std, β) : A_mul_B!(η, x, β)
@@ -94,13 +78,17 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
             alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
             scale!(Δ, 1 / n)
             #---------------------------------------------# gradient descent and prox
+			γ = 1 / (rep + 1)
             if o.intercept
-                β0 -= s * mean(deriv_vec)
+				m = mean(deriv_vec)
+				H0 = mean(deriv_vec .^ 2)
+                β0 -= s * m / sqrt(H0)
             end
             for j in eachindex(β)
-                @inbounds β[j] -= s * Δ[j]
+				@inbounds H[j] = mean((deriv_vec .* x[:, j]) .^ 2)
+                @inbounds β[j] -= s * Δ[j] / sqrt(H[j])
             end
-            prox!(o.penalty, β, λ, o.penalty_factor, s)
+            prox!(o.penalty, β, λ, o.penalty_factor, s * H)
             #-------------------------------------------------# check for convergence
             if alg.crit == :obj
                 lossvector!(o.model, lossvec, y, η)
@@ -111,11 +99,6 @@ function fit!{M <: Model, P <: Penalty, T <: Real}(
             end
             if abs(newcost - oldcost) < alg.tol * (min(abs(oldcost), abs(newcost)) + 1.0)
                 break
-            end
-            if use_step_halving && (newcost > oldcost)
-                s *= .8
-                copy!(β, Θ1)
-                β0 = Θ0_1
             end
         end
         #--------------------------------------# Did the algorithm reach convergence?
