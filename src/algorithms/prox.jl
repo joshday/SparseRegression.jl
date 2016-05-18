@@ -23,8 +23,8 @@ end
 Base.show(io::IO, o::Prox) = println(io, "Prox")
 
 #------------------------------------------------------------------------------# fit!
-function fit!{M <: Model, P <: Penalty, T <: Real}(
-        o::SparseReg{M, P, Prox}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
+function fit!{M <: Model, P <: Penalty}(
+        o::SparseReg{M, P, Prox}, x::AMat, y::AVec, wts::AVecF = ones(0)
     )
     #------------------------------------------------------------------------# checks
     n, p = size(x)

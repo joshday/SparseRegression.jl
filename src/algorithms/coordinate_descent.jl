@@ -12,8 +12,8 @@ end
 """
 Coordinate Descent
 """
-function fit!{M <: Model, P <: Penalty, T <: Real}(
-        o::SparseReg{M, P, CD}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
+function fit!{M <: Model, P <: Penalty}(
+        o::SparseReg{M, P, CD}, x::AMat, y::AVec, wts::AVecF = ones(0)
     )
 
 

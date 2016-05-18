@@ -26,8 +26,8 @@ Fista(;kw...) = FISTA(;kw...)
 Base.show(io::IO, o::FISTA) = println(io, "FISTA")
 
 #------------------------------------------------------------------------------# fit!
-function fit!{M <: Model, P <: Penalty, T <: Real}(
-        o::SparseReg{M, P, FISTA}, x::AMat{T}, y::AVec{T}, wts::AVecF = ones(0)
+function fit!{M <: Model, P <: Penalty}(
+        o::SparseReg{M, P, FISTA}, x::AMat, y::AVec, wts::AVecF = ones(0)
     )
     #------------------------------------------------------------------------# checks
     n, p = size(x)
