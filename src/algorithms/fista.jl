@@ -1,10 +1,10 @@
-#-----------------------------------------------------------------------------# FISTA
+#-----------------------------------------------------------------------------# Fista
 """
 Fast Iterative Shrinkage and Thresholding Algorithm
 
-While FISTA works for every model/penalty pair, it may not be the most efficient.
+While Fista works for every model/penalty pair, it may not be the most efficient.
 """
-immutable FISTA <: Algorithm
+immutable Fista <: Algorithm
     maxit::Int
     tol::Float64
     verbose::Bool
@@ -12,7 +12,7 @@ immutable FISTA <: Algorithm
     crit::Symbol
     standardize::Bool
 end
-function FISTA(;
+function Fista(;
         maxit::Integer      = 100,
         tol::Real           = 1e-7,
         verbose::Bool       = true,
@@ -20,14 +20,12 @@ function FISTA(;
         crit::Symbol    = :obj,
         standardize::Bool   = true
     )
-    FISTA(maxit, tol, verbose, step, crit, standardize)
+    Fista(maxit, tol, verbose, step, crit, standardize)
 end
-Fista(;kw...) = FISTA(;kw...)
-Base.show(io::IO, o::FISTA) = println(io, "FISTA")
 
 #------------------------------------------------------------------------------# fit!
 function fit!{M <: Model, P <: Penalty}(
-        o::SparseReg{M, P, FISTA}, x::AMat, y::AVec, wts::AVecF = ones(0)
+        o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVecF = ones(0)
     )
     #------------------------------------------------------------------------# checks
     n, p = size(x)
@@ -67,7 +65,7 @@ function fit!{M <: Model, P <: Penalty}(
         for rep in 1:alg.maxit
             iters += 1
             oldcost = newcost
-            #--------------------------------------------------------# FISTA momentum
+            #--------------------------------------------------------# Fista momentum
             copy!(Θ2, Θ1)
             copy!(Θ1, β)
             if rep > 2

@@ -10,7 +10,7 @@ export
     NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression,
-    FISTA, Fista, Sweep, Prox,
+    Fista, Sweep, Prox,
     coef, predict, fit!, loglikelihood
 
 #-----------------------------------------------------------------------------# types
@@ -22,6 +22,7 @@ typealias AVecF AVec{Float64}
 typealias AMatF AMat{Float64}
 
 abstract Algorithm
+Base.show(io::IO, o::Algorithm) = println(io, replace(string(typeof(o)), "SparseRegression.", ""))
 
 #--------------------------------------------------------------------------# printing
 print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "■ $s \n")

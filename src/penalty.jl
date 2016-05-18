@@ -36,7 +36,7 @@ function penalty(p::SCADPenalty, β, λ)
 end
 
 
-# Setup for proximal gradient algorithm (FISTA):
+# Setup for proximal gradient algorithm (Fista):
 # For ℓ(β) = f(β) + g(β),
 # βnew = prox_{s * g}(βold - s * ∇f(βold))
 prox(p::NoPenalty, βj, λ, s) = βj

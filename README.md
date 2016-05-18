@@ -1,7 +1,7 @@
 # SparseRegression
 
 [![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
-Note: build will be failing until StandardizedMatrices.jl is in METADATA
+<-- Build will be failing until StandardizedMatrices.jl is in METADATA
 
 Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
 
@@ -22,7 +22,7 @@ Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main ty
 
 
 # Algorithms
-### `FISTA(;kw...)` (Fast Iterative Shrinkage-Thresholding Algorithm)
+### `Fista(;kw...)` (Fast Iterative Shrinkage-Thresholding Algorithm)
 
 | keyword       | type              | description                                                |
 |:--------------|:------------------|:-----------------------------------------------------------|

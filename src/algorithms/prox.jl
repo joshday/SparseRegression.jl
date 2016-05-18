@@ -1,6 +1,9 @@
-#-----------------------------------------------------------------------------# Prox
+#------------------------------------------------------------------------------# Prox
+# TODO: second deriv version
+# TODO: MM second deriv version
+# TODO: other?
 """
-Experimental Algorithm similar to FISTA.
+Experimental Algorithm similar to Fista.
 """
 immutable Prox <: Algorithm
     maxit::Int
@@ -20,7 +23,6 @@ function Prox(;
     )
     Prox(maxit, tol, verbose, step, crit, standardize)
 end
-Base.show(io::IO, o::Prox) = println(io, "Prox")
 
 #------------------------------------------------------------------------------# fit!
 function fit!{M <: Model, P <: Penalty}(

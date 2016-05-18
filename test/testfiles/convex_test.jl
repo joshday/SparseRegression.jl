@@ -21,7 +21,7 @@ o = SparseReg(x, y,
     intercept = false,
     lambda = [λ],
     model = L2Regression(),
-    algorithm = FISTA(step = .5, tol = 1e-10, standardize = false)
+    algorithm = Fista(step = .5, tol = 1e-10, standardize = false)
 )
 b1 = coef(o)[:, 1]
 

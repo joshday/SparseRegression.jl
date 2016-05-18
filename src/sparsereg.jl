@@ -64,7 +64,7 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "nλ", "$(length(o.λ))")
     print_item(io, "Algorithm", o.algorithm)
 end
-default_algorithm(::Model, ::Penalty) = FISTA()
+default_algorithm(::Model, ::Penalty) = Fista()
 
 #---------------------------------------------------------------------------# Methods
 Base.copy(o::SparseReg) = deepcopy(o)
