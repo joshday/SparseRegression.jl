@@ -32,7 +32,7 @@ Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main ty
 | `maxit`       | `Int`             | Maximum number of iterations.  Default = `100`             |
 | `stepsize`    | `Float64`         | Step size for gradient descent part of algorithm           |
 | `verbose`     | `Bool`            | Whether to print information.  Default = `true`            |
-| `crit`        | `Symbol`          | Convergence criteria: `:coef` or `:obj`.  Default = `true` |
+| `crit`        | `Symbol`          | Convergence criteria: `:coef` or `:obj`.  Default = `:obj` |
 
 
 ### `CD(;kw...)` (Coordinate Descent)
