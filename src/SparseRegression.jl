@@ -7,11 +7,11 @@ import Distributions; Ds = Distributions
 
 export
     SparseReg,
-    NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
+    Penalty, NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression,
     Fista, Sweep, Prox,
-    coef, predict, fit!, loglikelihood
+    coef, predict, fit!, loglikelihood, loss
 
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}
@@ -25,7 +25,7 @@ abstract Algorithm
 Base.show(io::IO, o::Algorithm) = println(io, replace(string(typeof(o)), "SparseRegression.", ""))
 
 #--------------------------------------------------------------------------# printing
-print_header(io::IO, s::AbstractString) = print_with_color(:blue, io, "■ $s \n")
+print_header(io::IO, s::AbstractString) = println(io, "■ $s")
 function print_item(io::IO, name::AbstractString, value)
     println(io, "  >" * @sprintf("%14s", name * ":  "), value)
 end

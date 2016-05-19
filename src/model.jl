@@ -3,7 +3,7 @@ abstract BivariateModel <: Model  # LogisticRegression and SVMLike
 function Base.show(io::IO, m::Model)
     s = string(typeof(m))
     s = replace(s, "SparseRegression.", "")
-    print(is)
+    print(s)
 end
 
 # ====================================================================# Model methods
@@ -27,7 +27,11 @@ function classify!(m::BivariateModel, storage::VecF, η::VecF)
         @inbounds storage[i] = classify(m, η[i])
     end
 end
-
+function loss(m::Model, y::VecF, η::VecF)
+    storage = zeros(y)
+    lossvector!(m, storage, y, η)
+    mean(storage)
+end
 
 #----------------------------------------------------------------------# L2Regression
 immutable L2Regression <: Model end

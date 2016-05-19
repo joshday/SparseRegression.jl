@@ -1,10 +1,9 @@
+# TODO: Add N parameter for dimension of response (allow classification)
 """
 # Notes:
 ### Two constructors:
 - `SparseReg(p; kw...)`
 - `SparseReg(x, y, wts; kw...)`
-
-This setup should be completely agnostic to the algorithm (even online algorithms)
 """
 immutable SparseReg{M <: Model, P <: Penalty, A <: Algorithm}
     β0::VecF                # intercepts
@@ -21,7 +20,7 @@ function SparseReg(p::Integer;
         model::Model            = L2Regression(),
         penalty::Penalty        = NoPenalty(),
         penalty_factor::AVecF   = ones(p),
-        lambda::AVecF           = linspace(0, maxlambda(model, penalty)),
+        lambda::AVecF           = 0.0 : 0.1 : 1.0,
         algorithm::Algorithm    = default_algorithm(model, penalty)
     )
     if typeof(penalty) == NoPenalty
