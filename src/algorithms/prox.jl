@@ -25,9 +25,7 @@ function Prox(;
 end
 
 #------------------------------------------------------------------------------# fit!
-function fit!{M <: Model, P <: Penalty}(
-        o::SparseReg{M, P, Prox}, x::AMat, y::AVec, wts::AVecF = ones(0)
-    )
+function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Prox}, x::AMat, y::AVec, wts::AVec)
     #------------------------------------------------------------------------# checks
     n, p = size(x)
     alg = o.algorithm

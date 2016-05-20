@@ -11,22 +11,22 @@ immutable Fista <: Algorithm
     step::Float64
     crit::Symbol
     standardize::Bool
-end
-function Fista(;
-        maxit::Integer      = 100,
-        tol::Real           = 1e-7,
-        verbose::Bool       = true,
-        step::Real          = 0.5,
-        crit::Symbol    = :obj,
-        standardize::Bool   = true
-    )
-    Fista(maxit, tol, verbose, step, crit, standardize)
+
+    function Fista(;
+            maxit::Integer      = 100,
+            tol::Real           = 1e-7,
+            verbose::Bool       = true,
+            step::Real          = 0.5,
+            crit::Symbol    = :obj,
+            standardize::Bool   = true
+        )
+        new(maxit, tol, verbose, step, crit, standardize)
+    end
 end
 
+
 #------------------------------------------------------------------------------# fit!
-function fit!{M <: Model, P <: Penalty}(
-        o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVecF = ones(0)
-    )
+function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
     #------------------------------------------------------------------------# checks
     n, p = size(x)
     alg = o.algorithm

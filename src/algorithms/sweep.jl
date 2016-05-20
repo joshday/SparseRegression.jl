@@ -1,26 +1,28 @@
-immutable Sweep <: Algorithm end
+immutable Sweep <: Algorithm
+    standardize::Bool
+
+    function Sweep(;
+        standardize::Bool = true
+        )
+        new(standardize)
+    end
+end
 
 #-----------------------------------------------------------------------------# Sweep
-# function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMatF, y::AVecF,
-#         wts::AVecF = zeros(1)
-#     )
-#     n, p = size(x)
-#     A = zeros(p + 1, p + 1)
-#     useweights = length(wts) == n
-#     if useweights
-#         W = Diagonal(wts)
-#         A[1:p, 1:p] = x' * W * x / n
-#         A[1:p, end] = x' * W * y / n
-#         A[end, end] = dot(y, W * y) / n
-#     else
-#         A[1:p, 1:p] = x'x / n
-#         A[1:p, end] = x'y / n
-#         A[end, end] = dot(y, y) / n
-#     end
-#     sweep!(A, 1:p)
-# end
+# TODO: weights, intercept, standardiziation
+function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMat, y::AVec, wts::AVec)
+    n, p = size(x)
+    A = zeros(p + 1, p + 1)
+    BLAS.syrk!('U', 'T', 1 / n, x, 0.0, sub(A, 1:p, 1:p))
+    BLAS.gemv!('T', 1 / n, x, y, 0.0, slice(A, 1:p, p+1))
+    A[end, end] = sumabs2(y) / n
+    sweep!(A, 1:p)
+    o.β[:, 1] = sub(A, 1:p, p + 1)
+    o
+end
 
 
+#--------------------------------------------------------------------# sweep! methods
 """
 `sweep!(A, k, inv = false)`, `sweep!(A, k, v, inv = false)`
 
