@@ -5,7 +5,10 @@ os:
   - osx
 julia:
   - release
-  # - nightly
+  - nightly
+matrix:
+  - allowed_failures:
+    - julia: nightly 
 notifications:
   email: false
 # uncomment the following lines to override the default test script
@@ -13,4 +16,4 @@ script:
  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
  - julia -e 'Pkg.clone(pwd()); Pkg.build("SparseRegression"); Pkg.test("SparseRegression"; coverage=true)'
 after_success:
- - julia -e 'cd(Pkg.dir("StatisticalLEarning")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
+ - julia -e 'cd(Pkg.dir("SparseRegression")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
