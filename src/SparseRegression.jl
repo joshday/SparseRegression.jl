@@ -10,7 +10,7 @@ export
     Penalty, NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression,
-    Fista, Sweep, Prox,
+    Algorithm, Fista, Sweep, Prox,
     coef, predict, fit!, loglikelihood, loss
 
 #-----------------------------------------------------------------------------# types

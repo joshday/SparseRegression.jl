@@ -9,17 +9,24 @@ immutable Sweep <: Algorithm
 end
 
 #-----------------------------------------------------------------------------# Sweep
-# TODO: weights, intercept, standardiziation
+# TODO: intercept, standardization
 function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMat, y::AVec, wts::AVec)
     n, p = size(x)
     A = zeros(p + 1, p + 1)
-    BLAS.syrk!('U', 'T', 1 / n, x, 0.0, sub(A, 1:p, 1:p))
-    BLAS.gemv!('T', 1 / n, x, y, 0.0, slice(A, 1:p, p+1))
+    useweights = length(wts) == n
+    if useweights
+        BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt(wts)) * x, 0.0, sub(A, 1:p, 1:p))
+        BLAS.gemv!('T', 1 / n, Diagonal(wts) * x, y, 0.0, slice(A, 1:p, p+1))
+    else
+        BLAS.syrk!('U', 'T', 1 / n, x, 0.0, sub(A, 1:p, 1:p))
+        BLAS.gemv!('T', 1 / n, x, y, 0.0, slice(A, 1:p, p+1))
+    end
     A[end, end] = sumabs2(y) / n
     sweep!(A, 1:p)
     o.β[:, 1] = sub(A, 1:p, p + 1)
     o
 end
+
 
 
 #--------------------------------------------------------------------# sweep! methods

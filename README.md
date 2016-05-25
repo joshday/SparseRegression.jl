@@ -1,9 +1,8 @@
 # SparseRegression
 
 [![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
-<-- Build will be failing until StandardizedMatrices.jl is in METADATA
 
-Solution paths for penalized regression: `ℓ(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
+Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
 
 
 # `SparseReg(x, y; kw...)`
