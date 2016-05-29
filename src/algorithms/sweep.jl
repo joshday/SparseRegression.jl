@@ -9,28 +9,39 @@ immutable Sweep <: Algorithm
 end
 
 #-----------------------------------------------------------------------------# Sweep
-# TODO: intercept w/ weights, standardization
+# TODO: standardization
 function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMat, y::AVec, wts::AVec)
     n, p = size(x)
-    d = p + 1 + o.intercept  # size of Augmented matrix [x y]' * [x y]'
+    d = p + 2  # size of Augmented matrix [x y]' * [x y]' (including intercept)
     A = zeros(d, d)
+    A[1, 1] = 1.0
     useweights = length(wts) == n
-    rng = (1:p) + o.intercept
+    rng = 2:p + 1
     if useweights
-        BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt(wts)) * x, 0.0, sub(A, 1:p, 1:p))
-        BLAS.gemv!('T', 1 / n, Diagonal(wts) * x, y, 0.0, slice(A, 1:p, p+1))
+        W = Diagonal(sqrt(wts))
+        # x'x
+        BLAS.syrk!('U', 'T', 1 / n, W * x, 0.0, sub(A, rng, rng))
+        # 1'x
+        A[1, 2:end - 1] = mean(x, 1)
+        # x'y
+        BLAS.gemv!('T', 1 / n, W * x, W * y, 0.0, slice(A, rng, d))
+        # 1'y
+        A[1, end] = mean(y, WeightVec(wts))
+        # y'y
+        A[end, end] = dot(y, W * y) / n
     else
-        if o.intercept
-            A[1, 1] = 1.0
-            A[1, 2:end - 1] = mean(x, 1)
-            A[1, end] = mean(y)
-        end
-
+        # x'x
         BLAS.syrk!('U', 'T', 1 / n, x, 0.0, sub(A, rng, rng))
+        # 1'x
+        A[1, 2:end - 1] = mean(x, 1)
+        # x'y
         BLAS.gemv!('T', 1 / n, x, y, 0.0, slice(A, rng, d))
+        # 1'y
+        A[1, end] = mean(y)
+        # y'y
+        A[end, end] = sumabs2(y) / n
     end
-    A[end, end] = sumabs2(y) / n
-    sweep!(A, 1:(d - 1))
+    sweep!(A, 1 + !o.intercept:(d - 1))
     if o.intercept
         o.β0[1] = A[1, d]
     end
