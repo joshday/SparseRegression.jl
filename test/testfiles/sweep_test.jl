@@ -10,7 +10,7 @@ facts("SweepTest") do
     context("L2Regression") do
         o = SparseReg(x, y, algorithm = Sweep())
 		o2 = SparseReg(x, y, ones(n), algorithm = Sweep())
-		@fact coef(o) --> coef(o2)
+		@fact coef(o) --> roughly(coef(o2))
     end
 end
 end

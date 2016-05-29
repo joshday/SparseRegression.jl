@@ -36,7 +36,6 @@ function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::A
     @assert !(o.intercept == false && alg.standardize == true) "standardizing implies an intercept"
 
     #-------------------------------------------------------------------------# setup
-    is_sparse = typeof(x) == SparseMatrixCSC
     use_step_halving = (alg.crit == :obj)
     β0 = 0.0
     β = zeros(p)
@@ -80,14 +79,13 @@ function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::A
                 end
             end
             #--------------------------------------------# linear predictor η = x * β
-
             alg.standardize ? A_mul_B!(η, x_std, β) : A_mul_B!(η, x, β)
             o.intercept && add_constant!(η, β0)
             #-----------------------------------------------------# derivative vector
             for i in eachindex(deriv_vec)
                 @inbounds deriv_vec[i] = lossderiv(o.model, y[i], η[i])
             end
-            use_weights && add_vector!(deriv_vec, wts)
+            use_weights && mult_vector!(deriv_vec, wts)
             #-------------------------------------# calculate gradient from deriv_vec
             alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
             scale!(Δ, 1 / n)
@@ -102,7 +100,7 @@ function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::A
             #-------------------------------------------------# check for convergence
             if alg.crit == :obj
                 lossvector!(o.model, lossvec, y, η)
-                use_weights && add_vector!(lossvec, wts)
+                use_weights && mult_vector!(lossvec, wts)
                 newcost = mean(lossvec) + penalty(o.penalty, β, λ)
             elseif alg.crit == :coef
                 newcost = maxabs(β - Θ1)
@@ -153,9 +151,9 @@ function add_constant!(arr, c)
     end
 end
 
-# Add arrays, overwrite v1
-function add_vector!(v1, v2)
+# Elementwise multiplication of arrays, overwrite v1
+function mult_vector!(v1, v2)
     for i in eachindex(v1)
-        @inbounds v1[i] += v2[i]
+        @inbounds v1[i] *= v2[i]
     end
 end

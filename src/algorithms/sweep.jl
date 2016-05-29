@@ -26,7 +26,7 @@ function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMat, y::AVec, wt
         # x'y
         BLAS.gemv!('T', 1 / n, W * x, W * y, 0.0, slice(A, rng, d))
         # 1'y
-        A[1, end] = mean(y, WeightVec(wts))
+        A[1, end] = mean(y, StatsBase.WeightVec(wts))
         # y'y
         A[end, end] = dot(y, W * y) / n
     else
