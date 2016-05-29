@@ -2,6 +2,9 @@
 
 [![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
 
+[![codecov](https://codecov.io/gh/joshday/SparseRegression.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/joshday/SparseRegression.jl)
+
+
 Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
 
 
@@ -34,12 +37,34 @@ Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type
 | `crit`        | `Symbol`          | Convergence criteria: `:coef` or `:obj`.  Default = `:obj` |
 
 
+### `Sweep()` (Only for `L2Regression` with `NoPenalty`)
+
+Efficient linear regression using the sweep operator.
+
+```julia
+using SparseRegression, GLM, BenchmarkTools
+n, p = 1_000_000, 20
+x = randn(n, p)
+β = collect(1.0:p)
+y = x * β + randn(n)
+
+@benchmark SparseReg(x, y, algorithm = Sweep(), intercept = false)
+# median time:      81.62 ms (0.00% GC)
+# memory estimate:  20.19 kb
+
+@benchmark x \ y
+# median time:      355.34 ms (3.39% GC)
+# memory estimate:  160.25 mb
+
+@benchmark lm(x, y)
+# median time:      414.89 ms (3.14% GC)
+# memory estimate:  175.49 mb
+```
+
+
 ### `CD(;kw...)` (Coordinate Descent)
-- not yet implemented
+- in progress
 
-
-### `Sweep()` (Only for `L2Regression` and `NoPenalty`)
-- not yet implemented
 
 
 # Models
