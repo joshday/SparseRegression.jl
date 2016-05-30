@@ -26,6 +26,8 @@ Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type
 # Algorithms
 ### `Fista(;kw...)` (Fast Iterative Shrinkage-Thresholding Algorithm)
 
+**Accelerated Proximal Gradient Method**
+
 | keyword       | type              | description                                                |
 |:--------------|:------------------|:-----------------------------------------------------------|
 | `standardize` | `Bool`            | Should `x` values be standardized? Default = `true`        |
@@ -39,7 +41,11 @@ Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type
 
 ### `Sweep()` (Only for `L2Regression` with `NoPenalty`)
 
-Efficient linear regression using the sweep operator.
+**Efficient linear regression using the sweep operator.**
+
+| keyword       | type   | description                                         |
+|:--------------|:-------|:----------------------------------------------------|
+| `standardize` | `Bool` | Should `x` values be standardized? Default = `true` |
 
 ```julia
 using SparseRegression, GLM, BenchmarkTools

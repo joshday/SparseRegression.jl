@@ -1,35 +1,28 @@
 module SanityCheck
-using SparseRegression, FactCheck, Distributions
+using SparseRegression, Distributions, DataGenerator
+if VERSION >= v"0.5.0-dev+7720"
+    using Base.Test
+else
+    using BaseTestNext
+    const Test = BaseTestNext
+end
 
-facts("SanityCheck") do
+
+@testset "Fista Sanity Check" begin
     n, p = 1000, 11
-    x = randn(n, p)
-    β = collect(linspace(-.5, .5, p))
-    y1 = x*β + randn(n)
-    y2 = 2.0 * [rand(Bernoulli(1. / (1. + exp(-η)))) for η in x*β] - 1.0
-    y3 = Float64[rand(Poisson(exp(η))) for η in x*β]
-    tol = 1e-4
+    x, y, β = linregdata(n, p)
+    o = SparseReg(x, y, algorithm = Fista())
+    o = SparseReg(x, y, model = L1Regression(), algorithm = Fista())
+    o = SparseReg(x, y, model = QuantileRegression(.7), algorithm = Fista())
+    o = SparseReg(x, y, model = HuberRegression(.7), algorithm = Fista())
 
-    context("L2Regression") do
-        o = SparseReg(x, y1, algorithm = Fista(tol = tol))
-    end
-    context("L1Regression") do
-        o = SparseReg(x, y1, model = L1Regression(), algorithm = Fista(tol = tol))
-    end
-    context("LogisticRegression") do
-        o = SparseReg(x, y2, model = LogisticRegression(), algorithm = Fista(tol = tol))
-    end
-    context("PoissonRegression") do
-        o = SparseReg(x, y3, model = PoissonRegression(), algorithm = Fista(tol = tol))
-    end
-    context("SVMLike") do
-        o = SparseReg(x, y2, model = SVMLike(), algorithm = Fista(tol = tol))
-    end
-    context("QuantileRegression") do
-        o = SparseReg(x, y1, model = QuantileRegression(.7), algorithm = Fista(tol = tol))
-    end
-    context("HuberRegression") do
-        o = SparseReg(x, y1, model = HuberRegression(.7), algorithm = Fista(tol = tol))
-    end
+    x, y, β = logregdata(n, p, false)
+    o = SparseReg(x, y, model = LogisticRegression(), algorithm = Fista())
+
+    x, y, β = logregdata(n, p, true)
+    o = SparseReg(x, y, model = SVMLike(), algorithm = Fista())
+
+    x, y, β = poissonregdata(n, p)
+    o = SparseReg(x, y, model = PoissonRegression(), algorithm = Fista())
 end
 end

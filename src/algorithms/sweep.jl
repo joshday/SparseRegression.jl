@@ -49,6 +49,12 @@ function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMat, y::AVec, wt
     o
 end
 
+function coef{M <: Model, P <: Penalty}(o::SparseReg{M, P, Sweep})
+    β = o.β[:, 1]
+    o.intercept? vcat(o.β0[1], β) : β
+end
+
+
 
 
 #--------------------------------------------------------------------# sweep! methods
