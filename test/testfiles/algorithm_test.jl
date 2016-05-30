@@ -1,11 +1,12 @@
 module AlgorithmTest
-using SparseRegression, DataGenerator
+using SparseRegression
 if VERSION >= v"0.5.0-dev+7720"
     using Base.Test
 else
     using BaseTestNext
     const Test = BaseTestNext
 end
+include("../datagenerator.jl")
 
 n, p = 10_000, 50
 x, y, β = linregdata(n, p)

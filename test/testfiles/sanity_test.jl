@@ -1,11 +1,12 @@
 module SanityCheck
-using SparseRegression, Distributions, DataGenerator
+using SparseRegression, Distributions
 if VERSION >= v"0.5.0-dev+7720"
     using Base.Test
 else
     using BaseTestNext
     const Test = BaseTestNext
 end
+include("../datagenerator.jl")
 
 
 @testset "Fista Sanity Check" begin
@@ -25,4 +26,4 @@ end
     x, y, β = poissonregdata(n, p)
     o = SparseReg(x, y, model = PoissonRegression(), algorithm = Fista())
 end
-end
+end  # module
