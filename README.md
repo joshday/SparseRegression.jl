@@ -1,7 +1,6 @@
 # SparseRegression
 
 [![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
-
 [![codecov](https://codecov.io/gh/joshday/SparseRegression.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/joshday/SparseRegression.jl)
 
 
@@ -100,6 +99,6 @@ x = randn(n, p)
 β = collect(linspace(-.5, .5, p))
 y = x * β + randn(n)
 
-o = SparseReg(x, y, penalty = LassoPenalty(), model = L2Regression())
+o = SparseReg(x, y, penalty = LassoPenalty(), model = L2Regression(), algorithm = Fista(tol=1e-4))
 plot(o)
 ```

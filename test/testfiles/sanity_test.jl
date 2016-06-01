@@ -9,6 +9,7 @@ end
 include("../datagenerator.jl")
 
 
+# Ensure no errors using Fista with any Model
 @testset "Fista Sanity Check" begin
     n, p = 1000, 11
     x, y, β = linregdata(n, p)
