@@ -10,7 +10,7 @@ export
     SparseReg,
     Penalty, NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
     L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
-    HuberRegression, PoissonRegression,
+    HuberRegression, PoissonRegression, Model,
     Algorithm, Fista, Sweep, Prox,
     coef, predict, fit!, loglikelihood, loss, sweep!
 
