@@ -17,6 +17,7 @@ for obj in [
     show(obj); println()
 end
 sp.print_header(STDOUT, "print header")
+sp.print_item(STDOUT, "item", 1.0)
 
 
 info("Common")
