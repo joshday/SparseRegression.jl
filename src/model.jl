@@ -12,31 +12,32 @@ function lossvector!(m::Model, storage::VecF, y::VecF, η::VecF)
         @inbounds storage[i] = loss(m, y[i], η[i])
     end
 end
-function loglikelihood!(m::Model, storage::VecF, y::VecF, η::VecF)
-    for i in eachindex(y)
-        @inbounds storage[i] = loglikelihood(m, y[i], η[i])
-    end
-end
-function predict!(m::Model, storage::VecF, η::VecF)
-    for i in eachindex(η)
-        @inbounds storage[i] = predict(m, η[i])
-    end
-end
-function classify!(m::BivariateModel, storage::VecF, η::VecF)
-    for i in eachindex(η)
-        @inbounds storage[i] = classify(m, η[i])
-    end
-end
 function loss(m::Model, y::VecF, η::VecF)
     storage = zeros(y)
     lossvector!(m, storage, y, η)
     mean(storage)
 end
 
+function loglikelihood!(m::Model, storage::VecF, y::VecF, η::VecF)
+    for i in eachindex(y)
+        @inbounds storage[i] = loglikelihood(m, y[i], η[i])
+    end
+end
+function predict!(m::Model, storage::Vector, η::Vector)
+    for i in eachindex(η)
+        @inbounds storage[i] = predict(m, η[i])
+    end
+end
+function classify!(m::BivariateModel, storage::Vector, η::Vector)
+    for i in eachindex(η)
+        @inbounds storage[i] = classify(m, η[i])
+    end
+end
+
+
 #------------------------------------------------------------------# LinearRegression
 immutable LinearRegression <: Model end
 loss(m::LinearRegression, y::Real, η::Real) = 0.5 * (y - η) ^ 2
-loglikelihood(m::LinearRegression, y::Real, η::Real) = -loss(m, y, η)
 lossderiv(m::LinearRegression, y::Real, η::Real) = -(y - η)
 predict(m::LinearRegression, η::Real) = η
 
@@ -50,7 +51,6 @@ predict(m::L1Regression, η::Real) = η
 "For data in {0, 1}"
 immutable LogisticRegression <: BivariateModel end
 loss(m::LogisticRegression, y::Real, η::Real) = -y * η + log(1.0 + exp(η))
-loglikelihood(m::LogisticRegression, y::Real, η::Real) = -loss(m, y, η)
 lossderiv(m::LogisticRegression, y::Real, η::Real) = -(y - predict(m, η))
 predict(m::LogisticRegression, η::Real) = 1.0 / (1.0 + exp(-η))
 classify(m::LogisticRegression, η::Real) = Float64(η > 0.0)
@@ -74,7 +74,6 @@ classify(m::LogisticRegression, η::Real) = Float64(η > 0.0)
 #----------------------------------------------------------------# PoissonRegression
 immutable PoissonRegression <: Model end
 loss(m::PoissonRegression, y::Real, η::Real) = -y * η + exp(η)
-loglikelihood(m::LogisticRegression, y::Real, η::Real) = -loss(m, y, η)
 lossderiv(m::PoissonRegression, y::Real, η::Real) = -y + exp(η)
 predict(m::PoissonRegression, η::Real) = exp(η)
 
@@ -99,7 +98,7 @@ predict(m::QuantileRegression, η::Real) = η
 immutable HuberRegression <: Model δ::Float64 end
 function loss(m::HuberRegression, y::Real, η::Real)
     r = y - η
-    r < m.δ ? 0.5 * r * r : m.δ * (abs(r) - 0.5 * m.δ)
+    abs(r) < m.δ ? 0.5 * r * r : m.δ * (abs(r) - 0.5 * m.δ)
 end
 function lossderiv(m::HuberRegression, y::Real, η::Real)
     r = y - η

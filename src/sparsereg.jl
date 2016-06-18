@@ -103,18 +103,6 @@ function loss(o::SparseReg, x::AMat, y::AVec, λ::Real = o.λ[1])
     mean(storage)
 end
 
-function loglikelihood(o::SparseReg, x::AMat, y::AVec, λ::Real = o.λ[1]; penalized = false)
-    i = λindex(o, λ)
-    storage = zeros(length(y))
-    loglikelihood!(o.model, storage, y, o.β0[i] + x * o.β[:, i])
-    value = mean(storage)
-    if penalized
-        value -= penalty(o.penalty, o.β[:, i], λ)
-    end
-    value
-end
-
-
 function cost(o::SparseReg, x::AbstractArray, y::AbstractArray, λ::Real = o.λ[1])
     i = λindex(o, λ)
     loss(o, x, y) + penalty(o.penalty, o.β[:, i], λ)
