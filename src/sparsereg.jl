@@ -67,7 +67,6 @@ default_algorithm(::Model, ::Penalty) = Fista()
 default_algorithm(::LinearRegression, ::NoPenalty) = Sweep()
 
 #---------------------------------------------------------------------------# Methods
-Base.copy(o::SparseReg) = deepcopy(o)
 coef(o::SparseReg) = o.intercept? vcat(o.β0', o.β) : o.β
 
 function λindex(o::SparseReg, λ::Real)
@@ -105,5 +104,5 @@ end
 
 function cost(o::SparseReg, x::AbstractArray, y::AbstractArray, λ::Real = o.λ[1])
     i = λindex(o, λ)
-    loss(o, x, y) + penalty(o.penalty, o.β[:, i], λ)
+    loss(o, x, y, λ) + penalty(o.penalty, o.β[:, i], λ)
 end
