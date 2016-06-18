@@ -10,7 +10,7 @@ end
 
 #-----------------------------------------------------------------------------# Sweep
 # TODO: standardization
-function fit!(o::SparseReg{L2Regression, NoPenalty, Sweep}, x::AMat, y::AVec, wts::AVec)
+function fit!(o::SparseReg{LinearRegression, NoPenalty, Sweep}, x::AMat, y::AVec, wts::AVec)
     n, p = size(x)
     d = p + 2  # size of Augmented matrix [x y]' * [x y]' (including intercept)
     A = zeros(d, d)

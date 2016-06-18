@@ -15,7 +15,7 @@ Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type
 | keyword          | type              | description                                       |
 |:-----------------|:------------------|:--------------------------------------------------|
 | `intercept`      | `Bool`            | Should an intercept be included in the model?     |
-| `model`          | `Model`           | The type of model.  Default = `L2Regression()`    |
+| `model`          | `Model`           | The type of model.  Default = `LinearRegression()`    |
 | `penalty`        | `Penalty`         | The type of penalty. Default = `NoPenalty()`      |
 | `penalty_factor` | `Vector{Float64}` | Weights applied to the penalty.  Default is ones. |
 | `lambda`         | `Vector{Float64}` | The lambdas for which to get a solution path      |
@@ -38,7 +38,7 @@ Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type
 | `crit`        | `Symbol`          | Convergence criteria: `:coef` or `:obj`.  Default = `:obj` |
 
 
-### `Sweep()` (Only for `L2Regression` with `NoPenalty`)
+### `Sweep()` (Only for `LinearRegression` with `NoPenalty`)
 
 **Efficient linear regression using the sweep operator.**
 
@@ -73,7 +73,7 @@ y = x * β + randn(n)
 
 
 # Models
-- `L2Regression()`
+- `LinearRegression()`
 - `L1Regression()`
 - `LogisticRegression()`
 - `PoissonRegression()`
@@ -99,7 +99,7 @@ x = randn(n, p)
 β = collect(linspace(-.5, .5, p))
 y = x * β + randn(n)
 
-o = SparseReg(x, y, penalty = LassoPenalty(), model = L2Regression(), algorithm = Fista(tol=1e-4))
+o = SparseReg(x, y, penalty = LassoPenalty(), model = LinearRegression(), algorithm = Fista(tol=1e-4))
 plot(o)
 plot(o, x, y)
 ```

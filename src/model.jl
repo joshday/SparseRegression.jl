@@ -33,12 +33,12 @@ function loss(m::Model, y::VecF, η::VecF)
     mean(storage)
 end
 
-#----------------------------------------------------------------------# L2Regression
-immutable L2Regression <: Model end
-loss(m::L2Regression, y::Real, η::Real) = 0.5 * (y - η) ^ 2
-loglikelihood(m::L2Regression, y::Real, η::Real) = -loss(m, y, η)
-lossderiv(m::L2Regression, y::Real, η::Real) = -(y - η)
-predict(m::L2Regression, η::Real) = η
+#------------------------------------------------------------------# LinearRegression
+immutable LinearRegression <: Model end
+loss(m::LinearRegression, y::Real, η::Real) = 0.5 * (y - η) ^ 2
+loglikelihood(m::LinearRegression, y::Real, η::Real) = -loss(m, y, η)
+lossderiv(m::LinearRegression, y::Real, η::Real) = -(y - η)
+predict(m::LinearRegression, η::Real) = η
 
 #----------------------------------------------------------------------# L1Regression
 immutable L1Regression <: Model end

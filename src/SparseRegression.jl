@@ -8,7 +8,7 @@ import StatsBase
 export
     SparseReg,
     Penalty, NoPenalty, RidgePenalty, LassoPenalty, ElasticNetPenalty, SCADPenalty,
-    L2Regression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
+    LinearRegression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression, Model,
     Algorithm, Fista, Sweep, Prox,
     coef, predict, fit!, loglikelihood, loss, sweep!
@@ -39,9 +39,7 @@ include("algorithms/fista.jl")
 # include("algorithms/prox.jl")
 include("algorithms/sweep.jl")
 include("algorithms/coordinate_descent.jl")
-
-
-Requires.@require Plots include("plots.jl")
+include("plots.jl")
 
 end # module
 sp = SparseRegression

@@ -5,7 +5,7 @@ immutable MCCV  <: CrossValidation
     train_prop::Float64     # proportion of data to be training data
 end
 
-default_measure(m::L2Regression)        = :mse
+default_measure(m::LinearRegression)        = :mse
 default_measure(m::L1Regression)        = :mse
 default_measure(m::LogisticRegression)  = :misclass
 default_measure(m::PoissonRegression)   = :mse

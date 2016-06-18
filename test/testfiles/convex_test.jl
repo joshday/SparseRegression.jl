@@ -20,7 +20,7 @@ o = SparseReg(x, y,
     penalty = LassoPenalty(),
     intercept = false,
     lambda = [λ],
-    model = L2Regression(),
+    model = LinearRegression(),
     algorithm = Fista(step = .5, tol = 1e-10, standardize = false)
 )
 b1 = coef(o)[:, 1]

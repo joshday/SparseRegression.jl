@@ -17,7 +17,7 @@ immutable SparseReg{M <: Model, P <: Penalty, A <: Algorithm}
 end
 function SparseReg(p::Integer;
         intercept::Bool         = true,
-        model::Model            = L2Regression(),
+        model::Model            = LinearRegression(),
         penalty::Penalty        = NoPenalty(),
         penalty_factor::AVecF   = ones(p),
         lambda::AVecF           = 0.0 : 0.1 : 1.0,
@@ -39,7 +39,7 @@ function SparseReg(p::Integer;
 end
 function SparseReg(x::AMatF, y::AVecF, wts::AVecF = ones(0);
         intercept::Bool         = true,
-        model::Model            = L2Regression(),
+        model::Model            = LinearRegression(),
         penalty::Penalty        = NoPenalty(),
         penalty_factor::AVecF   = ones(size(x, 2)),
         lambda::AVecF           = 0.0:.1:1.0,
@@ -64,6 +64,7 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Algorithm", o.algorithm)
 end
 default_algorithm(::Model, ::Penalty) = Fista()
+default_algorithm(::LinearRegression, ::NoPenalty) = Sweep()
 
 #---------------------------------------------------------------------------# Methods
 Base.copy(o::SparseReg) = deepcopy(o)
