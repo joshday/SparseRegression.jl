@@ -58,17 +58,17 @@ classify(m::LogisticRegression, η::Real) = Float64(η > 0.0)
 #------------------------------------------------------------------# ProbitRegression
 # TODO
 "For data in {0, 1}"
-immutable ProbitRegression <: BivariateModel end
-d = Ds.Normal()
-function loss(m::ProbitRegression, y::Real, η::Real)
-    -y * Ds.logcdf(d, η) - (1 - y) * Ds.logccdf(d, η)
-end
-loglikelihood(m::ProbitRegression, y::Real, η::Real) = -loss(m, y, η)
-function lossderiv(m::ProbitRegression, y::Real, η::Real)
-    (y - Ds.logcdf(d, η)) * Ds.pdf(η) / (Ds.cdf(d, η) * Ds.ccdf(d, η))
-end
-predict(m::ProbitRegression, η::Real) = Ds.cdf(d, η)
-classify(m::ProbitRegression, η::Real) = Float64(η > 0.0)
+# immutable ProbitRegression <: BivariateModel end
+# d = Ds.Normal()
+# function loss(m::ProbitRegression, y::Real, η::Real)
+#     -y * Ds.logcdf(d, η) - (1 - y) * Ds.logccdf(d, η)
+# end
+# loglikelihood(m::ProbitRegression, y::Real, η::Real) = -loss(m, y, η)
+# function lossderiv(m::ProbitRegression, y::Real, η::Real)
+#     (y - Ds.logcdf(d, η)) * Ds.pdf(η) / (Ds.cdf(d, η) * Ds.ccdf(d, η))
+# end
+# predict(m::ProbitRegression, η::Real) = Ds.cdf(d, η)
+# classify(m::ProbitRegression, η::Real) = Float64(η > 0.0)
 
 
 #----------------------------------------------------------------# PoissonRegression
@@ -82,7 +82,7 @@ predict(m::PoissonRegression, η::Real) = exp(η)
 "For data in {-1, 1}"
 immutable SVMLike <: BivariateModel end
 loss(m::SVMLike, y::Real, η::Real) = max(0.0, 1.0 - y * η)
-lossderiv(m::SVMLike, y::Real, η::Real) = 1.0 < y*η ? 0.0: -y
+lossderiv(m::SVMLike, y::Real, η::Real) = 1.0 < y * η ? 0.0 : -y
 predict(m::SVMLike, η::Real) = η
 classify(m::SVMLike, η::Real) = sign(η)
 

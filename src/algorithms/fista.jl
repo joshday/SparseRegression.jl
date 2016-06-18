@@ -96,7 +96,7 @@ function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::A
             for j in eachindex(β)
                 @inbounds β[j] -= s * Δ[j]
             end
-            prox!(o.penalty, β, λ, o.penalty_factor, s)
+            prox!(o.penalty, β, (λ * s) * o.penalty_factor)
             #-------------------------------------------------# check for convergence
             if alg.crit == :obj
                 lossvector!(o.model, lossvec, y, η)
