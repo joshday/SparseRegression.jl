@@ -91,7 +91,7 @@ function loss(m::QuantileRegression, y::Real, η::Real)
     r = y - η
     r * (m.τ - (r < 0.0))
 end
-lossderiv(m::QuantileRegression, y::Real, η::Real) = (y - η < 0.0) - m.τ
+lossderiv(m::QuantileRegression, y::Real, η::Real) = (y < η) - m.τ
 predict(m::QuantileRegression, η::Real) = η
 
 #-------------------------------------------------------------------# HuberRegression
