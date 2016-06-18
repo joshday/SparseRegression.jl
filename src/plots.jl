@@ -4,7 +4,7 @@ using RecipesBase
     :label --> ["B_$j" for j in 1:size(o.β, 1)]'
     :xguide --> "lambda"
     :yguide --> "value"
-    :title --> "Solution Path for $(replace(string(typeof(o)), "SparseRegression.", ""))"
+    :title --> "Solution Path"
     o.λ, o.β'
 end
 
@@ -22,7 +22,7 @@ end
         recall[j] = number_true_1 / sum(y .== 1)
         f1[j] = 2 * precision[j] * recall[j] / (precision[j] + recall[j])
     end
-    :title --> "Diagnostics for $(replace(string(typeof(o)), "SparseRegression.", ""))"
+    :title --> "Model Diagnostics by lambda"
     :label --> ["Accuracy" "Precision" "Recall" "F1"]
     :yguide --> "value"
     :xguide --> "lambda"
@@ -36,7 +36,7 @@ end
         yhat = predict(o, x, o.λ[j])
         mse[j] = sqrt(mean(abs2(y - yhat)))
     end
-    :title --> "MSE for $(replace(string(typeof(o)), "SparseRegression.", ""))"
+    :title --> "Error by lambda"
     :yguide --> "MSE"
     :xguide --> "lambda"
     o.λ, mse
