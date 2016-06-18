@@ -17,12 +17,6 @@ function loss(m::Model, y::VecF, η::VecF)
     lossvector!(m, storage, y, η)
     mean(storage)
 end
-
-function loglikelihood!(m::Model, storage::VecF, y::VecF, η::VecF)
-    for i in eachindex(y)
-        @inbounds storage[i] = loglikelihood(m, y[i], η[i])
-    end
-end
 function predict!(m::Model, storage::Vector, η::Vector)
     for i in eachindex(η)
         @inbounds storage[i] = predict(m, η[i])

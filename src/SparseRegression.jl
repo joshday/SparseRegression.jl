@@ -22,7 +22,7 @@ typealias AVecF AVec{Float64}
 typealias AMatF AMat{Float64}
 
 abstract Algorithm
-Base.show(io::IO, o::Algorithm) = println(io, replace(string(typeof(o)), "SparseRegression.", ""))
+Base.show(io::IO, o::Algorithm) = print(io, replace(string(typeof(o)), "SparseRegression.", ""))
 
 #--------------------------------------------------------------------------# printing
 print_header(io::IO, s::AbstractString) = println(io, "■ $s")
@@ -42,4 +42,3 @@ include("algorithms/coordinate_descent.jl")
 include("plots.jl")
 
 end # module
-sp = SparseRegression

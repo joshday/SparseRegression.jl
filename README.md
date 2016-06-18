@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/joshday/SparseRegression.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/joshday/SparseRegression.jl)
 
 
-Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type exported by this package is `SparseReg`.
+Solution paths for penalized regression: `L(β) = (1 / n) ∑ᵢ fᵢ(β) + J(β)`.  The main type exported by this package is `SparseReg`.
 
 
 # `SparseReg(x, y; kw...)`
@@ -12,14 +12,14 @@ Solution paths for penalized regression: `L(β) = f(β) + J(β)`.  The main type
 
 ### Keyword arguments:
 
-| keyword          | type              | description                                       |
-|:-----------------|:------------------|:--------------------------------------------------|
-| `intercept`      | `Bool`            | Should an intercept be included in the model?     |
-| `model`          | `Model`           | The type of model.  Default = `LinearRegression()`    |
-| `penalty`        | `Penalty`         | The type of penalty. Default = `NoPenalty()`      |
-| `penalty_factor` | `Vector{Float64}` | Weights applied to the penalty.  Default is ones. |
-| `lambda`         | `Vector{Float64}` | The lambdas for which to get a solution path      |
-| `algorithm`      | `Algorithm`       | The algorithm/settings for the fitting procedure  |
+| keyword          | type              | description                                        |
+|:-----------------|:------------------|:---------------------------------------------------|
+| `intercept`      | `Bool`            | Should an intercept be included in the model?      |
+| `model`          | `Model`           | The type of model.  Default = `LinearRegression()` |
+| `penalty`        | `Penalty`         | The type of penalty. Default = `NoPenalty()`       |
+| `penalty_factor` | `Vector{Float64}` | Weights applied to the penalty.  Default is ones.  |
+| `lambda`         | `Vector{Float64}` | The lambdas for which to get a solution path       |
+| `algorithm`      | `Algorithm`       | The algorithm/settings for the fitting procedure   |
 
 
 # Algorithms

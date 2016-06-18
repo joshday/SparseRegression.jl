@@ -8,6 +8,21 @@ else
 end
 
 @testset "Model" begin
+    m = LinearRegression()
+    y = randn(100)
+    η = randn(100)
+    @test loss(m, y, η) == 0.5 * mean(abs2(y - η))
+
+    storage = zeros(100)
+    sp.predict!(m, storage, η)
+    @test storage == η
+
+    m = LogisticRegression()
+    sp.predict!(m, storage, η)
+    @test storage == 1.0 ./ (1.0 + exp(-η))
+    sp.classify!(m, storage, η)
+    @test storage == (η .> 0)
+
     @testset "LinearRegression" begin
         m = LinearRegression()
         @test predict(m, 1.0) == 1.0

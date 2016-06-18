@@ -1,5 +1,5 @@
 module SparseRegressionTests
-using SparseRegression
+using SparseRegression; sp = SparseRegression
 if VERSION >= v"0.5.0-dev+7720"
     using Base.Test
 else
@@ -12,10 +12,11 @@ info("Show methods")
 for obj in [
         NoPenalty(), LassoPenalty(), RidgePenalty(), ElasticNetPenalty(),
         LinearRegression(), L1Regression(), LogisticRegression(), PoissonRegression(),
-        QuantileRegression(.5), HuberRegression(3)
+        QuantileRegression(.5), HuberRegression(3), Fista(), Sweep()
     ]
     show(obj); println()
 end
+sp.print_header(STDOUT, "print header")
 println()
 
 info("Unit Tests")
