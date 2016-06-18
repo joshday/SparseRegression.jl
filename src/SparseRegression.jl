@@ -11,7 +11,7 @@ export
     LinearRegression, L1Regression, LogisticRegression, SVMLike, QuantileRegression,
     HuberRegression, PoissonRegression, Model,
     Algorithm, Fista, Sweep, Prox,
-    coef, predict, fit!, loglikelihood, loss, sweep!
+    coef, predict, fit!, loglikelihood, loss, sweep!, penalty, prox, prox!
 
 #-----------------------------------------------------------------------------# types
 typealias VecF Vector{Float64}

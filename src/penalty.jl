@@ -46,16 +46,16 @@ immutable ElasticNetPenalty <: Penalty
         new(a)
     end
 end
-Base.show(io::IO, p::ElasticNetPenalty) = print(io, "ElasticNetPenalty (α = $(p.α))")
+Base.show(io::IO, p::ElasticNetPenalty) = print(io, "ElasticNetPenalty (α = $(p.a))")
 function penalty(p::ElasticNetPenalty, β::VecF, λ::Float64)
-    λ * (p.α * sumabs(β) + (1. - p.α) * 0.5 * sumabs2(β))
+    λ * (p.a * sumabs(β) + (1. - p.a) * 0.5 * sumabs2(β))
 end
 function prox(p::ElasticNetPenalty, βj::Float64, c::Float64)
-    sign(βj) * max(abs(βj) - c * p.α, 0.0) / (1.0 + c * (1.0 - p.α))
+    sign(βj) * max(abs(βj) - c * p.a, 0.0) / (1.0 + c * (1.0 - p.a))
 end
 
 #----------------------------------------------------------------------# SCADPenalty
-#TODO
+# TODO
 # immutable SCADPenalty <: Penalty
 #     a::Float64
 #     function SCADPenalty(a::Real = 3.7)

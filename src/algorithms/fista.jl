@@ -109,7 +109,7 @@ function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::A
                 break
             end
             if use_step_halving && (newcost > oldcost)
-                s *= .8
+                s *= .5
                 copy!(β, Θ1)
                 β0 = Θ0_1
             end
