@@ -9,11 +9,6 @@ end
 
 @testset "Penalty" begin
     β = randn(10)
-    info("Show methods for penalties:")
-    for pen in [NoPenalty(), LassoPenalty(), RidgePenalty(), ElasticNetPenalty()]
-        show(pen); println()
-    end
-    println()
 
     @testset "NoPenalty" begin
         pen = NoPenalty()
