@@ -1,7 +1,6 @@
 module SparseRegression
 
 import StatsBase: coef, predict, zscore, fit!, loglikelihood
-import Requires
 import StandardizedMatrices; SM = StandardizedMatrices
 import Distributions; Ds = Distributions
 import StatsBase
