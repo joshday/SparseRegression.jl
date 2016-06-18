@@ -93,7 +93,7 @@ y = x * β + randn(n)
 # Example
 
 ```julia
-using SparseRegression, Plots; plotly()
+using SparseRegression, Plots
 n, p = 10000, 11
 x = randn(n, p)
 β = collect(linspace(-.5, .5, p))
@@ -101,4 +101,5 @@ y = x * β + randn(n)
 
 o = SparseReg(x, y, penalty = LassoPenalty(), model = L2Regression(), algorithm = Fista(tol=1e-4))
 plot(o)
+plot(o, x, y)
 ```

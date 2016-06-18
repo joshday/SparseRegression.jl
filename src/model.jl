@@ -57,7 +57,7 @@ classify(m::LogisticRegression, η::Real) = Float64(η > 0.0)
 
 #------------------------------------------------------------------# ProbitRegression
 # TODO
-"For data in {0, 1}"
+# "For data in {0, 1}"
 # immutable ProbitRegression <: BivariateModel end
 # d = Ds.Normal()
 # function loss(m::ProbitRegression, y::Real, η::Real)
