@@ -15,7 +15,7 @@ immutable SparseReg{M <: Model, P <: Penalty, A <: Algorithm}
     λ::VecF                 # regularization parameters
     algorithm::A            # Algorithm stores convergence criteria, tolerance, etc.
 end
-function SparseReg(p::Integer;
+function _SparseReg(p::Integer;
         intercept::Bool         = true,
         model::Model            = LinearRegression(),
         penalty::Penalty        = NoPenalty(),
@@ -37,24 +37,31 @@ function SparseReg(p::Integer;
         VecF(collect(lambda)), algorithm
     )
 end
-function SparseReg(x::AMatF, y::AVecF, wts::AVecF = ones(0);
-        intercept::Bool         = true,
-        model::Model            = LinearRegression(),
-        penalty::Penalty        = NoPenalty(),
-        penalty_factor::AVecF   = ones(size(x, 2)),
-        lambda::AVecF           = 0.0:.1:1.0,
-        algorithm::Algorithm    = default_algorithm(model, penalty)
-    )
-    o = SparseReg(size(x, 2);
-        intercept = intercept,
-        model = model,
-        penalty = penalty,
-        penalty_factor = penalty_factor,
-        lambda = lambda,
-        algorithm = algorithm
-    )
+function SparseReg(p::Integer, args...; kw...)
+    mod = LinearRegression()
+    pen = NoPenalty()
+    alg = Fista()
+    for arg in args
+        T = typeof(arg)
+        if T <: Model
+            mod = arg
+        elseif T <: Algorithm
+            alg = arg
+        elseif T <: Penalty
+            pen = arg
+        end
+    end
+    _SparseReg(p; model = mod, algorithm = alg, penalty = pen, kw...)
+end
+function SparseReg(x::AMat, y::AVec, args...; kw...)
+    o = SparseReg(size(x, 2), args...; kw...)
+    fit!(o, x, y, ones(0))
+end
+function SparseReg(x::AMat, y::AVec, wts::AVec, args...; kw...)
+    o = SparseReg(size(x, 2), args...; kw...)
     fit!(o, x, y, wts)
 end
+
 function Base.show(io::IO, o::SparseReg)
     print_header(io, "SparseReg")
     print_item(io, "Model", o.model)

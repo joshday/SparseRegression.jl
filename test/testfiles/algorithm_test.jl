@@ -13,6 +13,7 @@ x, y, β = linregdata(n, p)
 
 @testset "Algorithms" begin
 @testset "Sweep" begin
+    o = SparseReg(x, y, Sweep())
 	o = SparseReg(x, y, algorithm = Sweep(), intercept = false)
 	@test coef(o) ≈ x\y
 
@@ -20,6 +21,13 @@ x, y, β = linregdata(n, p)
 	W = Diagonal(sqrt(wts))
 	o = SparseReg(x, y, wts, algorithm = Sweep(), intercept = false)
 	@test coef(o) ≈ (W * x) \ (W * y)
+
+    xtx = x'x
+    xtx_copy = copy(xtx)
+    v = zeros(size(xtx, 1))
+    sweep!(xtx, 1, v)
+    sweep!(xtx, 1, v, true)
+    @test xtx ≈ xtx_copy
 end
 @testset "Fista" begin
 	o = SparseReg(x, y, algorithm = Fista(standardize = false), intercept = false)
