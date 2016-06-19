@@ -3,8 +3,7 @@
 [![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
 [![codecov](https://codecov.io/gh/joshday/SparseRegression.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/joshday/SparseRegression.jl)
 
-Solution paths for penalized regression:
-<img src="http://www.sciweavers.org/tex2img.php?eq=%5Cfrac%7B1%7D%7Bn%7D%5Csum_%7Bi%3D1%7D%5E%7Bn%7D%20f_i%28%5Cbeta%29%20%2B%20g%28%5Cbeta%29&bc=White&fc=Black&im=png&fs=18&ff=modern&edit=0" align="center" border="0" alt="\frac{1}{n}\sum_{i=1}^{n} f_i(\beta) + g(\beta)" width="196" height="71" />
+Solution paths for penalized regression: `f(Θ) + λ * g(Θ)`
 
 
  The main type exported by this package is `SparseReg`.
