@@ -10,7 +10,7 @@ end
 include("../datagenerator.jl")
 
 o = SparseReg(10, penalty = RidgePenalty(), lambda = .1:.1:1)
-o2 = SparseReg(10, model = LogisticRegression(), penalty = RidgePenalty(), lambda = .1:.1:1)
+o2 = SparseReg(10, LogisticRegression(), RidgePenalty(), lambda = .1:.1:1)
 x = rand(100, 10)
 y = randn(100)
 
