@@ -27,7 +27,6 @@
 #         o::SparseReg{M, P, CD}, x::AMat, y::AVec, wts::AVecF = ones(0)
 #     )
 #     #----------------------------------------------------------------# error checking
-#     @assert typeof(o.penalty) == ElasticNetPenalty "Only ElasticNetPenalty is supported"
 #     n, p = size(x)
 #     alg = o.algorithm
 #     @assert size(o.β, 1) == p "Columns of `x` don't match columns in `β`"
@@ -40,6 +39,7 @@
 #     Δ = zeros(p)            # Δ = x' * deriv_vec
 #     deriv_vec = zeros(n)    # derivative of loss with respect to η
 #     η = zeros(n)            # linear predictor
+#     res = zeros(n)          # residuals
 #     x_std = SM.StandardizedMatrix(x)
 #
 #     #/////////////////////////////////////////////////////////////////////# main loop
@@ -62,10 +62,23 @@
 #             #-------------------------------------# calculate gradient from deriv_vec
 #             alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
 #             scale!(Δ, 1 / n)
+#             #------------------------------------------------# update residual vector
+#             for i in eachindex(res)
+#                 @inbounds res[i] = y[i] - η[i]
+#             end
+#             #-----------------------------------------------# coordinate-wise updates
 #             for j in eachindex(β)
-#                 #------------------------------------------------# coordinate-wise update
-#                 β[k, j]
+#                 if o.intercept
+#                     β0 = sum(res)
+#                 end
+#                 β[j] = prox(o.penalty, dot(sub(x, :, j), res) - β0 + o.β[j, k], o.λ[k])
 #             end
 #         end
+#         #---------------------------------------------# fill in coefficients for λ[k]
+#         if o.intercept
+#             o.β0[k] = β0
+#         end
+#         o.β[:, k] = β
 #     end
+#     o
 # end

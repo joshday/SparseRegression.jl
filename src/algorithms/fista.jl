@@ -90,28 +90,6 @@ function fit!{M, P}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
             #-------------------------------------# calculate gradient from deriv_vec
             alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
             scale!(Δ, 1 / n)
-            #---------------------------------------------# gradient descent and prox
-            # if o.intercept
-            #     β0 -= s * mean(deriv_vec)
-            # end
-            # for j in eachindex(β)
-            #     @inbounds β[j] -= s * Δ[j]
-            # end
-            # prox!(o.penalty, β, (λ * s) * o.penalty_factor)
-            # #-------------------------------------------------# check for convergence
-            # lossvector!(o.model, lossvec, y, η)
-            # use_weights && mult_vector!(lossvec, wts)
-            # newcost = mean(lossvec) + penalty(o.penalty, β, λ)
-            #
-            #
-            # if abs(newcost - oldcost) < alg.tol * (min(abs(oldcost), abs(newcost)) + 1.0)
-            #     break
-            # end
-            # if use_step_halving && (newcost > oldcost)
-            #     s *= .5
-            #     copy!(β, Θ1)
-            #     β0 = Θ0_1
-            # end
 
             line_search = true
             while line_search
@@ -130,10 +108,12 @@ function fit!{M, P}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
                 use_weights && mult_vector!(lossvec, wts)
                 newcost = mean(lossvec) + penalty(o.penalty, β, λ)
                 if (newcost > oldcost)
-                    # if objective didn't decrease: reset coefficients, use step-halving
+                    # if objective didn't decrease:
+                        # reset coefficients, use step-halving, increase iters
                     s *= .5
                     β0 = Θ0_1
                     copy!(β, Θ1)
+                    iters += 1
                 else
                     line_search = false
                 end
