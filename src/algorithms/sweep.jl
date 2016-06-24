@@ -18,30 +18,28 @@ function fit!(o::SparseReg{LinearRegression, NoPenalty, Sweep}, x::AMat, y::AVec
     useweights = length(wts) == n
     rng = 2:p + 1
     if useweights
+        # operations: x'x, x'y, 1'x, 1'y, y'y
         W = Diagonal(sqrt(wts))
-        # x'x
         BLAS.syrk!('U', 'T', 1 / n, W * x, 0.0, sub(A, rng, rng))
-        # 1'x
-        A[1, 2:end - 1] = mean(x, 1)
-        # x'y
         BLAS.gemv!('T', 1 / n, W * x, W * y, 0.0, slice(A, rng, d))
-        # 1'y
-        A[1, end] = mean(y, StatsBase.WeightVec(wts))
-        # y'y
-        A[end, end] = dot(y, W * y) / n
-    else
-        # x'x
-        BLAS.syrk!('U', 'T', 1 / n, x, 0.0, sub(A, rng, rng))
-        # 1'x
         A[1, 2:end - 1] = mean(x, 1)
-        # x'y
+        if o.intercept
+            A[1, end] = mean(y, StatsBase.WeightVec(wts))
+            A[end, end] = dot(y, W * y) / n
+        end
+    else
+        # operations: x'x, x'y, 1'x, 1'y, y'y
+        BLAS.syrk!('U', 'T', 1 / n, x, 0.0, sub(A, rng, rng))
+        A[1, 2:end - 1] = mean(x, 1)
         BLAS.gemv!('T', 1 / n, x, y, 0.0, slice(A, rng, d))
-        # 1'y
-        A[1, end] = mean(y)
-        # y'y
-        A[end, end] = sumabs2(y) / n
+        if o.intercept
+            A[1, end] = mean(y)
+            A[end, end] = dot(y, y) / n
+        end
     end
-    sweep!(A, 1 + !o.intercept:(d - 1))
+    storage = zeros(d)
+    rng = (1 + !o.intercept) : (d - 1)
+    sweep!(A, rng, storage)
     if o.intercept
         o.β0[1] = A[1, d]
     end
@@ -115,7 +113,7 @@ function sweep!{T<:Real}(A::AMat{T}, k::Integer, v::AVecF, inv::Bool = false)
     n, p = size(A)
     # ensure that @inbounds is safe
     @assert n == p "A must be square"
-    @assert length(v) == p "placeholder length ≠ size(A, 1)"
+    @assert length(v) == p "storage length ≠ size(A, 1)"
     @assert k <= p "pivot element not within range"
     @inbounds d = 1.0 / A[k, k]  # pivot
     for j in 1:p   # get column A[:, k]

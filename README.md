@@ -69,11 +69,6 @@ y = x * β + randn(n)
 ```
 
 
-### `CD(;kw...)` (Coordinate Descent)
-- in progress
-
-
-
 # Models
 - `LinearRegression()`
 - `L1Regression()`

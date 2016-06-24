@@ -17,7 +17,7 @@ immutable Fista <: Algorithm
             tol::Real           = 1e-7,
             verbose::Bool       = true,
             step::Real          = 0.5,
-            crit::Symbol    = :obj,
+            crit::Symbol        = :obj,
             standardize::Bool   = true
         )
         new(maxit, tol, verbose, step, crit, standardize)
