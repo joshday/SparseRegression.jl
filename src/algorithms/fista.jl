@@ -26,7 +26,7 @@ end
 
 
 #------------------------------------------------------------------------------# fit!
-function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
+function fit!{M, P}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
     #------------------------------------------------------------------------# checks
     n, p = size(x)
     alg = o.algorithm
@@ -61,6 +61,7 @@ function fit!{M <: Model, P <: Penalty}(o::SparseReg{M, P, Fista}, x::AMat, y::A
         oldcost = Inf
         @inbounds λ = o.λ[k]
         s = alg.step
+        #/////////////////////////////////////////////////////////////////# main loop
         for rep in 1:alg.maxit
             iters += 1
             oldcost = newcost

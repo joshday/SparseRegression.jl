@@ -42,7 +42,7 @@
 #     η = zeros(n)            # linear predictor
 #     x_std = SM.StandardizedMatrix(x)
 #
-#     # main loop
+#     #/////////////////////////////////////////////////////////////////////# main loop
 #     for k in reverse(eachindex(o.λ))
 #         iters = 0
 #         newcost = Inf
