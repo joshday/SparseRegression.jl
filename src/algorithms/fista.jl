@@ -91,28 +91,55 @@ function fit!{M, P}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
             alg.standardize ? At_mul_B!(Δ, x_std, deriv_vec) : At_mul_B!(Δ, x, deriv_vec)
             scale!(Δ, 1 / n)
             #---------------------------------------------# gradient descent and prox
-            if o.intercept
-                β0 -= s * mean(deriv_vec)
-            end
-            for j in eachindex(β)
-                @inbounds β[j] -= s * Δ[j]
-            end
-            prox!(o.penalty, β, (λ * s) * o.penalty_factor)
-            #-------------------------------------------------# check for convergence
-            if alg.crit == :obj
+            # if o.intercept
+            #     β0 -= s * mean(deriv_vec)
+            # end
+            # for j in eachindex(β)
+            #     @inbounds β[j] -= s * Δ[j]
+            # end
+            # prox!(o.penalty, β, (λ * s) * o.penalty_factor)
+            # #-------------------------------------------------# check for convergence
+            # lossvector!(o.model, lossvec, y, η)
+            # use_weights && mult_vector!(lossvec, wts)
+            # newcost = mean(lossvec) + penalty(o.penalty, β, λ)
+            #
+            #
+            # if abs(newcost - oldcost) < alg.tol * (min(abs(oldcost), abs(newcost)) + 1.0)
+            #     break
+            # end
+            # if use_step_halving && (newcost > oldcost)
+            #     s *= .5
+            #     copy!(β, Θ1)
+            #     β0 = Θ0_1
+            # end
+
+            line_search = true
+            while line_search
+                #-----------------------------------------# gradient descent and prox
+                if o.intercept
+                    β0 -= s * mean(deriv_vec)
+                end
+                for j in eachindex(β)
+                    @inbounds β[j] -= s * Δ[j]
+                end
+                prox!(o.penalty, β, (λ * s) * o.penalty_factor)
+                #---------------------------------------------# check for convergence
+                alg.standardize ? A_mul_B!(η, x_std, β) : A_mul_B!(η, x, β)
+                o.intercept && add_constant!(η, β0)
                 lossvector!(o.model, lossvec, y, η)
                 use_weights && mult_vector!(lossvec, wts)
                 newcost = mean(lossvec) + penalty(o.penalty, β, λ)
-            elseif alg.crit == :coef
-                newcost = maxabs(β - Θ1)
+                if (newcost > oldcost)
+                    # if objective didn't decrease: reset coefficients, use step-halving
+                    s *= .5
+                    β0 = Θ0_1
+                    copy!(β, Θ1)
+                else
+                    line_search = false
+                end
             end
             if abs(newcost - oldcost) < alg.tol * (min(abs(oldcost), abs(newcost)) + 1.0)
                 break
-            end
-            if use_step_halving && (newcost > oldcost)
-                s *= .5
-                copy!(β, Θ1)
-                β0 = Θ0_1
             end
         end
         #--------------------------------------# Did the algorithm reach convergence?

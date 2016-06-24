@@ -41,3 +41,4 @@ include("algorithms/coordinate_descent.jl")
 include("plots.jl")
 
 end # module
+sp = SparseRegression
