@@ -1,9 +1,6 @@
 immutable Sweep <: Algorithm
     standardize::Bool
-
-    function Sweep(;
-        standardize::Bool = true
-        )
+    function Sweep(;standardize::Bool = true)
         new(standardize)
     end
 end
