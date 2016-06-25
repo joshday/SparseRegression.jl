@@ -36,7 +36,6 @@ function fit!{M, P}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
     @assert !(o.intercept == false && alg.standardize == true) "standardizing implies an intercept"
 
     #-------------------------------------------------------------------------# setup
-    use_step_halving = (alg.crit == :obj)
     β0 = 0.0
     β = zeros(p)
     Θ1 = zeros(p)           # last iteration
@@ -46,11 +45,7 @@ function fit!{M, P}(o::SparseReg{M, P, Fista}, x::AMat, y::AVec, wts::AVec)
     Δ = zeros(p)            # Δ = x' * deriv_vec
     deriv_vec = zeros(n)    # derivative of loss with respect to η
     η = zeros(n)            # linear predictor
-    if alg.crit == :obj       # need lossvec if using objective as convergence criteria
-        lossvec = zeros(n)
-    elseif alg.crit == :coef
-        lossvec = zeros(0)
-    end
+    lossvec = zeros(n)
     x_std = SM.StandardizedMatrix(x)
 
     # main loop

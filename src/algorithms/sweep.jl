@@ -38,8 +38,8 @@ function fit!(o::SparseReg{LinearRegression, NoPenalty, Sweep}, x::AMat, y::AVec
         end
     end
     storage = zeros(d)
-    rng = (1 + !o.intercept) : (d - 1)
-    sweep!(A, rng, storage)
+    swprng = (1 + !o.intercept):(d - 1)
+    sweep!(A, swprng, storage)
     if o.intercept
         o.β0[1] = A[1, d]
     end
