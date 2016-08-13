@@ -1,3 +1,6 @@
+# WARNING:
+**Development is unstable and features may change at any time**
+
 # SparseRegression
 
 [![Build Status](https://travis-ci.org/joshday/SparseRegression.jl.svg?branch=master)](https://travis-ci.org/joshday/SparseRegression.jl)
