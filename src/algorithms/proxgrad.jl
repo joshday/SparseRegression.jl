@@ -1,8 +1,10 @@
 immutable PROXGRAD <: OfflineAlgorithm
     maxit::Int
     tol::Float64
+    verbose::Bool
 end
-PROXGRAD(p::Int = 0; maxit::Int = 100, tol::Float64 = 1e-6) = PROXGRAD(maxit, tol)
+PROXGRAD(; maxit::Int = 100, tol::Float64 = 1e-8, verbose::Bool = false) = PROXGRAD(maxit, tol, verbose)
+init(alg::PROXGRAD, p::Integer) = alg
 is_supported(loss::Loss, pen::Penalty, alg::PROXGRAD) = true
 
 function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec, wts::AVec = zeros(0), penalty_factor::AVec = ones(0))
@@ -10,15 +12,33 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec, wts::AVec = zeros(0), pe
     @assert p == length(o.β)
     use_weights = length(wts) > 0
     @assert !use_weights || length(wts) == n "`weights` must have length $n"
-    A, L, P = o.algorithm, o.loss, o.penalty
+    β, A, L, P = o.β, o.algorithm, o.loss, o.penalty
 
-    predict_vec = zeros(n)
-    deriv_vec = zeros(n)
+    yhat = predict(o, x)
+    deriv_buffer = zeros(n)
+    ∇ = zeros(p)
 
-    avgloss = meanvalue(L, y, predict(o, x))
+    oldloss = meanvalue(L, y, yhat)
+    newloss = Inf
+    niters = 0
     for k in 1:A.maxit
-        deriv!(deriv_vec, L)
+        deriv_buffer .= deriv.(L, y, yhat)
+        At_mul_B!(∇, x, deriv_buffer)
+        scale!(∇, 1 / n)
+        for j in eachindex(β)
+            β[j] = prox(P, β[j] - ∇[j])
+        end
+        yhat = predict(o, x)
+        newloss = meanvalue(L, y, yhat)
+        abs(newloss - oldloss) < min(abs(newloss), abs(oldloss)) * A.tol && break
+        niters += 1
+        oldloss = newloss
     end
+    if A.verbose
+        tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))
+        info("Converged in $niters iterations with reltol $tolerance")
+    end
+    o
 end
 
 #

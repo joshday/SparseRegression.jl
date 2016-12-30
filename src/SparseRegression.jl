@@ -44,7 +44,7 @@ type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
 end
 function _SparseReg(p::Integer, loss::Loss, pen::Penalty, alg::Algorithm)
     @assert is_supported(loss, pen, alg) "($loss, $pen, $alg) is unsupported"
-    SparseReg(zeros(p), loss, pen, typeof(alg)(p))
+    SparseReg(zeros(p), loss, pen, init(alg, p))
 end
 function SparseReg(p::Integer, args...)
     loss = LinearRegression()
@@ -68,7 +68,7 @@ function print_item(io::IO, name::AbstractString, value)
     println(io, value)
 end
 function Base.show(io::IO, o::SparseReg)
-    println(io, "SparseReg Model")
+    println(io, "Sparse Regression Model")
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
@@ -81,7 +81,7 @@ predict(o::SparseReg, x::AVec) = dot(x, o.β)
 predict{A<:Algorithm}(o::SparseReg{A, LogisticRegression}, x::AMat) = logistic.(x * o.β)
 predict{A<:Algorithm}(o::SparseReg{A, LogisticRegression}, x::AVec) = logistic(dot(x, o.β))
 predict{A<:Algorithm}(o::SparseReg{A, PoissonRegression}, x::AMat) = exp.(x * o.β)
-predict{A<:Algorithm}(o::SparseReg{A, PoissonRegression}, x::AMat) = exp(dot(x, o.β))
+predict{A<:Algorithm}(o::SparseReg{A, PoissonRegression}, x::AVec) = exp(dot(x, o.β))
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/sweep.jl")
