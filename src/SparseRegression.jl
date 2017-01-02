@@ -4,11 +4,10 @@ using Reexport
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
-@reexport using StatsBase
-import SweepOperator
 importall LearnBase
+import SweepOperator
 import StatsBase: predict
-export SparseReg, glm
+export SparseReg, predict
 
 #-----------------------------------------------------------------------------# types
 typealias AVec AbstractVector
