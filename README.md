@@ -2,6 +2,15 @@
 
 This package relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.
 
+## Usage
+
+```julia
+using DataGenerator, SparseRegression
+x, y, b = linregdata(10_000, 10)
+
+o = SparseReg(x, y, L1DistLoss(), PROXGRAD(verbose = true))
+```
+
 ## Models
 
 The available models come from LossFunctions.jl and assuming a linear transformation.

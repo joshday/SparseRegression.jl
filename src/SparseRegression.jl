@@ -7,7 +7,8 @@ using Reexport
 importall LearnBase
 import SweepOperator
 import StatsBase: predict
-export SparseReg, predict
+
+export SparseReg, predict, PROXGRAD, SWEEP
 
 #-----------------------------------------------------------------------------# types
 typealias AVec AbstractVector

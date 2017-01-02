@@ -1,3 +1,10 @@
+"""
+Accelerated Proximal Gradient Method
+
+```julia
+PROXGRAD(;maxit = 100, tol = 1e-6, verbose = false)
+```
+"""
 immutable PROXGRAD <: OfflineAlgorithm
     maxit::Int
     tol::Float64
