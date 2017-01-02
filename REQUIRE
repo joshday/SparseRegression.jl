@@ -1,7 +1,6 @@
 julia 0.5
-StatsBase
 RecipesBase
-StandardizedMatrices
-Distributions
-OnlineStats
 SweepOperator
+LearnBase
+LossFunctions
+PenaltyFunctions

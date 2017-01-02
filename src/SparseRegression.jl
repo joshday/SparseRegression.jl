@@ -1,7 +1,6 @@
 module SparseRegression
 
 using Reexport
-@reexport using OnlineStats
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
