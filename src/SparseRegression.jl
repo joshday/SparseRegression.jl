@@ -9,7 +9,7 @@ using Reexport
 import SweepOperator
 importall LearnBase
 import StatsBase: predict
-export SparseReg
+export SparseReg, glm
 
 #-----------------------------------------------------------------------------# types
 typealias AVec AbstractVector
@@ -22,17 +22,7 @@ abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
 Base.print(io::IO, a::Algorithm) = print(io, replace(string(typeof(a)), "SparseRegression.", ""))
 
-#------------------------------------------------------------------# available models
-typealias L1Regression          L1DistLoss
-typealias LogisticRegression    LogitMarginLoss
-typealias PoissonRegression     PoissonLoss
-typealias HuberRegression       HuberLoss
-typealias SVMLike               L1HingeLoss
-typealias QuantileRegression    QuantileLoss
 
-immutable LinearRegression <: DistanceLoss end
-deriv(::LinearRegression, y::Number, yhat::Number) = 0.5 * deriv(L2DistLoss(), y, yhat)
-value(::LinearRegression, y::Number, yhat::Number) = 0.5 * value(L2DistLoss(), y, yhat)
 
 
 #-------------------------------------------------------------------------# SparseReg
@@ -43,11 +33,11 @@ type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     algorithm::A
 end
 function _SparseReg(p::Integer, loss::Loss, pen::Penalty, alg::Algorithm)
-    @assert is_supported(loss, pen, alg) "($loss, $pen, $alg) is unsupported"
+    # is_supported(loss, pen, alg)
     SparseReg(zeros(p), loss, pen, init(alg, p))
 end
 function SparseReg(p::Integer, args...)
-    loss = LinearRegression()
+    loss = ScaledLoss(L2DistLoss(), .5)
     pen = NoPenalty()
     alg = PROXGRAD()
     for arg in args
@@ -61,6 +51,10 @@ function SparseReg(p::Integer, args...)
         end
     end
     _SparseReg(p, loss, pen, alg)
+end
+function SparseReg(x::AMat, y::AVec, args...)
+    o = SparseReg(size(x, 2), args...)
+    fit!(o, x, y)
 end
 default_penalty_factor(p::Integer) = (v = ones(p); v[end] = 0.0; v)
 function print_item(io::IO, name::AbstractString, value)
@@ -76,17 +70,18 @@ function Base.show(io::IO, o::SparseReg)
 end
 
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
-predict(o::SparseReg, x::AMat) = x * o.β
-predict(o::SparseReg, x::AVec) = dot(x, o.β)
-predict{A<:Algorithm}(o::SparseReg{A, LogisticRegression}, x::AMat) = logistic.(x * o.β)
-predict{A<:Algorithm}(o::SparseReg{A, LogisticRegression}, x::AVec) = logistic(dot(x, o.β))
-predict{A<:Algorithm}(o::SparseReg{A, PoissonRegression}, x::AMat) = exp.(x * o.β)
-predict{A<:Algorithm}(o::SparseReg{A, PoissonRegression}, x::AVec) = exp(dot(x, o.β))
+xβ(o::SparseReg, x::AMat) = x * o.β
+xβ(o::SparseReg, x::AVec) = dot(x, o.β)
+
+predict(o::SparseReg, x::AVec) = _predict(o.loss, xβ(o, x))
+predict(o::SparseReg, x::AMat) = _predict.(o.loss, xβ(o, x))
+
+_predict(l::Loss, xβ::Real) = xβ
+_predict(l::LogitMarginLoss, xβ::Real) = logistic(xβ)
+_predict(l::PoissonLoss, xβ::Real) = exp(xβ)
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/sweep.jl")
 include("algorithms/proxgrad.jl")
 
-#---------------------------------------------------------------------# Is supported?
-is_supported(loss::Loss, pen::Penalty, alg::Algorithm) = false
 end
