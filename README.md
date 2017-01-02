@@ -8,7 +8,7 @@ This package relies on primitives defined in the JuliaML ecosystem to implement 
 using DataGenerator, SparseRegression
 x, y, b = linregdata(10_000, 10)
 
-o = SparseReg(x, y, L1DistLoss(), PROXGRAD(verbose = true))
+o = SparseReg(x, y, L1DistLoss(), PROXGRAD(verbose = true), L1Penalty(.1))
 ```
 
 ## Models
