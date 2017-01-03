@@ -23,19 +23,15 @@ init(alg::PROXGRAD, p::Integer) = alg
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration
 # - Other criteria for convergence?
-function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec, wts::AVec = zeros(0))
+function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec, wts::AVec = zeros(0),
+              xβ::AVecF = x*o.β, yhat::AVecF = _predict.(o.loss, xβ),
+              deriv_buffer::AVecF = zeros(yhat), ∇::AVecF = zeros(o.β))
     # error handling and setup
     n, p = size(x)
     @assert p == length(o.β)
     use_weights = length(wts) > 0
     @assert !use_weights || length(wts) == n "`weights` must have length $n"
     β, A, L, P = o.β, o.algorithm, o.loss, o.penalty
-
-    # buffers
-    xβ = x * β
-    yhat = _predict.(L, xβ)
-    deriv_buffer = zeros(n)
-    ∇ = zeros(p)
 
     oldloss = -Inf
     newloss = meanvalue(L, y, yhat)

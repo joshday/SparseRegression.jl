@@ -9,7 +9,7 @@ import SweepOperator
 import StatsBase: predict, coef
 
 export
-    SparseReg, predict, coef,
+    SparseReg, SolutionPath, predict, coef,
     # algorithms
     PROXGRAD
 
@@ -93,5 +93,7 @@ _predict(l::PoissonLoss, xβ::Real) = exp(xβ)
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")
+
+include("solutionpath.jl")
 
 end
