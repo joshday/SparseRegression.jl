@@ -6,9 +6,9 @@ using Reexport
 @reexport using PenaltyFunctions
 importall LearnBase
 import SweepOperator
-import StatsBase: predict
+import StatsBase: predict, coef
 
-export SparseReg, predict, PROXGRAD, SWEEP
+export SparseReg, predict, coef, PROXGRAD, SWEEP
 
 #-----------------------------------------------------------------------------# types
 typealias AVec AbstractVector
@@ -67,6 +67,8 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Penalty", o.penalty)
     print_item(io, "Algorithm", o.algorithm)
 end
+
+coef(o::SparseReg) = o.β
 
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
 xβ(o::SparseReg, x::AMat) = x * o.β

@@ -1,34 +1,13 @@
 module SparseRegressionTests
-using SparseRegression; sp = SparseRegression
-if VERSION >= v"0.5.0-dev+7720"
-    using Base.Test
-else
-    using BaseTestNext
-    const Test = BaseTestNext
+using SparseRegression, Base.Test; S = SparseRegression
+include("datagenerator.jl")
+
+@testset "Constructors" begin
+    o = SparseReg(5)
+    @test coef(o) == zeros(5)
+
+    x, y, β = linregdata(1000, 10)
+    o = SparseReg(x, y)
+    @test length(coef(o)) == 10
 end
-
-
-info("Show methods")
-for obj in [
-        NoPenalty(), LassoPenalty(), RidgePenalty(), ElasticNetPenalty(),
-        LinearRegression(), L1Regression(), LogisticRegression(), PoissonRegression(),
-        QuantileRegression(.5), HuberRegression(3), Fista(), Sweep(), SparseReg(10)
-    ]
-    show(obj); println()
-end
-sp.print_header(STDOUT, "print header")
-sp.print_item(STDOUT, "item", 1.0)
-
-
-info("Common")
-@test sp.default_algorithm(LinearRegression(), NoPenalty()) == Sweep()
-@test sp.default_algorithm(LogisticRegression(), LassoPenalty()) == Fista()
-
-
-info("Unit Tests")
-include("testfiles/penalty_test.jl")
-include("testfiles/model_test.jl")
-include("testfiles/sparsereg_test.jl")
-include("testfiles/sanity_test.jl")
-include("testfiles/algorithm_test.jl")
 end
