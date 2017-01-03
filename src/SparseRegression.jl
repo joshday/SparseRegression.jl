@@ -8,7 +8,10 @@ importall LearnBase
 import SweepOperator
 import StatsBase: predict, coef
 
-export SparseReg, predict, coef, PROXGRAD, SWEEP
+export
+    SparseReg, predict, coef,
+    # algorithms
+    PROXGRAD
 
 #-----------------------------------------------------------------------------# types
 typealias AVec AbstractVector
@@ -19,7 +22,9 @@ typealias AMatF AbstractMatrix{Float64}
 abstract Algorithm
 abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
-Base.print(io::IO, a::Algorithm) = print(io, replace(string(typeof(a)), "SparseRegression.", ""))
+function Base.print(io::IO, a::Algorithm)
+    print(io, replace(string(typeof(a)), "SparseRegression.", ""))
+end
 
 
 
@@ -32,7 +37,6 @@ type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     algorithm::A
 end
 function _SparseReg(p::Integer, loss::Loss, pen::Penalty, alg::Algorithm)
-    # is_supported(loss, pen, alg)
     SparseReg(zeros(p), loss, pen, init(alg, p))
 end
 function SparseReg(p::Integer, args...)
@@ -47,6 +51,8 @@ function SparseReg(p::Integer, args...)
             pen = arg
         elseif T <: Algorithm
             alg = arg
+        else
+            warn("Unused argument")
         end
     end
     _SparseReg(p, loss, pen, alg)
@@ -54,6 +60,10 @@ end
 function SparseReg(x::AMat, y::AVec, args...)
     o = SparseReg(size(x, 2), args...)
     fit!(o, x, y)
+end
+function SparseReg(x::AMat, y::AVec, w::AVec, args...)
+    o = SparseReg(size(x, 2), args...)
+    fit!(o, x, y, w)
 end
 default_penalty_factor(p::Integer) = (v = ones(p); v[end] = 0.0; v)
 function print_item(io::IO, name::AbstractString, value)
@@ -82,7 +92,6 @@ _predict(l::LogitMarginLoss, xβ::Real) = logistic(xβ)
 _predict(l::PoissonLoss, xβ::Real) = exp(xβ)
 
 #------------------------------------------------------------------------# Algorithms
-include("algorithms/sweep.jl")
 include("algorithms/proxgrad.jl")
 
 end

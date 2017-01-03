@@ -35,5 +35,4 @@ The available penalties come from PenaltyFunctions.jl
 
 ## Algorithms
 
-- `SWEEP()`
 - `PROXGRAD()`
