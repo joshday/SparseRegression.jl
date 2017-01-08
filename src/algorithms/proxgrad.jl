@@ -58,15 +58,15 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
         abs(newloss - oldloss) < min(abs(newloss), abs(oldloss)) * A.tol && break
         if A.verbose
             tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))
-            info("Iteration: $niters, Relative Tolerance: $tolerance")
+            info("Iteration: $niters, Relative Tolerance = $tolerance")
         end
     end
 
     tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))
     if tolerance < A.tol
-        A.verbose && info("CONVERGED")
+        A.verbose && info("CONVERGED: $niters, Relative Tolerance = $tolerance")
     else
-        warn("DID NOT CONVERGE in $niters iterations, tolerance=$tolerance")
+        warn("DID NOT CONVERGE in $niters iterations, Relative Tolerance = $tolerance")
     end
     o
 end
