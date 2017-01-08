@@ -4,9 +4,11 @@ using Reexport
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
+@reexport using OnlineStats
 importall LossFunctions
 import SweepOperator
 import StatsBase: predict, coef
+import ProgressMeter
 
 export
     SparseReg, SolutionPath, predict, coef,
@@ -69,6 +71,10 @@ function SparseReg(x::AMat, y::AVec, args...)
     o = SparseReg(size(x, 2), size(x, 1), args...)
     fit!(o, x, y)
 end
+function SparseReg(x::AMat, y::AVec, b::Int, args...)
+    o = SparseReg(size(x, 2), size(x, 1), args...)
+    fit!(o, x, y, b)
+end
 function SparseReg(x::AMat, y::AVec, w::AVec, args...)
     o = SparseReg(size(x, 2), size(x, 1), AvgMode.WeightedMean(w), args...)
     fit!(o, x, y)
@@ -101,6 +107,7 @@ _predict(l::PoissonLoss, xβ::Real) = exp(xβ)
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")
+include("algorithms/sgdlike.jl")
 
 include("solutionpath.jl")
 

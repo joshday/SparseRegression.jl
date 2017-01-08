@@ -13,7 +13,7 @@ end
 function PROXGRAD(n = 0, p = 0; maxit = 100, tol = 1e-6, verbose = false)
     PROXGRAD(maxit, tol, verbose, zeros(p), zeros(n), zeros(n))
 end
-function init(alg::PROXGRAD, n::Integer, p::Integer)
+function init(alg::PROXGRAD, n, p)
     typeof(alg)(n, p; maxit = alg.maxit, tol = alg.tol, verbose = alg.verbose)
 end
 
@@ -47,7 +47,7 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
         At_mul_B!(A.∇, x, A.deriv_buffer)
         scale!(A.∇, 1 / n)
         # update parameters
-        for j in eachindex(β)
+        @simd for j in eachindex(β)
             @inbounds β[j] = prox(P, β[j] - A.∇[j])
         end
         # update yhat
