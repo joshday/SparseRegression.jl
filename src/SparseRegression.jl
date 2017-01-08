@@ -4,7 +4,7 @@ using Reexport
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
-importall LearnBase
+importall LossFunctions
 import SweepOperator
 import StatsBase: predict, coef
 
@@ -13,11 +13,16 @@ export
     # algorithms
     PROXGRAD
 
+
 #-----------------------------------------------------------------------------# types
 typealias AVec AbstractVector
 typealias AMat AbstractMatrix
 typealias AVecF AbstractVector{Float64}
 typealias AMatF AbstractMatrix{Float64}
+typealias VecF Vector{Float64}
+typealias MatF Matrix{Float64}
+
+typealias AverageMode LossFunctions.AverageMode
 
 abstract Algorithm
 abstract OfflineAlgorithm   <: Algorithm
@@ -27,22 +32,23 @@ function Base.print(io::IO, a::Algorithm)
 end
 
 
-
-
 #-------------------------------------------------------------------------# SparseReg
-type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
+type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}
     β::Vector{Float64}
     loss::L
     penalty::P
     algorithm::A
+    avg::M
 end
-function _SparseReg(p::Integer, loss::Loss, pen::Penalty, alg::Algorithm)
-    SparseReg(zeros(p), loss, pen, init(alg, p))
+function _SparseReg(p::Integer, n::Integer, loss::Loss, pen::Penalty, alg::Algorithm,
+                    avg::AverageMode)
+    SparseReg(zeros(p), loss, pen, init(alg, n, p), avg)
 end
-function SparseReg(p::Integer, args...)
-    loss = ScaledLoss(L2DistLoss(), .5)
+function SparseReg(p::Integer, n::Integer = 0, args...)
+    loss = scaledloss(L2DistLoss(), .5)
     pen = NoPenalty()
     alg = PROXGRAD()
+    avg  = AvgMode.Mean()
     for arg in args
         T = typeof(arg)
         if T <: Loss
@@ -51,14 +57,16 @@ function SparseReg(p::Integer, args...)
             pen = arg
         elseif T <: Algorithm
             alg = arg
+        elseif T <: AverageMode
+            avg = arg
         else
             warn("Unused argument")
         end
     end
-    _SparseReg(p, loss, pen, alg)
+    _SparseReg(p, n, loss, pen, alg, avg)
 end
 function SparseReg(x::AMat, y::AVec, args...)
-    o = SparseReg(size(x, 2), args...)
+    o = SparseReg(size(x, 2), size(x, 1), args...)
     fit!(o, x, y)
 end
 function SparseReg(x::AMat, y::AVec, w::AVec, args...)

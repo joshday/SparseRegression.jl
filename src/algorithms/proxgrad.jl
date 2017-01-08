@@ -1,62 +1,61 @@
 """
 Proximal Gradient Method
-
-```julia
-PROXGRAD(;maxit = 100, tol = 1e-6, verbose = false)
-```
 """
 immutable PROXGRAD <: OfflineAlgorithm
     maxit::Int
     tol::Float64
     verbose::Bool
+    # buffers
+    ∇::VecF
+    yhat::VecF
+    deriv_buffer::VecF
 end
-function PROXGRAD(; maxit::Int = 100, tol::Float64 = 1e-6, verbose::Bool = false)
-    PROXGRAD(maxit, tol, verbose)
+function PROXGRAD(n = 0, p = 0; maxit = 100, tol = 1e-6, verbose = false)
+    PROXGRAD(maxit, tol, verbose, zeros(p), zeros(n), zeros(n))
 end
-init(alg::PROXGRAD, p::Integer) = alg
-
-
+function init(alg::PROXGRAD, n::Integer, p::Integer)
+    typeof(alg)(n, p; maxit = alg.maxit, tol = alg.tol, verbose = alg.verbose)
+end
 
 # TODOs:
 # - penalty factor
 # - line search
 # - Estimate Lipschitz constant for step size?
-# - Use FISTA acceleration
+# - Use FISTA acceleration?
 # - Other criteria for convergence?
-function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec, wts::AVec = zeros(0),
-              xβ::AVecF = x*o.β, yhat::AVecF = _predict.(o.loss, xβ),
-              deriv_buffer::AVecF = zeros(yhat), ∇::AVecF = zeros(o.β))
+function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
     # error handling and setup
     n, p = size(x)
     @assert p == length(o.β)
-    use_weights = length(wts) > 0
+    use_weights = typeof(o.avg) <: AvgMode.WeightedMean
     @assert !use_weights || length(wts) == n "`weights` must have length $n"
-    β, A, L, P = o.β, o.algorithm, o.loss, o.penalty
+    β, A, L, P, AVG = o.β, o.algorithm, o.loss, o.penalty, o.avg
 
+    # iterations
     oldloss = -Inf
-    newloss = meanvalue(L, y, yhat)
+    newloss = value(L, y, A.yhat, AVG)
     niters = 0
     for k in 1:A.maxit
         oldloss = newloss
+        niters += 1
         # calculate the gradient
         if use_weights
-            deriv_buffer .= deriv.(L, y, yhat) .* wts
+            A.deriv_buffer .= deriv.(L, y, A.yhat) .* AVG.weights
         else
-            deriv_buffer .= deriv.(L, y, yhat)
+            A.deriv_buffer .= deriv.(L, y, A.yhat)
         end
-        At_mul_B!(∇, x, deriv_buffer)
-        scale!(∇, 1 / n)
+        At_mul_B!(A.∇, x, A.deriv_buffer)
+        scale!(A.∇, 1 / n)
         # update parameters
         for j in eachindex(β)
-            @inbounds β[j] = prox(P, β[j] - ∇[j])
+            @inbounds β[j] = prox(P, β[j] - A.∇[j])
         end
         # update yhat
-        A_mul_B!(xβ, x, β)
-        yhat .= _predict.(L, xβ)
+        A_mul_B!(A.yhat, x, β)  # Overwrite yhat with linear predictor x * β
+        A.yhat .= _predict.(L, A.yhat)  # turn linear predictor into prediction
         # check for convergence
-        newloss = meanvalue(L, y, yhat)
+        newloss = value(L, y, A.yhat, AVG)  # needs weighted version
         abs(newloss - oldloss) < min(abs(newloss), abs(oldloss)) * A.tol && break
-        niters += 1
         if A.verbose
             tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))
             info("Iteration: $niters, Relative Tolerance: $tolerance")
