@@ -60,7 +60,7 @@ function SparseReg(p::Integer, n::Integer = 0, args...)
         elseif T <: AverageMode
             avg = arg
         else
-            warn("Unused argument")
+            warn("At least one unused argument!!!")
         end
     end
     _SparseReg(p, n, loss, pen, alg, avg)
@@ -70,8 +70,8 @@ function SparseReg(x::AMat, y::AVec, args...)
     fit!(o, x, y)
 end
 function SparseReg(x::AMat, y::AVec, w::AVec, args...)
-    o = SparseReg(size(x, 2), args...)
-    fit!(o, x, y, w)
+    o = SparseReg(size(x, 2), size(x, 1), AvgMode.WeightedMean(w), args...)
+    fit!(o, x, y)
 end
 default_penalty_factor(p::Integer) = (v = ones(p); v[end] = 0.0; v)
 function print_item(io::IO, name::AbstractString, value)

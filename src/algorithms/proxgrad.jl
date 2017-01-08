@@ -28,7 +28,7 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
     n, p = size(x)
     @assert p == length(o.β)
     use_weights = typeof(o.avg) <: AvgMode.WeightedMean
-    @assert !use_weights || length(wts) == n "`weights` must have length $n"
+    @assert !use_weights || length(o.avg.weights) == n "`weights` must have length $n"
     β, A, L, P, AVG = o.β, o.algorithm, o.loss, o.penalty, o.avg
 
     # iterations
@@ -40,7 +40,7 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
         niters += 1
         # calculate the gradient
         if use_weights
-            A.deriv_buffer .= deriv.(L, y, A.yhat) .* AVG.weights
+            A.deriv_buffer .= deriv.(L, y, A.yhat) .* AVG.weights.values
         else
             A.deriv_buffer .= deriv.(L, y, A.yhat)
         end
