@@ -104,6 +104,12 @@ predict(o::SparseReg, x::AMat) = _predict.(o.loss, xβ(o, x))
 _predict(l::Loss, xβ::Real) = xβ
 _predict(l::LogitMarginLoss, xβ::Real) = logistic(xβ)
 _predict(l::PoissonLoss, xβ::Real) = exp(xβ)
+function _predict!(l::Loss, xβ::AVec)
+    for i in eachindex(xβ)
+        @inbounds xβ[i] = _predict(l, xβ[i])
+    end
+    xβ
+end
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")
