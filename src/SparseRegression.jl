@@ -8,13 +8,12 @@ using Reexport
 importall LossFunctions
 import SweepOperator
 import StatsBase: predict, coef
-import ProgressMeter
 
 export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
     PROXGRAD,
-    SGD, MOMENTUM
+    SGD, MOMENTUM, FOBOS, ADAGRAD
 
 
 #-----------------------------------------------------------------------------# types
@@ -34,6 +33,7 @@ function Base.print(io::IO, a::Algorithm)
     print(io, replace(string(typeof(a)), "SparseRegression.", ""))
 end
 
+const ϵ = 1e-8  # constant to avoid dividing by zero, etc.
 
 #-------------------------------------------------------------------------# SparseReg
 type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}

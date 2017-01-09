@@ -8,7 +8,7 @@ function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec)
     @assert n == length(y)
     for i in eachindex(y)
         OnlineStats.updatecounter!(w)
-        @inbounds _fit!(o, @view(x[i, :]), y[i], OnlineStats.weight(w), A, L, β, P)
+        _fit!(o, @view(x[i, :]), y[i], OnlineStats.weight(w), A, L, β, P)
     end
     o
 end
@@ -18,7 +18,7 @@ function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, b::Int)
     A, L, β, P = o.algorithm, o.loss, o.β, o.penalty
     n, p = size(x)
     i = 1
-    @inbounds while i <= n
+    while i <= n
         rng = i:min(i + b - 1, n)
         bsize = length(rng)
         OnlineStats.updatecounter!(w, bsize)
@@ -36,7 +36,7 @@ function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, A, L, β
     ηγ = γ * A.η
     g = deriv(o.loss, y, _predict(L, dot(x, β)))
     for j in eachindex(β)
-        @inbounds β[j] = updateβj(A, γ, ηγ, g * x[j], β[j], P, j)
+        β[j] = updateβj(A, γ, ηγ, g * x[j], β[j], P, j)
     end
 end
 
@@ -85,3 +85,18 @@ end
 FOBOS(wt::Weight = LearningRate(), η::Number = 1.0) = FOBOS(wt, η)
 init(alg::FOBOS, n, p) = alg
 updateβj(A::FOBOS, γ, ηγ, gx, βj, P, j) = prox(P, βj - ηγ * gx, ηγ)
+
+#-------------------------------------------------------------------------------------# ADAGRAD
+"ADAGRAD"
+type ADAGRAD{W <: Weight} <: SGDLike
+    weight::W
+    η::Float64
+    H::VecF
+end
+ADAGRAD(wt::Weight = LearningRate(), η::Number = 1.0) = ADAGRAD(wt, η, zeros(0))
+init(a::ADAGRAD, n, p) = (a.H = zeros(p); a)
+function updateβj(A::ADAGRAD, γ, ηγ, gx, βj, P, j)
+    @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx * gx, 1 / A.weight.nups)
+    @inbounds step = ηγ / (sqrt(A.H[j]) + ϵ)
+    prox(P, βj - step * gx, step)
+end
