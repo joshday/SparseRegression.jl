@@ -82,3 +82,5 @@ Online algorithms perform a single pass through the data with each call to `fit!
   - Stochastic Gradient Descent with momentum (`a in (0, 1)`  is the momentum rate).  
 - `FOBOS(wt, c)`
   - Stochastic Proximal Gradient Method.
+- `ADAGRAD(wt, c)`
+  - ADAGRAD (Adaptive Gradient).  

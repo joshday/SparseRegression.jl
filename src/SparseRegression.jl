@@ -37,15 +37,16 @@ const ϵ = 1e-8  # constant to avoid dividing by zero, etc.
 
 #-------------------------------------------------------------------------# SparseReg
 type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}
-    β::Vector{Float64}
+    β::VecF
     loss::L
     penalty::P
     algorithm::A
     avg::M
+    penfact::VecF  # penalty factor
 end
 function _SparseReg(p::Integer, n::Integer, loss::Loss, pen::Penalty, alg::Algorithm,
                     avg::AverageMode)
-    SparseReg(zeros(p), loss, pen, init(alg, n, p), avg)
+    SparseReg(zeros(p), loss, pen, init(alg, n, p), avg, ones(p))
 end
 function SparseReg(p::Integer, n::Integer = 0, args...)
     loss = scaledloss(L2DistLoss(), .5)

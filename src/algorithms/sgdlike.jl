@@ -36,7 +36,7 @@ function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, A, L, β
     ηγ = γ * A.η
     g = deriv(o.loss, y, _predict(L, dot(x, β)))
     for j in eachindex(β)
-        β[j] = updateβj(A, γ, ηγ, g * x[j], β[j], P, j)
+        β[j] = updateβj(A, γ, ηγ, g * x[j], β[j], P, j, o.penfact[j])
     end
 end
 
@@ -46,7 +46,7 @@ function _fitbatch!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, γ, A, 
     g = deriv(o.loss, y, xβ(o, x))
     @inbounds for j in eachindex(β)
         gx = mean(g .* x[:, j])
-        β[j] = updateβj(A, γ, ηγ, gx, β[j], P, j)
+        β[j] = updateβj(A, γ, ηγ, gx, β[j], P, j, o.penfact[j])
     end
 end
 
@@ -59,7 +59,7 @@ immutable SGD{W <: Weight} <: SGDLike
 end
 SGD(wt::Weight = LearningRate(), η::Number = 1.0) = SGD(wt, η)
 init(alg::SGD, n, p) = alg
-updateβj(A::SGD, γ, ηγ, gx, βj, P, j) = βj - ηγ * (gx + deriv(P, βj))
+updateβj(A::SGD, γ, ηγ, gx, βj, P, j, s) = βj - ηγ * (gx + s * deriv(P, βj))
 
 #------------------------------------------------------------------------------------# MOMENTUM
 "SGD with MOMENTUM"
@@ -71,9 +71,9 @@ immutable MOMENTUM{W <: Weight} <: SGDLike
 end
 MOMENTUM(wt::Weight = LearningRate(), η::Number = 1.0, α = .1) = MOMENTUM(wt, η, α, zeros(0))
 init(a::MOMENTUM, n, p) = MOMENTUM(a.weight, a.η, a.α, zeros(p))
-function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j)
+function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j, s)
     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx, A.α)
-    prox(P, βj - ηγ * A.H[j], ηγ)
+    prox(P, βj - ηγ * A.H[j], ηγ * s)
 end
 
 #---------------------------------------------------------------------------------------# FOBOS
@@ -84,7 +84,7 @@ immutable FOBOS{W <: Weight} <: SGDLike
 end
 FOBOS(wt::Weight = LearningRate(), η::Number = 1.0) = FOBOS(wt, η)
 init(alg::FOBOS, n, p) = alg
-updateβj(A::FOBOS, γ, ηγ, gx, βj, P, j) = prox(P, βj - ηγ * gx, ηγ)
+updateβj(A::FOBOS, γ, ηγ, gx, βj, P, j, s) = prox(P, βj - ηγ * gx, ηγ * s)
 
 #-------------------------------------------------------------------------------------# ADAGRAD
 "ADAGRAD"
@@ -95,8 +95,8 @@ type ADAGRAD{W <: Weight} <: SGDLike
 end
 ADAGRAD(wt::Weight = LearningRate(), η::Number = 1.0) = ADAGRAD(wt, η, zeros(0))
 init(a::ADAGRAD, n, p) = (a.H = zeros(p); a)
-function updateβj(A::ADAGRAD, γ, ηγ, gx, βj, P, j)
+function updateβj(A::ADAGRAD, γ, ηγ, gx, βj, P, j, s)
     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx * gx, 1 / A.weight.nups)
     @inbounds step = ηγ / (sqrt(A.H[j]) + ϵ)
-    prox(P, βj - step * gx, step)
+    prox(P, βj - step * gx, step * s)
 end

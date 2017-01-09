@@ -29,7 +29,7 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
     @assert p == length(o.β)
     use_weights = typeof(o.avg) <: AvgMode.WeightedMean
     @assert !use_weights || length(o.avg.weights) == n "`weights` must have length $n"
-    β, A, L, P, AVG = o.β, o.algorithm, o.loss, o.penalty, o.avg
+    β, A, L, P, AVG, penfact = o.β, o.algorithm, o.loss, o.penalty, o.avg, o.penfact
 
     # iterations
     oldloss = -Inf
@@ -48,7 +48,7 @@ function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
         scale!(A.∇, 1 / n)
         # update parameters
         @simd for j in eachindex(β)
-            @inbounds β[j] = prox(P, β[j] - A.∇[j])
+            @inbounds β[j] = prox(P, β[j] - A.∇[j], penfact[j])
         end
         # update yhat
         A_mul_B!(A.yhat, x, β)  # Overwrite yhat with linear predictor x * β
