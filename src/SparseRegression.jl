@@ -81,7 +81,6 @@ function SparseReg(x::AMat, y::AVec, w::AVec, args...)
     o = SparseReg(size(x, 2), size(x, 1), AvgMode.WeightedMean(w), args...)
     fit!(o, x, y)
 end
-default_penalty_factor(p::Integer) = (v = ones(p); v[end] = 0.0; v)
 function print_item(io::IO, name::AbstractString, value)
     print(io, "  >" * @sprintf("%18s", name * ":  "))
     println(io, value)
@@ -112,6 +111,10 @@ function _predict!(l::Loss, xβ::AVec)
     end
     xβ
 end
+
+penaltyfactor!(o::SparseReg, v::VecF) = (@assert length(v) == length(o.β); o.penfact[:] = v)
+
+smooth(a, b, γ) = a + γ * (b - a)
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")

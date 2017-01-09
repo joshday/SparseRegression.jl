@@ -100,3 +100,26 @@ function updateβj(A::ADAGRAD, γ, ηγ, gx, βj, P, j, s)
     @inbounds step = ηγ / (sqrt(A.H[j]) + ϵ)
     prox(P, βj - step * gx, step * s)
 end
+
+#----------------------------------------------------------------------------------------# ADAM
+"ADAM"
+type ADAM{W <: Weight} <: SGDLike
+    weight::W
+    η::Float64
+    m1::Float64
+    m2::Float64
+    H::VecF
+    G::VecF
+end
+function ADAM(wt::Weight = LearningRate(), η::Float64 = 1.0, m1 = .1, m2 = .1)
+    ADAM(wt, η, m1, m2, zeros(0), zeros(0))
+end
+init(a::ADAM, n, p) = ADAM(a.weight, a.η, a.m1, a.m2, zeros(p), zeros(p))
+function updateβj(A::ADAM, γ, ηγ, gx, βj, P, j, s)
+    m1, m2, nups = A.m1, A.m2, A.weight.nups
+    ratio = sqrt(1.0 - m2 ^ nups) / (1.0 - m1 ^ nups)  # this line faster in OnlineStatsModels?
+    A.H[j] = smooth(A.H[j], gx, m1)
+    A.G[j] = smooth(A.G[j], gx * gx, m2)
+    step = ηγ * ratio / (sqrt(A.G[j]) + ϵ)
+    prox(P, βj - step * A.H[j], step * s)
+end

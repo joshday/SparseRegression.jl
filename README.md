@@ -84,3 +84,5 @@ Online algorithms perform a single pass through the data with each call to `fit!
   - Stochastic Proximal Gradient Method.
 - `ADAGRAD(wt, c)`
   - ADAGRAD (Adaptive Gradient).  
+- `ADAM(wt, c, m1, m2)`
+  - Adaptive Moment Estimation.
