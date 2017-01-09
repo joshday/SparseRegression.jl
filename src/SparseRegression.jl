@@ -13,7 +13,8 @@ import ProgressMeter
 export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
-    PROXGRAD
+    PROXGRAD,
+    SGD, MOMENTUM
 
 
 #-----------------------------------------------------------------------------# types

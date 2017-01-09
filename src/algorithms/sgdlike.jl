@@ -75,3 +75,13 @@ function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j)
     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx, A.α)
     prox(P, βj - ηγ * A.H[j], ηγ)
 end
+
+#---------------------------------------------------------------------------------------# FOBOS
+"Proximal Stochastic Gradient Descent"
+immutable FOBOS{W <: Weight} <: SGDLike
+    weight::W
+    η::Float64
+end
+FOBOS(wt::Weight = LearningRate(), η::Number = 1.0) = FOBOS(wt, η)
+init(alg::FOBOS, n, p) = alg
+updateβj(A::FOBOS, γ, ηγ, gx, βj, P, j) = prox(P, βj - ηγ * gx, ηγ)
