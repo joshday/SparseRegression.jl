@@ -8,7 +8,7 @@ function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec)
     @assert n == length(y)
     for i in eachindex(y)
         OnlineStats.updatecounter!(w)
-        _fit!(o, @view(x[i, :]), y[i], OnlineStats.weight(w), A, L, β, P)
+        _fit!(o, @view(x[i, :]), y[i], OnlineStats.weight(w), η, A, L, β, P)
     end
     o
 end
@@ -32,11 +32,10 @@ end
 
 
 # Singleton updater
-function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, A, L, β, P)
-    ηγ = γ * A.η
+function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, η, A, L, β, P)
     g = deriv(o.loss, y, _predict(L, dot(x, β)))
     for j in eachindex(β)
-        β[j] = updateβj(A, γ, ηγ, g * x[j], β[j], P, j, o.penfact[j])
+        β[j] = updateβj(A, γ, γ * η, g * x[j], β[j], P, j, o.penfact[j])
     end
 end
 

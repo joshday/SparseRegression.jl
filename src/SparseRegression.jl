@@ -13,7 +13,10 @@ export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
     PROXGRAD,
-    SGD, MOMENTUM, FOBOS, ADAGRAD
+    SGD, MOMENTUM, FOBOS, ADAGRAD,
+    # Model typealiases
+    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression,
+    SVMLike, DWDLike, QuantileRegression
 
 
 #-----------------------------------------------------------------------------# types
@@ -35,7 +38,17 @@ end
 
 const ϵ = 1e-8  # constant to avoid dividing by zero, etc.
 
-#-------------------------------------------------------------------------# SparseReg
+#----------------------------------------------------------------------------------# typealias
+typealias LinearRegression      LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
+typealias L1Regression          L1DistLoss
+typealias LogisticRegression    LogitMarginLoss
+typealias PoissonRegression     PoissonLoss
+typealias HuberRegression       HuberLoss
+typealias SVMLike               L1HingeLoss
+typealias QuantileRegression    QuantileLoss
+typealias DWDLike               DWDMarginLoss
+
+#----------------------------------------------------------------------------------# SparseReg
 type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}
     β::VecF
     loss::L
@@ -49,7 +62,7 @@ function _SparseReg(p::Integer, n::Integer, loss::Loss, pen::Penalty, alg::Algor
     SparseReg(zeros(p), loss, pen, init(alg, n, p), avg, ones(p))
 end
 function SparseReg(p::Integer, n::Integer = 0, args...)
-    loss = scaledloss(L2DistLoss(), .5)
+    loss = LinearRegression()
     pen = NoPenalty()
     alg = PROXGRAD()
     avg  = AvgMode.Mean()
