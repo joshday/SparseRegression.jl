@@ -19,7 +19,7 @@ export
     SVMLike, DWDLike, QuantileRegression
 
 
-#-----------------------------------------------------------------------------# types
+#---------------------------------------------------------------------------------# types
 typealias AVec AbstractVector
 typealias AMat AbstractMatrix
 typealias AVecF AbstractVector{Float64}
@@ -38,7 +38,7 @@ end
 
 const ϵ = 1e-8  # constant to avoid dividing by zero, etc.
 
-#----------------------------------------------------------------------------------# typealias
+#-----------------------------------------------------------------------------# typealias
 typealias LinearRegression      LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
 typealias L1Regression          L1DistLoss
 typealias LogisticRegression    LogitMarginLoss
@@ -48,7 +48,7 @@ typealias SVMLike               L1HingeLoss
 typealias QuantileRegression    QuantileLoss
 typealias DWDLike               DWDMarginLoss
 
-#----------------------------------------------------------------------------------# SparseReg
+#-----------------------------------------------------------------------------# SparseReg
 type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}
     β::VecF
     loss::L
@@ -109,7 +109,10 @@ function _predict!(l::Loss, xβ::AVec)
     xβ
 end
 
-penaltyfactor!(o::SparseReg, v::VecF) = (@assert length(v) == length(o.β); o.penfact[:] = v)
+function penaltyfactor!(o::SparseReg, v::VecF)
+    @assert length(v) == length(o.β)
+    o.penfact[:] = v
+end
 
 isoffline(o::SparseReg) = typeof(o.algorithm) <: OfflineAlgorithm
 
@@ -117,7 +120,7 @@ smooth(a, b, γ) = a + γ * (b - a)
 
 
 
-#------------------------------------------------------------------------# Algorithms
+#----------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")
 include("algorithms/sgdlike.jl")
 

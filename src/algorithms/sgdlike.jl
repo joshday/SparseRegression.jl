@@ -64,7 +64,7 @@ end
 # end
 
 
-#-----------------------------------------------------------------------------------------# SGD
+#-----------------------------------------------------------------------------------# SGD
 "Stochastic Gradient Descent"
 immutable SGD{W <: Weight} <: SGDLike
     weight::W
@@ -74,7 +74,7 @@ SGD(wt::Weight = LearningRate(), η::Number = 1.0) = SGD(wt, η)
 init(alg::SGD, n, p) = alg
 updateβj(A::SGD, γ, ηγ, gx, βj, P, j, s) = βj - ηγ * (gx + s * deriv(P, βj))
 
-#------------------------------------------------------------------------------------# MOMENTUM
+#------------------------------------------------------------------------------# MOMENTUM
 "SGD with MOMENTUM"
 immutable MOMENTUM{W <: Weight} <: SGDLike
     weight::W
@@ -89,7 +89,7 @@ function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j, s)
     prox(P, βj - ηγ * A.H[j], ηγ * s)
 end
 
-#---------------------------------------------------------------------------------------# FOBOS
+#---------------------------------------------------------------------------------# FOBOS
 "Proximal Stochastic Gradient Descent"
 immutable FOBOS{W <: Weight} <: SGDLike
     weight::W
@@ -99,7 +99,7 @@ FOBOS(wt::Weight = LearningRate(), η::Number = 1.0) = FOBOS(wt, η)
 init(alg::FOBOS, n, p) = alg
 updateβj(A::FOBOS, γ, ηγ, gx, βj, P, j, s) = prox(P, βj - ηγ * gx, ηγ * s)
 
-#-------------------------------------------------------------------------------------# ADAGRAD
+#-------------------------------------------------------------------------------# ADAGRAD
 "ADAGRAD"
 type ADAGRAD{W <: Weight} <: SGDLike
     weight::W
@@ -114,7 +114,7 @@ function updateβj(A::ADAGRAD, γ, ηγ, gx, βj, P, j, s)
     prox(P, βj - step * gx, step * s)
 end
 
-#----------------------------------------------------------------------------------------# ADAM
+#----------------------------------------------------------------------------------# ADAM
 "ADAM"
 type ADAM{W <: Weight} <: SGDLike
     weight::W
