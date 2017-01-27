@@ -19,7 +19,7 @@ using SparseRegression, DataGenerator
 x, y, b = linregdata(100_000, 10)
 
 # Absolute loss with Ridge penalty
-@time o = SparseReg(x, y, L1DistLoss(), PROXGRAD(verbose=true), L2Penalty(.1))
+@time o = SparseReg(x, y, loss=L1DistLoss(), algorithm=PROXGRAD(verbose=true), penalty=L2Penalty(.1))
 # INFO: Iteration: 1, Relative Tolerance = 0.3278716198007006
 # INFO: Iteration: 2, Relative Tolerance = 0.29606007437944964
 # INFO: Iteration: 3, Relative Tolerance = 0.17725425000688583
