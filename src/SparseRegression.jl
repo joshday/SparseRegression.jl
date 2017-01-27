@@ -55,43 +55,27 @@ type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}
     penalty::P
     algorithm::A
     avg::M
-    penfact::VecF  # penalty factor
+    penaltyfactor::VecF
 end
-function _SparseReg(p::Integer, n::Integer, loss::Loss, pen::Penalty, alg::Algorithm,
-                    avg::AverageMode)
-    SparseReg(zeros(p), loss, pen, init(alg, n, p), avg, ones(p))
+function SparseReg(p::Integer, n::Integer = 0;
+                   loss::Loss = LinearRegression(),
+                   penalty::Penalty = NoPenalty(),
+                   algorithm::Algorithm = PROXGRAD(),
+                   avgmode::AverageMode = AvgMode.Mean(),
+                   penaltyfactor::VecF = ones(p)
+                   )
+    @assert length(penaltyfactor) == p
+    SparseReg(zeros(p), loss, penalty, init(algorithm, n, p), avgmode, penaltyfactor)
 end
-function SparseReg(p::Integer, n::Integer = 0, args...)
-    loss = LinearRegression()
-    pen = NoPenalty()
-    alg = PROXGRAD()
-    avg  = AvgMode.Mean()
-    for arg in args
-        T = typeof(arg)
-        if T <: Loss
-            loss = arg
-        elseif T <: Penalty
-            pen = arg
-        elseif T <: Algorithm
-            alg = arg
-        elseif T <: AverageMode
-            avg = arg
-        else
-            warn("At least one unused argument!!!")
-        end
-    end
-    _SparseReg(p, n, loss, pen, alg, avg)
-end
-function SparseReg(x::AMat, y::AVec, args...)
-    o = SparseReg(size(x, 2), size(x, 1), args...)
-    fit!(o, x, y)
-end
-function SparseReg(x::AMat, y::AVec, b::Int, args...)
-    o = SparseReg(size(x, 2), size(x, 1), args...)
-    fit!(o, x, y, b)
-end
-function SparseReg(x::AMat, y::AVec, w::AVec, args...)
-    o = SparseReg(size(x, 2), size(x, 1), AvgMode.WeightedMean(w), args...)
+function SparseReg(x::AMat, y::AVec;
+                   loss::Loss = LinearRegression(),
+                   penalty::Penalty = NoPenalty(),
+                   algorithm::Algorithm = PROXGRAD(),
+                   avgmode::AverageMode = AvgMode.Mean(),
+                   penaltyfactor::VecF = ones(size(x, 2))
+                   )
+    o = SparseReg(size(x, 2), size(x, 1); loss=loss, penalty=penalty, algorithm=algorithm,
+                  avgmode = avgmode, penaltyfactor = penaltyfactor)
     fit!(o, x, y)
 end
 function print_item(io::IO, name::AbstractString, value)
@@ -127,7 +111,11 @@ end
 
 penaltyfactor!(o::SparseReg, v::VecF) = (@assert length(v) == length(o.β); o.penfact[:] = v)
 
+isoffline(o::SparseReg) = typeof(o.algorithm) <: OfflineAlgorithm
+
 smooth(a, b, γ) = a + γ * (b - a)
+
+
 
 #------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")

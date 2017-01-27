@@ -3,51 +3,65 @@ abstract SGDLike <: OnlineAlgorithm
 function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec)
     η = o.algorithm.η
     w = o.algorithm.weight
-    A, L, β, P = o.algorithm, o.loss, o.β, o.penalty
+    A = o.algorithm
+    L = o.loss
+    β = o.β
+    P = o.penalty
     n, p = size(x)
     @assert n == length(y)
-    for i in eachindex(y)
+    @inbounds for i in eachindex(y)
         OnlineStats.updatecounter!(w)
-        _fit!(o, @view(x[i, :]), y[i], OnlineStats.weight(w), η, A, L, β, P)
+        xi = view(x, i, :)
+        yi = y[i]
+        g = deriv(L, yi, _predict(L, dot(xi, β)))
+        γ = OnlineStats.weight(w)
+        for j in eachindex(β)
+            β[j] = updateβj(A, γ, γ * η, g * xi[j], β[j], P, j, o.penaltyfactor[j])
+        end
+        # _fit!(o, @view(x[i, :]), y[i], OnlineStats.weight(w), η, A, L, β, P)
     end
     o
 end
-function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, b::Int)
-    η = o.algorithm.η
-    w = o.algorithm.weight
-    A, L, β, P = o.algorithm, o.loss, o.β, o.penalty
-    n, p = size(x)
-    i = 1
-    while i <= n
-        rng = i:min(i + b - 1, n)
-        bsize = length(rng)
-        OnlineStats.updatecounter!(w, bsize)
-        xi = @view x[rng, :]
-        yi = @view y[rng]
-        _fitbatch!(o, xi, yi, OnlineStats.weight(w, bsize), A, L, β, P)
-        i += b
-    end
-    o
-end
+# function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, b::Int)
+#     η = o.algorithm.η
+#     w = o.algorithm.weight
+#     A = o.algorithm
+#     L = o.loss
+#     β = o.β
+#     P = o.penalty
+#     n, p = size(x)
+#     @assert n == length(y)
+#     i = 1
+#     while i <= n
+#         rng = i:min(i + b - 1, n)
+#         bsize = length(rng)
+#         OnlineStats.updatecounter!(w, bsize)
+#         xi = @view x[rng, :]
+#         yi = @view y[rng]
+#         _fitbatch!(o, xi, yi, OnlineStats.weight(w, bsize), A, L, β, P)
+#         i += b
+#     end
+#     o
+# end
 
 
 # Singleton updater
-function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, η, A, L, β, P)
-    g = deriv(o.loss, y, _predict(L, dot(x, β)))
-    for j in eachindex(β)
-        β[j] = updateβj(A, γ, γ * η, g * x[j], β[j], P, j, o.penfact[j])
-    end
-end
+# function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, η, A, L, β, P)
+#     g = deriv(o.loss, y, _predict(L, dot(x, β)))
+#     for j in eachindex(β)
+#         β[j] = updateβj(A, γ, γ * η, g * x[j], β[j], P, j, o.penaltyfactor[j])
+#     end
+# end
 
 # minibatch updater
-function _fitbatch!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, γ, A, L, β, P)
-    ηγ = γ * A.η
-    g = deriv(o.loss, y, xβ(o, x))
-    @inbounds for j in eachindex(β)
-        gx = mean(g .* x[:, j])
-        β[j] = updateβj(A, γ, ηγ, gx, β[j], P, j, o.penfact[j])
-    end
-end
+# function _fitbatch!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, γ, A, L, β, P)
+#     ηγ = γ * A.η
+#     g = deriv(o.loss, y, xβ(o, x))
+#     @inbounds for j in eachindex(β)
+#         gx = mean(g .* x[:, j])
+#         β[j] = updateβj(A, γ, ηγ, gx, β[j], P, j, o.penaltyfactor[j])
+#     end
+# end
 
 
 #-----------------------------------------------------------------------------------------# SGD
@@ -114,8 +128,10 @@ function ADAM(wt::Weight = LearningRate(), η::Float64 = 1.0, m1 = .1, m2 = .1)
     ADAM(wt, η, m1, m2, zeros(0), zeros(0))
 end
 init(a::ADAM, n, p) = ADAM(a.weight, a.η, a.m1, a.m2, zeros(p), zeros(p))
-function updateβj(A::ADAM, γ, ηγ, gx, βj, P, j, s)
-    m1, m2, nups = A.m1, A.m2, A.weight.nups
+@inline function updateβj(A::ADAM, γ, ηγ, gx, βj, P, j, s)
+    m1 = A.m1
+    m2 = A.m2
+    nups = A.weight.nups
     ratio = sqrt(1.0 - m2 ^ nups) / (1.0 - m1 ^ nups)  # this line faster in OnlineStatsModels?
     A.H[j] = smooth(A.H[j], gx, m1)
     A.G[j] = smooth(A.G[j], gx * gx, m2)

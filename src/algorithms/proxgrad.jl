@@ -10,7 +10,8 @@ immutable PROXGRAD <: OfflineAlgorithm
     yhat::VecF
     deriv_buffer::VecF
 end
-function PROXGRAD(n = 0, p = 0; maxit = 100, tol = 1e-6, verbose = false)
+function PROXGRAD(n::Integer = 0, p::Integer = 0;
+                  maxit::Integer = 100, tol::Float64 = 1e-6, verbose::Bool = false)
     PROXGRAD(maxit, tol, verbose, zeros(p), zeros(n), zeros(n))
 end
 function init(alg::PROXGRAD, n, p)
@@ -18,7 +19,6 @@ function init(alg::PROXGRAD, n, p)
 end
 
 # TODOs:
-# - penalty factor
 # - line search
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
@@ -26,10 +26,17 @@ end
 function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
     # error handling and setup
     n, p = size(x)
-    @assert p == length(o.β)
+    p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
     use_weights = typeof(o.avg) <: AvgMode.WeightedMean
-    @assert !use_weights || length(o.avg.weights) == n "`weights` must have length $n"
-    β, A, L, P, AVG, penfact = o.β, o.algorithm, o.loss, o.penalty, o.avg, o.penfact
+    !use_weights ||
+        length(o.avg.weights) == n ||
+            throw(ArgumentError("`weights` must have length $n"))
+    β = o.β
+    A = o.algorithm
+    L = o.loss
+    P = o.penalty
+    AVG = o.avg
+    penfact = o.penaltyfactor
 
     # iterations
     oldloss = -Inf

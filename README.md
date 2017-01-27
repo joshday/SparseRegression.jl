@@ -45,7 +45,7 @@ x, y, b = linregdata(100_000, 10)
 
 The available models come from LossFunctions.jl and assuming a linear transformation.
 
-- Linear Regression: `ScaledLoss(L2DistLoss(), .5)`
+- Linear Regression: `scaledloss(L2DistLoss(), .5)`
 - Logistic Regression: `LogitMarginLoss()`
 - Poisson Regression: `PoissonLoss()`
 - Absolute Loss Regression: `L1DistLoss()`
