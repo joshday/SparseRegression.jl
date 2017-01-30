@@ -15,8 +15,7 @@ export
     PROXGRAD,
     SGD, MOMENTUM, FOBOS, ADAGRAD,
     # Model typealiases
-    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression,
-    SVMLike, DWDLike, QuantileRegression
+    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
 
 #---------------------------------------------------------------------------------# types
