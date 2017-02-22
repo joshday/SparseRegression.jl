@@ -23,45 +23,37 @@ end
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
 # - Other criteria for convergence?
-function fit!(o::SparseReg{PROXGRAD}, x::AMat, y::AVec)
+function fit!(o::SparseReg, x::AMat, y::AVec, alg::Algorithm = PROXGRAD())
     # error handling and setup
     n, p = size(x)
+    A = init(alg, n, p)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
-    use_weights = typeof(o.avg) <: AvgMode.WeightedMean
-    !use_weights ||
-        length(o.avg.weights) == n ||
-            throw(ArgumentError("`weights` must have length $n"))
     β = o.β
-    A = o.algorithm
     L = o.loss
     P = o.penalty
-    AVG = o.avg
-    penfact = o.penaltyfactor
+    λ = o.λ
+    PF = o.penaltyfactor
 
     # iterations
     oldloss = -Inf
-    newloss = value(L, y, A.yhat, AVG)
+    newloss = value(L, y, A.yhat, AvgMode.Mean())
     niters = 0
     for k in 1:A.maxit
         oldloss = newloss
         niters += 1
         # calculate the gradient
-        if use_weights
-            A.deriv_buffer .= deriv.(L, y, A.yhat) .* AVG.weights.values
-        else
-            A.deriv_buffer .= deriv.(L, y, A.yhat)
-        end
+        A.deriv_buffer .= deriv.(L, y, A.yhat)
         At_mul_B!(A.∇, x, A.deriv_buffer)
         scale!(A.∇, 1 / n)
         # update parameters
         @simd for j in eachindex(β)
-            @inbounds β[j] = prox(P, β[j] - A.∇[j], penfact[j])
+            @inbounds β[j] = prox(P, β[j] - A.∇[j], λ * PF[j])
         end
         # update yhat
         A_mul_B!(A.yhat, x, β)  # Overwrite yhat with linear predictor x * β
         A.yhat .= _predict.(L, A.yhat)  # turn linear predictor into prediction
         # check for convergence
-        newloss = value(L, y, A.yhat, AVG)  # needs weighted version
+        newloss = value(L, y, A.yhat, AvgMode.Mean())  # needs weighted version
         abs(newloss - oldloss) < min(abs(newloss), abs(oldloss)) * A.tol && break
         if A.verbose
             tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))

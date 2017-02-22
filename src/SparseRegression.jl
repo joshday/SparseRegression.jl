@@ -4,7 +4,6 @@ using Reexport
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
-@reexport using OnlineStats
 importall LossFunctions
 import SweepOperator
 import StatsBase: predict, coef
@@ -13,7 +12,6 @@ export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
     PROXGRAD,
-    SGD, MOMENTUM, FOBOS, ADAGRAD,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
@@ -35,6 +33,8 @@ function Base.print(io::IO, a::Algorithm)
     print(io, replace(string(typeof(a)), "SparseRegression.", ""))
 end
 
+abstract AbstractSparseReg
+
 const ϵ = 1e-8  # constant to avoid dividing by zero, etc.
 
 #-----------------------------------------------------------------------------# typealias
@@ -47,48 +47,37 @@ typealias SVMLike               L1HingeLoss
 typealias QuantileRegression    QuantileLoss
 typealias DWDLike               DWDMarginLoss
 
+
 #-----------------------------------------------------------------------------# SparseReg
-type SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, M <: AverageMode}
+type SparseReg{L <: Loss, P <: Penalty} <: AbstractSparseReg
     β::VecF
     loss::L
     penalty::P
-    algorithm::A
-    avg::M
+    λ::Float64
     penaltyfactor::VecF
 end
-function SparseReg(p::Integer, n::Integer = 0;
-                   loss::Loss = LinearRegression(),
-                   penalty::Penalty = NoPenalty(),
-                   algorithm::Algorithm = PROXGRAD(),
-                   avgmode::AverageMode = AvgMode.Mean(),
-                   penaltyfactor::VecF = ones(p)
-                   )
-    @assert length(penaltyfactor) == p
-    SparseReg(zeros(p), loss, penalty, init(algorithm, n, p), avgmode, penaltyfactor)
+function SparseReg(n::Integer, p::Integer, loss::Loss = LinearRegression(),
+                   pen::Penalty = NoPenalty(), λ::Float64 = 0.0, pf = ones(p))
+    SparseReg(zeros(p), loss, pen, λ, pf)
 end
-function SparseReg(x::AMat, y::AVec;
-                   loss::Loss = LinearRegression(),
-                   penalty::Penalty = NoPenalty(),
-                   algorithm::Algorithm = PROXGRAD(),
-                   avgmode::AverageMode = AvgMode.Mean(),
-                   penaltyfactor::VecF = ones(size(x, 2))
-                   )
-    o = SparseReg(size(x, 2), size(x, 1); loss=loss, penalty=penalty, algorithm=algorithm,
-                  avgmode = avgmode, penaltyfactor = penaltyfactor)
+function SparseReg(x::AMat, y::AVec, args...)
+    o = SparseReg(size(x)..., args...)
     fit!(o, x, y)
+    o
 end
-function print_item(io::IO, name::AbstractString, value)
-    print(io, "  >" * @sprintf("%18s", name * ":  "))
-    println(io, value)
+function print_item(io::IO, name::AbstractString, value, ln::Bool = true)
+    print(io, "  >" * @sprintf("%13s", name * ":  "))
+    ln ? println(io, value) : print(io, value)
 end
 function Base.show(io::IO, o::SparseReg)
     println(io, "Sparse Regression Model")
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
-    print_item(io, "Penalty", o.penalty)
-    print_item(io, "Algorithm", o.algorithm)
+    print_item(io, "Penalty", o.penalty, false)
+    println(io, " with λ = $(o.λ)")
 end
 
+#-------------------------------------------------------------------------------# helpers
 coef(o::SparseReg) = o.β
 
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
@@ -108,21 +97,17 @@ function _predict!(l::Loss, xβ::AVec)
     xβ
 end
 
-function penaltyfactor!(o::SparseReg, v::VecF)
-    @assert length(v) == length(o.β)
-    o.penfact[:] = v
-end
+# loss(o::SparseReg, x::AMat, y::AVec) = value(o.loss, y, predict(o, x), o.avg)
 
-isoffline(o::SparseReg) = typeof(o.algorithm) <: OfflineAlgorithm
 
-smooth(a, b, γ) = a + γ * (b - a)
 
 
 
 #----------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")
-include("algorithms/sgdlike.jl")
-
-include("solutionpath.jl")
+defaultalg(loss::Loss, pen::Penalty) = PROXGRAD()
+# include("algorithms/sgdlike.jl")
+#
+# include("solutionpath.jl")
 
 end
