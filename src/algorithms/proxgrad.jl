@@ -5,17 +5,18 @@ immutable PROXGRAD <: OfflineAlgorithm
     maxit::Int
     tol::Float64
     verbose::Bool
+    step::Float64
     # buffers
     ∇::VecF
     yhat::VecF
     deriv_buffer::VecF
 end
-function PROXGRAD(n::Integer = 0, p::Integer = 0;
-                  maxit::Integer = 100, tol::Float64 = 1e-6, verbose::Bool = false)
-    PROXGRAD(maxit, tol, verbose, zeros(p), zeros(n), zeros(n))
+function PROXGRAD(n::Integer = 0, p::Integer = 0; maxit::Integer = 100,
+                  tol::Float64 = 1e-6, verbose::Bool = false, step::Float64 = 1.0)
+    PROXGRAD(maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
-function init(alg::PROXGRAD, n, p)
-    typeof(alg)(n, p; maxit = alg.maxit, tol = alg.tol, verbose = alg.verbose)
+function init(a::PROXGRAD, n, p)
+    typeof(a)(n, p; maxit = a.maxit, tol = a.tol, verbose = a.verbose, step = a.step)
 end
 
 # TODOs:
@@ -31,7 +32,8 @@ function fit!(o::SparseReg, x::AMat, y::AVec, alg::Algorithm = PROXGRAD())
     β = o.β
     L = o.loss
     P = o.penalty
-    λ = o.λ
+    s = A.step
+    λ = o.λ * s
     PF = o.penaltyfactor
 
     # iterations
@@ -47,7 +49,7 @@ function fit!(o::SparseReg, x::AMat, y::AVec, alg::Algorithm = PROXGRAD())
         scale!(A.∇, 1 / n)
         # update parameters
         @simd for j in eachindex(β)
-            @inbounds β[j] = prox(P, β[j] - A.∇[j], λ * PF[j])
+            @inbounds β[j] = prox(P, β[j] - s * A.∇[j], λ * PF[j])
         end
         # update yhat
         A_mul_B!(A.yhat, x, β)  # Overwrite yhat with linear predictor x * β
