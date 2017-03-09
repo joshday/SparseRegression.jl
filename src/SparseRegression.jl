@@ -1,6 +1,6 @@
 module SparseRegression
 
-using Reexport
+using Reexport, ArgCheck
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
@@ -53,18 +53,19 @@ type SparseReg{L <: Loss, P <: Penalty} <: AbstractSparseReg
     β::VecF
     loss::L
     penalty::P
-    λ::Float64
-    penaltyfactor::VecF
+    λ::VecF     # element-wise penalties
 end
-function SparseReg(n::Integer, p::Integer, loss::Loss = LinearRegression(),
-                   pen::Penalty = NoPenalty(), λ::Float64 = 0.0, pf = ones(p))
-    SparseReg(zeros(p), loss, pen, λ, pf)
+SparseReg(p::Integer, loss::Loss, pen::Penalty, λ::VecF) = SparseReg(zeros(p), loss, pen, λ)
+function SparseReg(p::Integer; loss::Loss = LinearRegression(), penalty::Penalty = NoPenalty(),
+                   λ::VecF = fill(.1, p))
+    SparseReg(p, loss, penalty, λ)
 end
-function SparseReg(x::AMat, y::AVec, args...)
-    o = SparseReg(size(x)..., args...)
-    fit!(o, x, y)
-    o
-end
+
+# function SparseReg(x::AMat, y::AVec; kw...)
+#     o = SparseReg(size(x, 2); kw...)
+#     fit!(o, x, y)
+#     o
+# end
 function print_item(io::IO, name::AbstractString, value, ln::Bool = true)
     print(io, "  >" * @sprintf("%13s", name * ":  "))
     ln ? println(io, value) : print(io, value)

@@ -11,8 +11,8 @@ immutable PROXGRAD <: OfflineAlgorithm
     yhat::VecF
     deriv_buffer::VecF
 end
-function PROXGRAD(n::Integer = 0, p::Integer = 0; maxit::Integer = 100,
-                  tol::Float64 = 1e-6, verbose::Bool = false, step::Float64 = 1.0)
+function PROXGRAD(n::Integer = 0, p::Integer = 0; maxit::Integer = 100, tol::Float64 = 1e-6,
+                  verbose::Bool = false, step::Float64 = 1.0)
     PROXGRAD(maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
 function init(a::PROXGRAD, n, p)
@@ -24,6 +24,7 @@ end
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
 # - Other criteria for convergence?
+# - Convergence doesn't use Penalty yet!!!!!
 function fit!(o::SparseReg, x::AMat, y::AVec, alg::Algorithm = PROXGRAD())
     # error handling and setup
     n, p = size(x)
@@ -33,8 +34,7 @@ function fit!(o::SparseReg, x::AMat, y::AVec, alg::Algorithm = PROXGRAD())
     L = o.loss
     P = o.penalty
     s = A.step
-    λ = o.λ * s
-    PF = o.penaltyfactor
+    λ = o.λ
 
     # iterations
     oldloss = -Inf
@@ -49,7 +49,7 @@ function fit!(o::SparseReg, x::AMat, y::AVec, alg::Algorithm = PROXGRAD())
         scale!(A.∇, 1 / n)
         # update parameters
         @simd for j in eachindex(β)
-            @inbounds β[j] = prox(P, β[j] - s * A.∇[j], λ * PF[j])
+            @inbounds β[j] = prox(P, β[j] - s * A.∇[j], λ[j])
         end
         # update yhat
         A_mul_B!(A.yhat, x, β)  # Overwrite yhat with linear predictor x * β
