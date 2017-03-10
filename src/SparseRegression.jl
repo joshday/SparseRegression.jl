@@ -69,7 +69,7 @@ function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::AVecF)
 end
 
 
-# TODO: type stable version
+# TODO: add type stable version
 function SparseReg(p::Integer, args...)
     l = LinearRegression()
     r = NoPenalty()
@@ -112,31 +112,30 @@ function print_item(io::IO, name::AbstractString, value)
     print(io, "  >" * @sprintf("%13s", name * ":  "))
     println(io, value)
 end
-
 coef(o::SparseReg) = o.β
-
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
 xβ(o::SparseReg, x::AMat) = x * o.β
 xβ(o::SparseReg, x::AVec) = dot(x, o.β)
-
 predict(o::SparseReg, x::AVec) = _predict(o.loss, xβ(o, x))
 predict(o::SparseReg, x::AMat) = _predict.(o.loss, xβ(o, x))
 
-_predict(l::Loss, xβ::Real) = xβ
-_predict(l::LogitMarginLoss, xβ::Real) = logistic(xβ)
-_predict(l::PoissonLoss, xβ::Real) = exp(xβ)
-function _predict!(l::Loss, xβ::AVec)
+# scary names so that nobody uses them
+predict_from_xβ(l::Loss, xβ::Real) = xβ
+predict_from_xβ(l::LogitMarginLoss, xβ::Real) = logistic(xβ)
+predict_from_xβ(l::PoissonLoss, xβ::Real) = exp(xβ)
+function xβ_to_ŷ!(l::Union{LogitMarginLoss, PoissonLoss}, xβ::AVec)
     for i in eachindex(xβ)
-        @inbounds xβ[i] = _predict(l, xβ[i])
+        @inbounds xβ[i] = predict_from_xβ(l, xβ[i])
     end
     xβ
 end
+xβ_to_ŷ!(l::Loss, xβ::AVec) = xβ;  # no-op if linear predictor == ŷ
+
 
 loss(o::SparseReg, x::AMat, y::AVec, mode) = value(o.loss, y, predict(o, x), mode)
 
 
-
-
+#-------------------------------------------------------------------------------# algorithms
 include("algorithms/proxgrad.jl")
 
 end

@@ -13,10 +13,11 @@ immutable ProxGradBuffer
     ∇::VecF
     ŷ::VecF
     deriv_buffer::VecF
-    function ProxGradBuffer(x::Matrix, y::Vector)
-        n, p = size(x)
-        new(zeros(p), zeros(n), zeros(n))
-    end
+end
+function buffer(a::ProxGrad, x, y)
+    n = size(x, 1)
+    p = size(x, 2)
+    ProxGradBuffer(zeros(p), zeros(n), zeros(n))
 end
 
 
@@ -25,51 +26,66 @@ end
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
 # - Other criteria for convergence?
-# - Convergence doesn't use Penalty yet!!!!!
-function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec,
-              buffer::ProxGradBuffer = ProxGradBuffer(x, y))
+function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = buffer(o.algorithm, x, y))
     # error handling and setup
     n, p = size(x)
-    A = buffer
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
     β = o.β
     L = o.loss
     P = o.penalty
-    s = o.algorithm.step
-    λ = o.λ
+    A = o.algorithm
+    s = A.step
 
     # iterations
-    oldloss = -Inf
-    newloss = value(L, y, A.ŷ, AvgMode.Mean())
+    oldcost = -Inf
+    newcost = value(L, y, buffer.ŷ, AvgMode.Mean()) + value(P, o.β)
     niters = 0
-    for k in 1:o.algorithm.maxit
-        oldloss = newloss
+    for k in 1:A.maxit
+        oldcost = newcost
         niters += 1
-        # calculate the gradient
-        A.deriv_buffer .= deriv.(L, y, A.ŷ)
-        At_mul_B!(A.∇, x, A.deriv_buffer)
-        scale!(A.∇, 1 / n)
-        # update parameters
-        @simd for j in eachindex(β)
-            @inbounds β[j] = prox(P, β[j] - s * A.∇[j], λ[j])
-        end
-        # update ŷ
-        A_mul_B!(A.ŷ, x, β)  # Overwrite ŷ with linear predictor x * β
-        A.ŷ .= _predict.(L, A.ŷ)  # turn linear predictor into prediction
-        # check for convergence
-        newloss = value(L, y, A.ŷ, AvgMode.Mean())  # needs weighted version
-        abs(newloss - oldloss) < min(abs(newloss), abs(oldloss)) * o.algorithm.tol && break
-        if o.algorithm.verbose
-            tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))
-            info("Iteration: $niters, Relative Tolerance = $tolerance")
-        end
+
+        get_gradient!(L, y, buffer.ŷ, buffer.∇, x, buffer.deriv_buffer, 1/n)
+        update_β!(β, P, s, buffer.∇, o.λ)
+        update_ŷ!(buffer.ŷ, x, β, L)
+
+        newcost = value(L, y, buffer.ŷ, AvgMode.Mean()) + value(P, β)
+        converged(L, y, buffer.ŷ, P, β, oldcost, A.tol, A.verbose, niters, newcost) && break
     end
 
-    tolerance = abs(newloss - oldloss) / min(abs(newloss), abs(oldloss))
-    if tolerance < o.algorithm.tol
-        o.algorithm.verbose && info("CONVERGED: $niters, Relative Tolerance = $tolerance")
-    else
+    tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
+    if niters == A.maxit
         warn("DID NOT CONVERGE in $niters iterations, Relative Tolerance = $tolerance")
     end
     o
+end
+
+#--------------------------------------------------------------# components of loop
+function get_gradient!(L, y, ŷ, ∇, x, deriv_buffer, n_inv)
+    for i in eachindex(y)
+        @inbounds deriv_buffer[i] = deriv(L, y[i], ŷ[i])
+    end
+    At_mul_B!(∇, x, deriv_buffer)
+    scale!(∇, n_inv)
+end
+
+function update_β!(β, P, s, ∇, λ)
+    @simd for j in eachindex(β)
+        @inbounds β[j] = prox(P, β[j] - s * ∇[j], s * λ[j])
+    end
+end
+function update_β!(β, P, s, ∇, λ::Zeros)
+    @simd for j in eachindex(β)
+        @inbounds β[j] -= s * ∇[j]
+    end
+end
+
+update_ŷ!(ŷ, x, β, L) = (A_mul_B!(ŷ, x, β); xβ_to_ŷ!(L, ŷ))
+
+@inline function converged(L, y, ŷ, P, β, oldcost, tol, verbose, niters, newcost)
+    tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
+    isconverged = tolerance < tol
+    isconverged ?
+        verbose && info("CONVERGED: $niters, Relative Tolerance = $tolerance") :
+        verbose && info("Iteration: $niters, Relative Tolerance = $tolerance")
+    isconverged
 end
