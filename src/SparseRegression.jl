@@ -1,6 +1,6 @@
 module SparseRegression
 
-using Reexport, ArgCheck
+using Reexport, Parameters
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
@@ -17,68 +17,102 @@ export
 
 
 #---------------------------------------------------------------------------------# types
-typealias AVec AbstractVector
-typealias AMat AbstractMatrix
-typealias AVecF AbstractVector{Float64}
-typealias AMatF AbstractMatrix{Float64}
-typealias VecF Vector{Float64}
-typealias MatF Matrix{Float64}
+AVec        = AbstractVector
+AMat        = AbstractMatrix
+AVecF       = AbstractVector{Float64}
+AMatF       = AbstractMatrix{Float64}
+VecF        = Vector{Float64}
+MatF        = Matrix{Float64}
+AverageMode = LossFunctions.AverageMode
 
-typealias AverageMode LossFunctions.AverageMode
+LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
+L1Regression          = L1DistLoss
+LogisticRegression    = LogitMarginLoss
+PoissonRegression     = PoissonLoss
+HuberRegression       = HuberLoss
+SVMLike               = L1HingeLoss
+QuantileRegression    = QuantileLoss
+DWDLike               = DWDMarginLoss
+
 
 abstract Algorithm
 abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
-function Base.print(io::IO, a::Algorithm)
-    print(io, replace(string(typeof(a)), "SparseRegression.", ""))
+
+
+name(a) = replace(string(typeof(a)), "SparseRegression.", "")
+Base.show(io::IO, a::Algorithm) = print(io, name(a))
+
+immutable Zeros <: AVecF end
+Base.size(v::Zeros) = (0, )
+Base.getindex(v::Zeros, i) = 0.0
+Base.show(io::IO, v::Zeros) = print(io, "Constant Vector of 0.0")
+
+immutable CVec <: AVecF
+    c::Float64
 end
-
-abstract AbstractSparseReg
-
-const ϵ = 1e-8  # constant to avoid dividing by zero, etc.
-
-#-----------------------------------------------------------------------------# typealias
-typealias LinearRegression      LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
-typealias L1Regression          L1DistLoss
-typealias LogisticRegression    LogitMarginLoss
-typealias PoissonRegression     PoissonLoss
-typealias HuberRegression       HuberLoss
-typealias SVMLike               L1HingeLoss
-typealias QuantileRegression    QuantileLoss
-typealias DWDLike               DWDMarginLoss
+Base.size(v::CVec) = (0, )
+Base.getindex(v::CVec, i) = v.c
+Base.show(io::IO, v::CVec) = print(io, "Constant Vector of $(v.c)")
 
 
-#-----------------------------------------------------------------------------# SparseReg
-type SparseReg{L <: Loss, P <: Penalty} <: AbstractSparseReg
+#----------------------------------------------------------------------# SparseReg
+immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, T <: AVecF}
     β::VecF
     loss::L
     penalty::P
-    λ::VecF     # element-wise penalties
+    algorithm::A
+    λ::T
 end
-SparseReg(p::Integer, loss::Loss, pen::Penalty, λ::VecF) = SparseReg(zeros(p), loss, pen, λ)
-function SparseReg(p::Integer; loss::Loss = LinearRegression(), penalty::Penalty = NoPenalty(),
-                   λ::VecF = fill(.1, p))
-    SparseReg(p, loss, penalty, λ)
+function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::AVecF)
+    SparseReg(zeros(p), l, r, a, λ)
 end
 
-# function SparseReg(x::AMat, y::AVec; kw...)
-#     o = SparseReg(size(x, 2); kw...)
-#     fit!(o, x, y)
-#     o
-# end
-function print_item(io::IO, name::AbstractString, value, ln::Bool = true)
-    print(io, "  >" * @sprintf("%13s", name * ":  "))
-    ln ? println(io, value) : print(io, value)
+
+# TODO: type stable version
+function SparseReg(p::Integer, args...)
+    l = LinearRegression()
+    r = NoPenalty()
+    a = default(Algorithm)
+    λ = Zeros()
+    for arg in args
+        if typeof(arg) <: Loss
+            l = arg
+        elseif typeof(arg) <: Penalty
+            r = arg
+        elseif typeof(arg) <: Algorithm
+            a = arg
+        elseif typeof(arg) <: AVecF
+            λ = arg
+        else
+            throw(ArumentError("Argument $arg is invalid"))
+        end
+    end
+    SparseReg(p, l, r, a, λ)
 end
+
+
+function SparseReg(x::AMatF, y::AVecF, args...)
+    o = SparseReg(size(x, 2), args...)
+    fit!(o, x, y)
+    o
+end
+
+
 function Base.show(io::IO, o::SparseReg)
     println(io, "Sparse Regression Model")
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
-    print_item(io, "Penalty", o.penalty, false)
-    println(io, " with λ = $(o.λ)")
+    print_item(io, "Penalty", o.penalty)
+    print_item(io, "λ", o.λ)
 end
 
 #-------------------------------------------------------------------------------# helpers
+function print_item(io::IO, name::AbstractString, value)
+    print(io, "  >" * @sprintf("%13s", name * ":  "))
+    println(io, value)
+end
+
 coef(o::SparseReg) = o.β
 
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
@@ -98,17 +132,11 @@ function _predict!(l::Loss, xβ::AVec)
     xβ
 end
 
-# loss(o::SparseReg, x::AMat, y::AVec) = value(o.loss, y, predict(o, x), o.avg)
+loss(o::SparseReg, x::AMat, y::AVec, mode) = value(o.loss, y, predict(o, x), mode)
 
 
 
 
-
-#----------------------------------------------------------------------------# Algorithms
 include("algorithms/proxgrad.jl")
-defaultalg(loss::Loss, pen::Penalty) = PROXGRAD()
-# include("algorithms/sgdlike.jl")
-#
-# include("solutionpath.jl")
 
 end
