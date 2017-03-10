@@ -1,6 +1,6 @@
 module SparseRegression
 
-using Reexport, Parameters
+using Reexport
 @reexport using LearnBase
 @reexport using LossFunctions
 @reexport using PenaltyFunctions
@@ -11,7 +11,7 @@ import StatsBase: predict, coef
 export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
-    PROXGRAD,
+    ProxGrad,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
@@ -38,33 +38,18 @@ DWDLike               = DWDMarginLoss
 abstract Algorithm
 abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
-
-
 name(a) = replace(string(typeof(a)), "SparseRegression.", "")
 Base.show(io::IO, a::Algorithm) = print(io, name(a))
 
-immutable Zeros <: AVecF end
-Base.size(v::Zeros) = (0, )
-Base.getindex(v::Zeros, i) = 0.0
-Base.show(io::IO, v::Zeros) = print(io, "Constant Vector of 0.0")
-
-immutable CVec <: AVecF
-    c::Float64
-end
-Base.size(v::CVec) = (0, )
-Base.getindex(v::CVec, i) = v.c
-Base.show(io::IO, v::CVec) = print(io, "Constant Vector of $(v.c)")
-
-
 #----------------------------------------------------------------------# SparseReg
-immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty, T <: AVecF}
+immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     β::VecF
     loss::L
     penalty::P
     algorithm::A
-    λ::T
+    λ::VecF
 end
-function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::AVecF)
+function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::VecF)
     SparseReg(zeros(p), l, r, a, λ)
 end
 
@@ -74,7 +59,7 @@ function SparseReg(p::Integer, args...)
     l = LinearRegression()
     r = NoPenalty()
     a = default(Algorithm)
-    λ = Zeros()
+    λ = zeros(p)
     for arg in args
         if typeof(arg) <: Loss
             l = arg
@@ -82,7 +67,9 @@ function SparseReg(p::Integer, args...)
             r = arg
         elseif typeof(arg) <: Algorithm
             a = arg
-        elseif typeof(arg) <: AVecF
+        elseif typeof(arg) == Float64
+            λ = fill(arg, p)
+        elseif typeof(arg) == VecF
             λ = arg
         else
             throw(ArumentError("Argument $arg is invalid"))
@@ -104,7 +91,10 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-    print_item(io, "λ", o.λ)
+    all(o.λ .== o.λ[1]) ?
+        print_item(io, "λ", o.λ[1]) :
+        print_item(io, "λ", o.λ)
+    print_item(io, "Algorithm", o.algorithm)
 end
 
 #-------------------------------------------------------------------------------# helpers
