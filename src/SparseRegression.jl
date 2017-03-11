@@ -38,7 +38,6 @@ DWDLike               = DWDMarginLoss
 abstract Algorithm
 abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
-name(a) = replace(string(typeof(a)), "SparseRegression.", "")
 Base.show(io::IO, a::Algorithm) = print(io, name(a))
 
 #----------------------------------------------------------------------# SparseReg
@@ -97,17 +96,21 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Algorithm", o.algorithm)
 end
 
-#-------------------------------------------------------------------------------# helpers
-function print_item(io::IO, name::AbstractString, value)
-    print(io, "  >" * @sprintf("%13s", name * ":  "))
-    println(io, value)
-end
 coef(o::SparseReg) = o.β
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
 xβ(o::SparseReg, x::AMat) = x * o.β
 xβ(o::SparseReg, x::AVec) = dot(x, o.β)
 predict(o::SparseReg, x::AVec) = _predict(o.loss, xβ(o, x))
 predict(o::SparseReg, x::AMat) = _predict.(o.loss, xβ(o, x))
+loss(o::SparseReg, x::AMat, y::AVec, args...) = value(o.loss, y, predict(o, x), args...)
+
+
+#-------------------------------------------------------------------------------# helpers
+name(a) = replace(string(typeof(a)), "SparseRegression.", "")
+function print_item(io::IO, name::AbstractString, value)
+    print(io, "  >" * @sprintf("%13s", name * ":  "))
+    println(io, value)
+end
 
 # scary names so that nobody uses them
 predict_from_xβ(l::Loss, xβ::Real) = xβ
@@ -122,7 +125,7 @@ end
 xβ_to_ŷ!(l::Loss, xβ::AVec) = xβ;  # no-op if linear predictor == ŷ
 
 
-loss(o::SparseReg, x::AMat, y::AVec, mode) = value(o.loss, y, predict(o, x), mode)
+
 
 
 #-------------------------------------------------------------------------------# algorithms
