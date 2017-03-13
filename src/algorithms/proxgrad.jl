@@ -31,7 +31,6 @@ end
 # - line search?
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
-# - weighted version
 function fit!(o::SparseReg{ProxGrad}, obs::Obs, buffer = makebuffer(o, obs))
     n, p = size(obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
