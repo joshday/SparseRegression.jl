@@ -47,12 +47,12 @@ Base.size(o::Ones) = (o.n, )
 Base.getindex(o::Ones, i) = 1.0
 
 #-------------# observations
-immutable Observations{X <: AMat, Y <: AVec, W <: AVec}
+immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
     x::X
     y::Y
     w::W
 end
-Observations(x::AMat, y::AVec, w::AVec = Ones(y)) = Observations(x, y, w)
+Obs(x::AMat, y::AVec, w::AVec = Ones(y)) = Obs(x, y, w)
 
 #----------------------------------------------------------------------# SparseReg
 immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
@@ -88,12 +88,12 @@ _arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::VecF)       = (
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
-    fit!(o, Observations(x, y))
+    fit!(o, Obs(x, y))
     o
 end
 function SparseReg(x::AMatF, y::AVecF, w::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
-    fit!(o, Observations(x, y, w))
+    fit!(o, Obs(x, y, w))
     o
 end
 
@@ -134,8 +134,11 @@ function xβ_to_ŷ!(l::Union{LogitMarginLoss, PoissonLoss}, xβ::AVec)
 end
 xβ_to_ŷ!(l::Loss, xβ::AVec) = xβ;  # no-op if linear predictor == ŷ
 
-function objective_value(o::SparseReg, obs::Observations, ŷ::AVec)
+function objective_value(o::SparseReg, obs::Obs{Ones}, ŷ::AVec)
     value(o.loss, obs.y, ŷ, AvgMode.Mean()) + value(o.penalty, o.β)
+end
+function objective_value(o::SparseReg, obs::Obs, ŷ::AVec)
+    value(o.loss, obs.y, ŷ, AvgMode.WeightedMean(obs.w)) + value(o.penalty, o.β)
 end
 
 #-------------------------------------------------------------------------------# algorithms

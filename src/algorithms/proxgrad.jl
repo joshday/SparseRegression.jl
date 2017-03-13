@@ -21,7 +21,7 @@ immutable ProxGradBuffer
     ŷ::VecF
     deriv_vec::VecF
 end
-function makebuffer(o::SparseReg{ProxGrad}, obs::Observations)
+function makebuffer(o::SparseReg{ProxGrad}, obs::Obs)
     n, p = size(obs.x)
     ProxGradBuffer(zeros(p), zeros(n), zeros(n))
 end
@@ -32,7 +32,7 @@ end
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
 # - weighted version
-function fit!(o::SparseReg{ProxGrad}, obs::Observations, buffer = makebuffer(o, obs))
+function fit!(o::SparseReg{ProxGrad}, obs::Obs, buffer = makebuffer(o, obs))
     n, p = size(obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
@@ -59,9 +59,17 @@ function fit!(o::SparseReg{ProxGrad}, obs::Observations, buffer = makebuffer(o, 
 end
 
 #--------------------------------------------------------------# components of loop
-function get_gradient!(o, obs, buffer)
+function get_gradient!(o, obs::Obs{Ones}, buffer)
     for i in eachindex(obs.y)
         @inbounds buffer.deriv_vec[i] = deriv(o.loss, obs.y[i], buffer.ŷ[i])
+    end
+    At_mul_B!(buffer.∇, obs.x, buffer.deriv_vec)
+    scale!(buffer.∇, 1 / length(obs.y))
+end
+# weighted version
+function get_gradient!(o, obs, buffer)
+    for i in eachindex(obs.y)
+        @inbounds buffer.deriv_vec[i] = deriv(o.loss, obs.y[i], buffer.ŷ[i]) * obs.w[i]
     end
     At_mul_B!(buffer.∇, obs.x, buffer.deriv_vec)
     scale!(buffer.∇, 1 / length(obs.y))
