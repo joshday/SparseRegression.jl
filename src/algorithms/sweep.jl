@@ -8,30 +8,21 @@ end
 function makebuffer(o::SparseReg{Sweep}, obs::Obs{Ones})
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
-    # xtx
-    BLAS.syrk!('U', 'T', 1 / n, obs.x, 0.0, view(a, 1:p, 1:p))
-    # xty
-    a[1:p, end] = obs.x'obs.y
-    scale!(@view(a[1:p, end]), 1 / n)
-    # yty
-    a[end, end] = dot(obs.y, obs.y)
-    a[end, end] /= n
-    SweepBuffer(a, copy(a))
+    b = zeros(p + 1, p + 1)
+    BLAS.syrk!('U', 'T', 1 / n, obs.x, 0.0, view(a, 1:p, 1:p))      # x'x
+    BLAS.gemv!('T', 1 / n, obs.x, obs.y, 0.0, @view(a[1:p, end]))   # x'y
+    a[end, end] = dot(obs.y, obs.y) / n                             # y'y
+    SweepBuffer(a, b)
 end
 # weighted version
 function makebuffer(o::SparseReg{Sweep}, obs::Obs)
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
-    wmat = Diagonal(sqrt.(obs.w))
-    # x'wx
-    BLAS.syrk!('U', 'T', 1 / n, wmat * obs.x, 0.0, view(a, 1:p, 1:p))
-    # x'wy
-    a[1:p, end] = (wmat * obs.x)'obs.y
-    scale!(@view(a[1:p, end]), 1 / n)
-    # y'wy
-    a[end, end] = dot(obs.y, obs.y .* obs.w)
-    a[end, end] /= n
-    SweepBuffer(a, copy(a))
+    b = zeros(p + 1, p + 1)
+    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt(obs.w)) * obs.x, 0.0, view(a, 1:p, 1:p))  # x'wx
+    BLAS.gemv!('T', 1 / n, Diagonal(obs.w) * obs.x, obs.y, 0.0, @view(a[1:p, end]))     # x'wy
+    a[end, end] = dot(obs.y, Diagonal(obs.w) * obs.y) / n                               # y'wy
+    SweepBuffer(a, b)
 end
 
 
