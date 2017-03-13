@@ -143,6 +143,7 @@ end
 
 #-------------------------------------------------------------------------------# algorithms
 include("algorithms/proxgrad.jl")
+include("algorithms/sweep.jl")
 # include("solutionpath.jl")
 
 end
