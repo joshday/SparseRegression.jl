@@ -19,9 +19,9 @@ default(::Type{Algorithm}) = ProxGrad()
 immutable ProxGradBuffer
     ∇::VecF
     ŷ::VecF
-    deriv_buffer::VecF
+    deriv_vec::VecF
 end
-function buffer(a::ProxGrad, x, y)
+function makebuffer(a::ProxGrad, x, y)
     n = size(x, 1)
     p = size(x, 2)
     ProxGradBuffer(zeros(p), zeros(n), zeros(n))
@@ -32,7 +32,8 @@ end
 # - line search?
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
-function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = buffer(o.algorithm, x, y))
+# - weighted version
+function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = makebuffer(o.algorithm, x, y))
     n, p = size(x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
@@ -43,7 +44,7 @@ function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = buffer(o.algori
         oldcost = newcost
         niters += 1
 
-        get_gradient!(o.loss, x, y, buffer, 1/n)
+        get_gradient!(o.loss, x, y, buffer)
         update_β!(o, buffer)
         update_ŷ!(o, x, buffer)
 
@@ -59,18 +60,19 @@ function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = buffer(o.algori
 end
 
 #--------------------------------------------------------------# components of loop
-function get_gradient!(L, x, y, buffer, n_inv)
+function get_gradient!(L, x, y, buffer)
     for i in eachindex(y)
-        @inbounds buffer.deriv_buffer[i] = deriv(L, y[i], buffer.ŷ[i])
+        @inbounds buffer.deriv_vec[i] = deriv(L, y[i], buffer.ŷ[i])
     end
-    At_mul_B!(buffer.∇, x, buffer.deriv_buffer)
-    scale!(buffer.∇, n_inv)
+    At_mul_B!(buffer.∇, x, buffer.deriv_vec)
+    scale!(buffer.∇, 1 / length(y))
 end
 
 function update_β!(o, buffer)
     s = o.algorithm.step
     @simd for j in eachindex(o.β)
-        @inbounds o.β[j] = prox(o.penalty, o.β[j] - s * buffer.∇[j], s * o.λ[j])
+        @inbounds λj = o.λ * o.factor[j]
+        @inbounds o.β[j] = prox(o.penalty, o.β[j] - s * buffer.∇[j], s * λj)
     end
 end
 

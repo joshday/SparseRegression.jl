@@ -46,19 +46,20 @@ immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     loss::L
     penalty::P
     algorithm::A
-    λ::VecF
+    λ::Float64
+    factor::VecF
 end
-function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::VecF)
-    SparseReg(zeros(p), l, r, a, λ)
+function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::Float64, factor::VecF)
+    SparseReg(zeros(p), l, r, a, λ, factor)
 end
-
 
 # TODO: add type stable version
 function SparseReg(p::Integer, args...)
     l = LinearRegression()
     r = NoPenalty()
     a = default(Algorithm)
-    λ = zeros(p)
+    λ = 0.0
+    factor = ones(p)
     for arg in args
         if typeof(arg) <: Loss
             l = arg
@@ -67,16 +68,15 @@ function SparseReg(p::Integer, args...)
         elseif typeof(arg) <: Algorithm
             a = arg
         elseif typeof(arg) == Float64
-            λ = fill(arg, p)
-        elseif typeof(arg) == VecF
             λ = arg
+        elseif typeof(arg) == VecF
+            factor = arg
         else
             throw(ArumentError("Argument $arg is invalid"))
         end
     end
-    SparseReg(p, l, r, a, λ)
+    SparseReg(p, l, r, a, λ, factor)
 end
-
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
@@ -84,15 +84,13 @@ function SparseReg(x::AMatF, y::AVecF, args...)
     o
 end
 
-
 function Base.show(io::IO, o::SparseReg)
     println(io, "Sparse Regression Model")
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-    all(o.λ .== o.λ[1]) ?
-        print_item(io, "λ", o.λ[1]) :
-        print_item(io, "λ", o.λ)
+    print_item(io, "λ", o.λ)
+    any(x -> x != 1.0, o.factor) && print_item(io, "λ scaling", o.factor)
     print_item(io, "Algorithm", o.algorithm)
 end
 
@@ -103,7 +101,6 @@ xβ(o::SparseReg, x::AVec) = dot(x, o.β)
 predict(o::SparseReg, x::AVec) = _predict(o.loss, xβ(o, x))
 predict(o::SparseReg, x::AMat) = _predict.(o.loss, xβ(o, x))
 loss(o::SparseReg, x::AMat, y::AVec, args...) = value(o.loss, y, predict(o, x), args...)
-
 
 #-------------------------------------------------------------------------------# helpers
 name(a) = replace(string(typeof(a)), "SparseRegression.", "")
@@ -126,9 +123,8 @@ xβ_to_ŷ!(l::Loss, xβ::AVec) = xβ;  # no-op if linear predictor == ŷ
 
 
 
-
-
 #-------------------------------------------------------------------------------# algorithms
 include("algorithms/proxgrad.jl")
+# include("solutionpath.jl")
 
 end
