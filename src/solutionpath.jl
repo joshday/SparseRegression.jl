@@ -4,10 +4,9 @@ immutable SolutionPath{T <: SparseReg, S}
 end
 
 # initialize
-function SolutionPath(n::Integer, o::SparseReg, x::AMat, y::AVec)
+function SolutionPath(path::AVecF, o::SparseReg, x::AMat, y::AVec)
     buffer = makebuffer(o.algorithm, x, y)
     fit!(o, x, y, buffer)
-    SolutionPath([deepcopy(o) for i in 1:n], buffer)
 end
 
 

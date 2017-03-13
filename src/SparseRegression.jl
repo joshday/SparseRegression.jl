@@ -40,6 +40,20 @@ abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
 Base.show(io::IO, a::Algorithm) = print(io, name(a))
 
+#-------------# constant vector of ones
+immutable Ones <: AVecF n::Int end
+Ones(y::AVec) = Ones(length(y))
+Base.size(o::Ones) = (o.n, )
+Base.getindex(o::Ones, i) = 1.0
+
+#-------------# observations
+immutable Observations{X <: AMat, Y <: AVec, W <: AVec}
+    x::X
+    y::Y
+    w::W
+end
+Observations(x::AMat, y::AVec, w::AVec = Ones(y)) = Observations(x, y, w)
+
 #----------------------------------------------------------------------# SparseReg
 immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     β::VecF
@@ -58,10 +72,10 @@ function SparseReg(p::Integer, args...)
     l = LinearRegression()
     r = NoPenalty()
     a = default(Algorithm)
-    λ = 0.0
+    λ = 0.01
     f = ones(p)
     for arg in args
-        l, r, a, λ ,f = _arg(l, r, a, λ, f, arg)
+        l, r, a, λ, f = _arg(l, r, a, λ, f, arg)
     end
     SparseReg(p, l, r, a, λ, f)
 end
@@ -74,7 +88,12 @@ _arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::VecF)       = (
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
-    fit!(o, x, y)
+    fit!(o, Observations(x, y))
+    o
+end
+function SparseReg(x::AMatF, y::AVecF, w::AVecF, args...)
+    o = SparseReg(size(x, 2), args...)
+    fit!(o, Observations(x, y, w))
     o
 end
 
@@ -115,7 +134,9 @@ function xβ_to_ŷ!(l::Union{LogitMarginLoss, PoissonLoss}, xβ::AVec)
 end
 xβ_to_ŷ!(l::Loss, xβ::AVec) = xβ;  # no-op if linear predictor == ŷ
 
-
+function objective_value(o::SparseReg, obs::Observations, ŷ::AVec)
+    value(o.loss, obs.y, ŷ, AvgMode.Mean()) + value(o.penalty, o.β)
+end
 
 #-------------------------------------------------------------------------------# algorithms
 include("algorithms/proxgrad.jl")

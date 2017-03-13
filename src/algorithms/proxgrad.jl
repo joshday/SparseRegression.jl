@@ -21,9 +21,8 @@ immutable ProxGradBuffer
     ŷ::VecF
     deriv_vec::VecF
 end
-function makebuffer(a::ProxGrad, x, y)
-    n = size(x, 1)
-    p = size(x, 2)
+function makebuffer(o::SparseReg{ProxGrad}, obs::Observations)
+    n, p = size(obs.x)
     ProxGradBuffer(zeros(p), zeros(n), zeros(n))
 end
 
@@ -33,22 +32,22 @@ end
 # - Estimate Lipschitz constant for step size?
 # - Use FISTA acceleration?
 # - weighted version
-function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = makebuffer(o.algorithm, x, y))
-    n, p = size(x)
+function fit!(o::SparseReg{ProxGrad}, obs::Observations, buffer = makebuffer(o, obs))
+    n, p = size(obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
     oldcost = -Inf
-    newcost = value(o.loss, y, buffer.ŷ, AvgMode.Mean()) + value(o.penalty, o.β)
+    newcost = objective_value(o, obs, buffer.ŷ)
     niters = 0
     for k in 1:o.algorithm.maxit
         oldcost = newcost
         niters += 1
 
-        get_gradient!(o.loss, x, y, buffer)
+        get_gradient!(o, obs, buffer)
         update_β!(o, buffer)
-        update_ŷ!(o, x, buffer)
+        update_ŷ!(o, obs, buffer)
 
-        newcost = value(o.loss, y, buffer.ŷ, AvgMode.Mean()) + value(o.penalty, o.β)
+        newcost = objective_value(o, obs, buffer.ŷ)
         converged(oldcost, newcost, niters, o.algorithm) && break
     end
 
@@ -60,12 +59,12 @@ function fit!(o::SparseReg{ProxGrad}, x::AMat, y::AVec, buffer = makebuffer(o.al
 end
 
 #--------------------------------------------------------------# components of loop
-function get_gradient!(L, x, y, buffer)
-    for i in eachindex(y)
-        @inbounds buffer.deriv_vec[i] = deriv(L, y[i], buffer.ŷ[i])
+function get_gradient!(o, obs, buffer)
+    for i in eachindex(obs.y)
+        @inbounds buffer.deriv_vec[i] = deriv(o.loss, obs.y[i], buffer.ŷ[i])
     end
-    At_mul_B!(buffer.∇, x, buffer.deriv_vec)
-    scale!(buffer.∇, 1 / length(y))
+    At_mul_B!(buffer.∇, obs.x, buffer.deriv_vec)
+    scale!(buffer.∇, 1 / length(obs.y))
 end
 
 function update_β!(o, buffer)
@@ -76,8 +75,8 @@ function update_β!(o, buffer)
     end
 end
 
-function update_ŷ!(o, x, buffer)
-    A_mul_B!(buffer.ŷ, x, o.β)
+function update_ŷ!(o, obs, buffer)
+    A_mul_B!(buffer.ŷ, obs.x, o.β)
     xβ_to_ŷ!(o.loss, buffer.ŷ)
 end
 
