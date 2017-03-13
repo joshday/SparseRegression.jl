@@ -17,22 +17,22 @@ export
 
 
 #---------------------------------------------------------------------------------# types
-AVec        = AbstractVector
-AMat        = AbstractMatrix
-AVecF       = AbstractVector{Float64}
-AMatF       = AbstractMatrix{Float64}
-VecF        = Vector{Float64}
-MatF        = Matrix{Float64}
-AverageMode = LossFunctions.AverageMode
+const AVec        = AbstractVector
+const AMat        = AbstractMatrix
+const AVecF       = AbstractVector{Float64}
+const AMatF       = AbstractMatrix{Float64}
+const VecF        = Vector{Float64}
+const MatF        = Matrix{Float64}
+const AverageMode = LossFunctions.AverageMode
 
-LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
-L1Regression          = L1DistLoss
-LogisticRegression    = LogitMarginLoss
-PoissonRegression     = PoissonLoss
-HuberRegression       = HuberLoss
-SVMLike               = L1HingeLoss
-QuantileRegression    = QuantileLoss
-DWDLike               = DWDMarginLoss
+const LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
+const L1Regression          = L1DistLoss
+const LogisticRegression    = LogitMarginLoss
+const PoissonRegression     = PoissonLoss
+const HuberRegression       = HuberLoss
+const SVMLike               = L1HingeLoss
+const QuantileRegression    = QuantileLoss
+const DWDLike               = DWDMarginLoss
 
 
 abstract Algorithm
@@ -53,30 +53,24 @@ function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::Float64, f
     SparseReg(zeros(p), l, r, a, λ, factor)
 end
 
-# TODO: add type stable version
+# TODO: make type stable
 function SparseReg(p::Integer, args...)
     l = LinearRegression()
     r = NoPenalty()
     a = default(Algorithm)
     λ = 0.0
-    factor = ones(p)
+    f = ones(p)
     for arg in args
-        if typeof(arg) <: Loss
-            l = arg
-        elseif typeof(arg) <: Penalty
-            r = arg
-        elseif typeof(arg) <: Algorithm
-            a = arg
-        elseif typeof(arg) == Float64
-            λ = arg
-        elseif typeof(arg) == VecF
-            factor = arg
-        else
-            throw(ArumentError("Argument $arg is invalid"))
-        end
+        l, r, a, λ ,f = _arg(l, r, a, λ, f, arg)
     end
-    SparseReg(p, l, r, a, λ, factor)
+    SparseReg(p, l, r, a, λ, f)
 end
+
+_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Loss)       = (t, r, a, λ, f)
+_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Penalty)    = (l, t, a, λ, f)
+_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Algorithm)  = (l, r, t, λ, f)
+_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Float64)    = (l, r, a, t, f)
+_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::VecF)       = (l, r, a, λ, t)
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
