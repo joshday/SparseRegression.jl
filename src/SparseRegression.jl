@@ -44,7 +44,8 @@ Base.show(io::IO, a::Algorithm) = print(io, name(a))
 immutable Ones <: AVecF n::Int end
 Ones(y::AVec) = Ones(length(y))
 Base.size(o::Ones) = (o.n, )
-Base.getindex(o::Ones, i) = 1.0
+Base.getindex(o::Ones, i::Integer) = 1.
+Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
 #-------------# observations
 immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
@@ -63,28 +64,24 @@ immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     λ::Float64
     factor::VecF
 end
-function SparseReg(p::Integer, l::Loss, r::Penalty, a::Algorithm, λ::Float64, factor::VecF)
-    SparseReg(zeros(p), l, r, a, λ, factor)
-end
 
-# TODO: make type stable
+# Type stable constructor with arbitrary argument order!
 function SparseReg(p::Integer, args...)
-    l = LinearRegression()
-    r = NoPenalty()
-    a = default(Algorithm)
-    λ = 0.01
-    f = ones(p)
-    for arg in args
-        l, r, a, λ, f = _arg(l, r, a, λ, f, arg)
-    end
-    SparseReg(p, l, r, a, λ, f)
+    l = getarg(p, Loss, args)
+    r = getarg(p, Penalty, args)
+    a = getarg(p, Algorithm, args)
+    λ = getarg(p, Float64, args)
+    f = getarg(p, AVecF, args)
+    SparseReg(zeros(p), l, r, a, λ, f)
 end
-
-_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Loss)       = (t, r, a, λ, f)
-_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Penalty)    = (l, t, a, λ, f)
-_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Algorithm)  = (l, r, t, λ, f)
-_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::Float64)    = (l, r, a, t, f)
-_arg(l::Loss, r::Penalty, a::Algorithm, λ::Float64, f::VecF, t::VecF)       = (l, r, a, λ, t)
+@generated function getarg(p, dt::DataType, args...)
+    i = findfirst(x -> x == dt, args)
+    if i == 0
+        return :(default_arg(p, dt))
+    else
+        return args[i]
+    end
+end
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
@@ -146,4 +143,10 @@ include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
 # include("solutionpath.jl")
 
+# Defaults for SparseReg
+default_arg(p::Integer, ::Type{Loss})           = LinearRegression()
+default_arg(p::Integer, ::Type{Penalty})        = NoPenalty()
+default_arg(p::Integer, ::Type{Algorithm})      = ProxGrad()
+default_arg(p::Integer, ::Type{Float64})        = 0.01
+default_arg(p::Integer, ::Type{AVecF})          = ones(p)
 end
