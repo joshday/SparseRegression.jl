@@ -1,6 +1,6 @@
-julia 0.5
-RecipesBase
-SweepOperator
+julia 0.6-
+
 LearnBase
 LossFunctions
 PenaltyFunctions
+SweepOperator

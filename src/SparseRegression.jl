@@ -1,12 +1,15 @@
 module SparseRegression
 
-using Reexport
-@reexport using LearnBase
-@reexport using LossFunctions
-@reexport using PenaltyFunctions
-importall LossFunctions
 import SweepOperator
 import StatsBase: predict, coef
+using LearnBase
+using LossFunctions
+using PenaltyFunctions
+
+# Reexports
+eval(Expr(:toplevel, Expr(:export, setdiff(names(LearnBase), [:LearnBase])...)))
+eval(Expr(:toplevel, Expr(:export, setdiff(names(LossFunctions), [:LossFunctions])...)))
+eval(Expr(:toplevel, Expr(:export, setdiff(names(PenaltyFunctions), [:PenaltyFunctions])...)))
 
 export
     SparseReg, SolutionPath, predict, coef,
@@ -35,9 +38,9 @@ const QuantileRegression    = QuantileLoss
 const DWDLike               = DWDMarginLoss
 
 
-abstract Algorithm
-abstract OfflineAlgorithm   <: Algorithm
-abstract OnlineAlgorithm    <: Algorithm
+abstract type Algorithm end
+abstract type OfflineAlgorithm   <: Algorithm end
+abstract type OnlineAlgorithm    <: Algorithm end
 Base.show(io::IO, a::Algorithm) = print(io, name(a))
 
 
@@ -49,7 +52,7 @@ Base.size(o::Ones) = (o.n, )
 Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
-immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
+immutable Obs{W, X, Y}
     x::X
     y::Y
     w::W
