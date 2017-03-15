@@ -71,10 +71,10 @@ function SparseReg(p::Integer, args...)
     r = getarg(p, Penalty, args)
     a = getarg(p, Algorithm, args)
     λ = getarg(p, Float64, args)
-    f = getarg(p, AVecF, args)
+    f = getarg(p, VecF, args)
     SparseReg(zeros(p), l, r, a, λ, f)
 end
-@generated function getarg(p, dt::DataType, args...)
+@generated function getarg(p, dt::Type, args...)
     i = findfirst(x -> x == dt, args)
     if i == 0
         return :(default_arg(p, dt))
@@ -144,9 +144,9 @@ include("algorithms/sweep.jl")
 # include("solutionpath.jl")
 
 # Defaults for SparseReg
-default_arg(p::Integer, ::Type{Loss})           = LinearRegression()
-default_arg(p::Integer, ::Type{Penalty})        = NoPenalty()
-default_arg(p::Integer, ::Type{Algorithm})      = ProxGrad()
-default_arg(p::Integer, ::Type{Float64})        = 0.01
-default_arg(p::Integer, ::Type{AVecF})          = ones(p)
+default_arg(p::Integer, ::Type{Loss})       = LinearRegression()
+default_arg(p::Integer, ::Type{Penalty})    = NoPenalty()
+default_arg(p::Integer, ::Type{Algorithm})  = ProxGrad()
+default_arg(p::Integer, ::Type{Float64})    = 0.01
+default_arg(p::Integer, ::Type{VecF})       = ones(p)
 end

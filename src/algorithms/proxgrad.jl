@@ -14,8 +14,6 @@ function Base.show(io::IO, o::ProxGrad)
     print(io,"ProxGrad(maxit=$(o.maxit), tol=$(o.tol), verbose=$(o.verbose), step=$(o.step))")
 end
 
-default(::Type{Algorithm}) = ProxGrad()
-
 immutable ProxGradBuffer
     ∇::VecF
     ŷ::VecF
@@ -30,7 +28,7 @@ end
 # TODOs:
 # - line search?
 # - Estimate Lipschitz constant for step size?
-# - Use FISTA acceleration?
+# - FISTA acceleration?
 function fit!(o::SparseReg{ProxGrad}, obs::Obs, buffer = makebuffer(o, obs))
     n, p = size(obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))

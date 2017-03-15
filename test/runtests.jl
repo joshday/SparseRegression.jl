@@ -1,15 +1,24 @@
 module SparseRegressionTests
+reload("SparseRegression")
 using SparseRegression, Base.Test; S = SparseRegression
 include("datagenerator.jl")
 
-@testset "SparseReg Constructors" begin
-    SparseReg(5)
-    @testset "one arg" begin
-        SparseReg(5, LinearRegression())
-        SparseReg(5, L1Penalty())
-        SparseReg(5, ProxGrad())
-        SparseReg(5, .1)
-        SparseReg(5, rand(5))
+
+
+@testset "ProxGrad with each Loss/Penalty combination" begin
+    # setup
+    data(::Loss, n, p) = linregdata(n, p)
+    data(::MarginLoss, n, p) = logregdata(n, p)
+    n, p = 1000, 10
+    for l in [LinearRegression(), L1Regression(), LogisticRegression(), PoissonRegression(),
+              HuberRegression(), SVMLike(), DWDLike(1.0), QuantileRegression(.7)]
+        for r in [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty(.5), LogPenalty(),
+                  SCADPenalty(), MCPPenalty()]
+
+            x, y, β = data(l, n, p)
+            o = SparseReg(x, y, l, r)
+            println("  > $l, $r")
+        end
     end
 end
 
