@@ -53,11 +53,11 @@ Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
 immutable Obs{W, X, Y}
+    w::W
     x::X
     y::Y
-    w::W
 end
-Obs(x::AMat, y::AVec, w::AVec = Ones(y)) = Obs(x, y, w)
+Obs(x::AMat, y::AVec, w::AVec = Ones(y)) = Obs{typeof(w), typeof(x), typeof(y)}(w, x, y)
 
 #----------------------------------------------------------------------# SparseReg
 immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
@@ -76,7 +76,7 @@ function SparseReg(p::Integer, args...)
     a = getarg(p, Algorithm, args)
     λ = getarg(p, Float64, args)
     f = getarg(p, VecF, args)
-    SparseReg(zeros(p), l, r, a, λ, f)
+    SparseReg{typeof(a), typeof(l), typeof(r)}(zeros(p), l, r, a, λ, f)
 end
 @generated function getarg(p, dt::Type, args...)
     i = findfirst(x -> x == dt, args)
