@@ -23,7 +23,7 @@ const AVecF       = AbstractVector{Float64}
 const AMatF       = AbstractMatrix{Float64}
 const VecF        = Vector{Float64}
 const MatF        = Matrix{Float64}
-const AverageMode = LossFunctions.AverageMode
+# const AverageMode = LossFunctions.AverageMode
 
 const LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
 const L1Regression          = L1DistLoss
@@ -40,14 +40,15 @@ abstract OfflineAlgorithm   <: Algorithm
 abstract OnlineAlgorithm    <: Algorithm
 Base.show(io::IO, a::Algorithm) = print(io, name(a))
 
-#-------------# constant vector of ones
+
+#----------------------------------------------------------------------#  observations
+# constant vector of ones (default observation weights)
 immutable Ones <: AVecF n::Int end
 Ones(y::AVec) = Ones(length(y))
 Base.size(o::Ones) = (o.n, )
 Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
-#-------------# observations
 immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
     x::X
     y::Y
@@ -77,7 +78,7 @@ end
 @generated function getarg(p, dt::Type, args...)
     i = findfirst(x -> x == dt, args)
     if i == 0
-        return :(default_arg(p, dt))
+        return :(_default_arg(p, dt))
     else
         return args[i]
     end
@@ -141,12 +142,13 @@ end
 #-------------------------------------------------------------------------------# algorithms
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
+# include("algorithms/sgdlike.jl")
 # include("solutionpath.jl")
 
 # Defaults for SparseReg
-default_arg(p::Integer, ::Type{Loss})       = LinearRegression()
-default_arg(p::Integer, ::Type{Penalty})    = NoPenalty()
-default_arg(p::Integer, ::Type{Algorithm})  = ProxGrad()
-default_arg(p::Integer, ::Type{Float64})    = 0.01
-default_arg(p::Integer, ::Type{VecF})       = ones(p)
+_default_arg(p::Integer, ::Type{Loss})       = LinearRegression()
+_default_arg(p::Integer, ::Type{Penalty})    = NoPenalty()
+_default_arg(p::Integer, ::Type{Algorithm})  = ProxGrad()
+_default_arg(p::Integer, ::Type{Float64})    = 0.01
+_default_arg(p::Integer, ::Type{VecF})       = ones(p)
 end

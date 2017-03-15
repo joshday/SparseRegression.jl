@@ -17,14 +17,8 @@ Pkg.clone("https://github.com/joshday/DataGenerator.jl")
 using DataGenerator, SparseRegression
 x, y, b = linregdata(10_000, 50)
 
-# Proximal Gradient algorithm with options
-# - maxit:    maximum number of iterations
-# - tol:      tolerance for convergence
-# - step:     step size for gradient descent
-# - verbose:  print out tolerance at each iteration?
 alg = ProxGrad(maxit=50, tol=1e-5, step=.7, verbose=true)
 
-# Linear regression with Lasso penalty with a tuning parameter of .1
 o = SparseReg(x, y, alg, LinearRegression(), L1Penalty(), .1)
 # INFO: Iteration: 1, Relative Tolerance = 0.7992926640305482
 # INFO: Iteration: 2, Relative Tolerance = 0.21158589427567479
@@ -44,4 +38,4 @@ o = SparseReg(x, y, alg, LinearRegression(), L1Penalty(), .1)
 #   >   Penalty:  L1Penalty
 #   >         λ:  0.1
 #   > Algorithm:  ProxGrad(maxit=50, tol=1.0e-5, verbose=true, step=0.7)
-```
+```stan
