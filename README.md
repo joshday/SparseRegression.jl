@@ -27,9 +27,9 @@ SparseReg(x, y, LinearRegression(), L1Penalty(), .1, ProxGrad(verbose=true))
 
 ## Design
 
-SparseRegression fits statistical models of the form `f(β) + g(β)` where `f` is the "loss" and `g` is a penalty/regularization term.
+SparseRegression fits statistical models of the form `f(β) + g(β)` where `f` is the loss and `g` is a penalty/regularization term.
 
-The `SparseReg` type is the "organizer" for a model.  It holds the:
+**The `SparseReg` type is the "organizer" for a model**.  It holds the:
 - parameter vector `β`
 - loss function (from LossFunctions.jl)
 - penalty function (from PenaltyFunctions.jl)
