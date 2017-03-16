@@ -69,23 +69,74 @@ immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     factor::VecF
 end
 
-# Type stable constructor with arbitrary argument order!
-function SparseReg(p::Integer, args...)
-    l = getarg(p, Loss, args)
-    r = getarg(p, Penalty, args)
-    a = getarg(p, Algorithm, args)
-    λ = getarg(p, Float64, args)
-    f = getarg(p, VecF, args)
-    SparseReg{typeof(a), typeof(l), typeof(r)}(zeros(p), l, r, a, λ, f)
+_defaults(p::Integer) = LinearRegression(), NoPenalty(), ProxGrad(), 0.1, ones(p)
+
+# Type-stable constructor with arbitrary order of arguments.
+# There must be a better way to do this
+# generated functions?
+SparseReg(p::Integer) = SparseReg(zeros(p), _defaults(p)...)
+function SparseReg(p::Integer, a)
+    args = _defaults(p)
+    args2 = _a(args..., a)
+    SparseReg(zeros(p), args2...)
 end
-@generated function getarg(p, dt::Type, args...)
-    i = findfirst(x -> x == dt, args)
-    if i == 0
-        return :(_default_arg(p, dt))
-    else
-        return args[i]
-    end
+function SparseReg(p::Integer, a1, a2)
+    args = _defaults(p)
+    args2 = _a(args..., a1)
+    args3 = _a(args2..., a2)
+    SparseReg(zeros(p), args3...)
 end
+function SparseReg(p::Integer, a1, a2, a3)
+    args = _defaults(p)
+    args2 = _a(args..., a1)
+    args3 = _a(args2..., a2)
+    args4 = _a(args3..., a3)
+    SparseReg(zeros(p), args4...)
+end
+function SparseReg(p::Integer, a1, a2, a3, a4)
+    args = _defaults(p)
+    args2 = _a(args..., a1)
+    args3 = _a(args2..., a2)
+    args4 = _a(args3..., a3)
+    args5 = _a(args4..., a4)
+    SparseReg(zeros(p), args5...)
+end
+function SparseReg(p::Integer, a1, a2, a3, a4, a5)
+    args = _defaults(p)
+    args2 = _a(args..., a1)
+    args3 = _a(args2..., a2)
+    args4 = _a(args3..., a3)
+    args5 = _a(args4..., a4)
+    args6 = _a(args5..., a5)
+    SparseReg(zeros(p), args6...)
+end
+
+_a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Loss)      = t,r,a,λ,f
+_a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Penalty)   = l,t,a,λ,f
+_a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Algorithm) = l,r,t,λ,f
+_a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Float64)   = l,r,a,t,f
+_a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::VecF)      = l,r,a,λ,t
+
+
+# # Type stable constructor with arbitrary argument order!
+# function SparseReg(p::Integer, args...)
+#     l = getarg(p, Loss, args...)
+#     r = getarg(p, Penalty, args...)
+#     a = getarg(p, Algorithm, args...)
+#     λ = getarg(p, Float64, args...)
+#     f = getarg(p, VecF, args...)
+#     @show l, a
+#     SparseReg{typeof(a), typeof(l), typeof(r)}(zeros(p), l, r, a, λ, f)
+# end
+# @generated function getarg(p, dt::Type{T}, args...) where T
+#     i = findfirst(x -> x <: T, args)
+#     @show args[i]
+#     if i == 0
+#         return :(_default_arg(p, T))
+#     else
+#         return args[i]
+#     end
+# end
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
@@ -148,10 +199,4 @@ include("algorithms/sweep.jl")
 # include("algorithms/sgdlike.jl")
 # include("solutionpath.jl")
 
-# Defaults for SparseReg
-_default_arg(p::Integer, ::Type{Loss})       = LinearRegression()
-_default_arg(p::Integer, ::Type{Penalty})    = NoPenalty()
-_default_arg(p::Integer, ::Type{Algorithm})  = ProxGrad()
-_default_arg(p::Integer, ::Type{Float64})    = 0.01
-_default_arg(p::Integer, ::Type{VecF})       = ones(p)
 end
