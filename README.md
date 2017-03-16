@@ -21,6 +21,7 @@ using SparseRegression, DataGenerator
 
 x, y, b = linregdata(1000, 10)
 
+# Order of arguments after x, y does not matter (and it's type stable!)
 SparseReg(x, y, LinearRegression(), L1Penalty(), .1, ProxGrad(verbose=true))
 ```
 
@@ -50,23 +51,34 @@ immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
     factor::VecF
 end
 ```
-- Losses and Penalties with default values listed
-  - Losses
-    - Continuous response
-      - `LinearRegression()`
-      - `L1Regression()`
-      - `PoissonRegression()`
-      - `QuantileRegression(q)`
-      - `HuberRegression(q = 1.0)`
-    - Bivariate response (assumes each y is in [-1, 1])
-      - `LogisticRegression()`
-      - `SVMLike()`
-      - `DWDLike(q)`
-  - Penalties
-    - `NoPenalty()`
-    - `L1Penalty()`
-    - `L2Penalty()`
-    - `ElasticNetPenalty(a = .5)`
-    - `SCADPenalty(a = 3.7, γ = 1.0)`
-    - `MCPPenalty(γ = 2.0)`
-    - `LogPenalty(η = 1.0)`
+
+### [Losses](https://github.com/JuliaML/LossFunctions.jl)
+- Continuous response
+  - `LinearRegression()`
+  - `L1Regression()`
+  - `PoissonRegression()`
+  - `QuantileRegression(q)`
+  - `HuberRegression(q = 1.0)`
+- Bivariate response (assumes each y is in [-1, 1])
+  - `LogisticRegression()`
+  - `SVMLike()`
+  - `DWDLike(q)`
+
+### [Penalties](https://github.com/JuliaML/PenaltyFunctions.jl)
+- Penalties
+  - `NoPenalty()`
+  - `L1Penalty()`
+  - `L2Penalty()`
+  - `ElasticNetPenalty(a = .5)`
+  - `SCADPenalty(a = 3.7, γ = 1.0)`
+  - `MCPPenalty(γ = 2.0)`
+  - `LogPenalty(η = 1.0)`
+
+### Algorithms
+- Offline Algorithms
+  - Proximal Gradient Method
+    - Works with convex penalties (`NoPenalty`, `L1Penalty`, `L2Penalty`, `ElasticNetPenalty`)
+    - `ProxGrad(;maxit=100, tol=1e-6, verbose=false, step=1.0)`
+- Online Algorithms
+  - Stochastic Gradient Descent
+  - `SGD(wt::Weight, step::Float64)`
