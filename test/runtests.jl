@@ -7,27 +7,22 @@ losses = [LinearRegression(), L1Regression(), LogisticRegression(), PoissonRegre
           HuberRegression(), SVMLike(), DWDLike(1.0), QuantileRegression(.7)]
 penalties = [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty(.5), LogPenalty(),
           SCADPenalty(), MCPPenalty()]
+
 n, p = 1000, 10
+possible_args = vcat(losses, penalties, .1, rand(p), ProxGrad())
+
 
 @testset "SparseReg Constructor Type Stability" begin
     @testset "One Argument" begin
         @inferred SparseReg(p)
-        for l in losses
-            @inferred SparseReg(p, l)
+        for t in possible_args
+            @inferred SparseReg(p, t)
         end
-        for r in penalties
-            @inferred SparseReg(p, r)
-        end
-        @inferred SparseReg(p, ProxGrad())
-        @inferred SparseReg(p, .1)
-        @inferred SparseReg(p, rand(p))
     end
-
-
-
-    for l in losses, r in penalties
-        @inferred SparseReg(p, l, r)
-        @inferred SparseReg(p, r, l)
+    @testset "Two Arguments" begin
+        for t1 in possible_args, t2 in possible_args
+            @inferred SparseReg(p, t1, t2)
+        end
     end
 end
 
