@@ -5,11 +5,13 @@ import StatsBase: predict, coef
 using LearnBase
 using LossFunctions
 using PenaltyFunctions
+using OnlineStats
 
 # Reexports
-eval(Expr(:toplevel, Expr(:export, setdiff(names(LearnBase), [:LearnBase])...)))
-eval(Expr(:toplevel, Expr(:export, setdiff(names(LossFunctions), [:LossFunctions])...)))
-eval(Expr(:toplevel, Expr(:export, setdiff(names(PenaltyFunctions), [:PenaltyFunctions])...)))
+for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
+    eval(Expr(:toplevel, Expr(:export, setdiff(names(eval(pkg)), [pkg])...)))
+end
+
 
 export
     SparseReg, SolutionPath, predict, coef,
@@ -51,12 +53,18 @@ Base.size(o::Ones) = (o.n, )
 Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
-immutable Obs{W, X, Y}
+immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
     w::W
     x::X
     y::Y
 end
-Obs(x::AMat, y::AVec, w::AVec = Ones(y)) = Obs{typeof(w), typeof(x), typeof(y)}(w, x, y)
+function Obs(x::AMat, y::AVec, w::AVec = Ones(y))
+    n1 = size(x, 1)
+    n2 = length(y)
+    n3 = length(w)
+    n1 == n2 == n3 || throw(DimensionMismatch("number of rows should match: $n1, $n2, $n3"))
+    Obs(w, x, y)
+end
 
 #----------------------------------------------------------------------# SparseReg
 immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
@@ -176,7 +184,7 @@ end
 #-------------------------------------------------------------------------------# algorithms
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
-# include("algorithms/sgdlike.jl")
+include("algorithms/sgdlike.jl")
 # include("solutionpath.jl")
 
 end

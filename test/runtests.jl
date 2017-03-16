@@ -40,14 +40,13 @@ info("Fitting Every Loss/Penalty combination that ProxGrad can handle")
 # setup
 data(::Loss, n, p) = linregdata(n, p)
 data(::MarginLoss, n, p) = logregdata(n, p)
-penalty(l, r) = isa(r, PenaltyFunctions.ConvexElementPenalty) ? r : L2Penalty()
 
 
 for l in losses
     print_with_color(:blue, "$l\n")
-    for r in penalties
+    for r in [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty()]
         x, y, β = data(l, n, p)
-        o = SparseReg(x, y, l, penalty(l, r), ProxGrad(step=.1, maxit=500, tol = 1e-3))
+        o = SparseReg(x, y, l, r, ProxGrad(step=.1, maxit=500, tol = 1e-3))
         print_with_color(:red, "  > $r\n")
     end
 end

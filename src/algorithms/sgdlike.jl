@@ -1,79 +1,36 @@
-abstract SGDLike <: OnlineAlgorithm
+abstract type SGDLike <: OnlineAlgorithm end
 makebuffer{A <: SGDLike}(o::SparseReg{A}) = nothing
 
-function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec)
-    η = o.algorithm.η
-    w = o.algorithm.weight
-    A = o.algorithm
-    β = o.β
-    P = o.penalty
-    n, p = size(x)
-    @assert n == length(y)
-    @inbounds for i in eachindex(y)
-        OnlineStats.updatecounter!(w)
-        xi = view(x, i, :)
-        yi = y[i]
-        g = deriv(o.loss, yi, _predict(o.loss, dot(xi, β)))
-        γ = OnlineStats.weight(w)
-        for j in eachindex(β)
-            β[j] = updateβj(A, γ, γ * η, g * xi[j], β[j], P, j, o.penaltyfactor[j])
+function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, obs::Obs, buffer = makebuffer(o))
+    for i in eachindex(obs.y)
+        OnlineStats.updatecounter!(o.algorithm.weight)
+        xi = @view obs.x[i, :]
+        yi = obs.y[i]
+        g = deriv(o.loss, yi, predict_from_xβ(o.loss, xi'o.β))
+        γ = OnlineStats.weight(o.algorithm.weight)
+        for j in eachindex(o.β)
+            updateβj!(o, j, γ, g, xi[j])
         end
     end
     o
 end
-# function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, b::Int)
-#     η = o.algorithm.η
-#     w = o.algorithm.weight
-#     A = o.algorithm
-#     L = o.loss
-#     β = o.β
-#     P = o.penalty
-#     n, p = size(x)
-#     @assert n == length(y)
-#     i = 1
-#     while i <= n
-#         rng = i:min(i + b - 1, n)
-#         bsize = length(rng)
-#         OnlineStats.updatecounter!(w, bsize)
-#         xi = @view x[rng, :]
-#         yi = @view y[rng]
-#         _fitbatch!(o, xi, yi, OnlineStats.weight(w, bsize), A, L, β, P)
-#         i += b
-#     end
-#     o
-# end
-
-
-# Singleton updater
-# function _fit!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AVec, y::Real, γ, η, A, L, β, P)
-#     g = deriv(o.loss, y, _predict(L, dot(x, β)))
-#     for j in eachindex(β)
-#         β[j] = updateβj(A, γ, γ * η, g * x[j], β[j], P, j, o.penaltyfactor[j])
-#     end
-# end
-
-# minibatch updater
-# function _fitbatch!{ALG <: SGDLike}(o::SparseReg{ALG}, x::AMat, y::AVec, γ, A, L, β, P)
-#     ηγ = γ * A.η
-#     g = deriv(o.loss, y, xβ(o, x))
-#     @inbounds for j in eachindex(β)
-#         gx = mean(g .* x[:, j])
-#         β[j] = updateβj(A, γ, ηγ, gx, β[j], P, j, o.penaltyfactor[j])
-#     end
-# end
 
 
 #-----------------------------------------------------------------------------------# SGD
-"Stochastic Gradient Descent"
+"""
+Stochastic Gradient Descent
+    SGD(wt::W, η = 1.0) where W <: Weight
+"""
 immutable SGD{W <: Weight} <: SGDLike
     weight::W
     η::Float64
 end
 SGD(wt::Weight = LearningRate(), η::Number = 1.0) = SGD(wt, η)
-
-
-init(alg::SGD, n, p) = alg
-updateβj(A::SGD, γ, ηγ, gx, βj, P, j, s) = βj - ηγ * (gx + s * deriv(P, βj))
+function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
+    s = o.algorithm.η * γ
+    λ = o.λ * o.factor[j]
+    o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
+end
 #
 # #------------------------------------------------------------------------------# MOMENTUM
 # "SGD with MOMENTUM"
