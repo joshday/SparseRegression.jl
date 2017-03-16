@@ -1,7 +1,6 @@
 abstract type SGDLike <: OnlineAlgorithm end
-makebuffer{A <: SGDLike}(o::SparseReg{A}) = nothing
 
-function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, obs::Obs, buffer = makebuffer(o))
+function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, obs::Obs)
     for i in eachindex(obs.y)
         OnlineStats.updatecounter!(o.algorithm.weight)
         xi = @view obs.x[i, :]
@@ -31,16 +30,16 @@ function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float
     λ = o.λ * o.factor[j]
     o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
 end
-#
-# #------------------------------------------------------------------------------# MOMENTUM
-# "SGD with MOMENTUM"
-# immutable MOMENTUM{W <: Weight} <: SGDLike
-#     weight::W
-#     η::Float64
-#     α::Float64
-#     H::VecF
-# end
-# MOMENTUM(wt::Weight = LearningRate(), η::Number = 1.0, α = .1) = MOMENTUM(wt, η, α, zeros(0))
+
+#------------------------------------------------------------------------------# MOMENTUM
+"SGD with MOMENTUM"
+immutable MOMENTUM{W <: Weight} <: SGDLike
+    weight::W
+    η::Float64
+    α::Float64
+    H::VecF
+end
+MOMENTUM(wt::Weight = LearningRate(), η::Number = 1.0, α = .1) = MOMENTUM(wt, η, α, zeros(0))
 # init(a::MOMENTUM, n, p) = MOMENTUM(a.weight, a.η, a.α, zeros(p))
 # function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j, s)
 #     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx, A.α)

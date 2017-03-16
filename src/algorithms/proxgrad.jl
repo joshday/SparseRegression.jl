@@ -7,7 +7,7 @@ immutable ProxGrad <: OfflineAlgorithm
     verbose::Bool
     step::Float64
 end
-function ProxGrad(;maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false, step::Float64=1.0)
+function ProxGrad(;maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false,step::Float64=1.0)
     ProxGrad(maxit, tol, verbose, step)
 end
 function Base.show(io::IO, o::ProxGrad)

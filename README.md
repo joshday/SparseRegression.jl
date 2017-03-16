@@ -26,7 +26,7 @@ using SparseRegression, DataGenerator
 x, y, b = linregdata(1000, 10)
 
 # Order of arguments after x, y does not matter (and it's type stable!)
-SparseReg(x, y, LinearRegression(), L1Penalty(), .1, ProxGrad(verbose=true))
+SparseReg(x, y, LinearRegression(), L1Penalty(), .1, ProxGrad(verbose=true), ones(10))
 ```
 
 # Design
@@ -35,7 +35,7 @@ SparseRegression fits statistical models of the form `f(β) + λ * g(β)` where 
 
 ## SparseReg
 
-**The `SparseReg` type is the "organizer" for a model**.  It holds everything except the observations.
+**The `SparseReg` type is the "organizer" for a model**.  It keeps track of everything but the observations.
 
 ```julia
 immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
