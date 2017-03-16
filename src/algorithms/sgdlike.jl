@@ -1,12 +1,12 @@
 abstract type SGDLike <: OnlineAlgorithm end
 
-function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, obs::Obs)
+function fit!{ALG <: SGDLike}(o::StreamReg{ALG}, obs::Obs)
     for i in eachindex(obs.y)
-        OnlineStats.updatecounter!(o.algorithm.weight)
+        OnlineStats.updatecounter!(o.weight)
         xi = @view obs.x[i, :]
         yi = obs.y[i]
         g = deriv(o.loss, yi, predict_from_xβ(o.loss, xi'o.β))
-        γ = OnlineStats.weight(o.algorithm.weight)
+        γ = OnlineStats.weight(o.weight)
         for j in eachindex(o.β)
             updateβj!(o, j, γ, g, xi[j])
         end
@@ -20,26 +20,20 @@ end
 Stochastic Gradient Descent
     SGD(wt::W, η = 1.0) where W <: Weight
 """
-immutable SGD{W <: Weight} <: SGDLike
-    weight::W
-    η::Float64
-end
-SGD(wt::Weight = LearningRate(), η::Number = 1.0) = SGD(wt, η)
-function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
-    s = o.algorithm.η * γ
+immutable SGD <: SGDLike end
+function updateβj!(o::StreamReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
+    s = o.η * γ
     λ = o.λ * o.factor[j]
     o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
 end
 
 #------------------------------------------------------------------------------# MOMENTUM
-"SGD with MOMENTUM"
-immutable MOMENTUM{W <: Weight} <: SGDLike
-    weight::W
-    η::Float64
-    α::Float64
-    H::VecF
-end
-MOMENTUM(wt::Weight = LearningRate(), η::Number = 1.0, α = .1) = MOMENTUM(wt, η, α, zeros(0))
+# "SGD with MOMENTUM"
+# immutable MOMENTUM <: SGDLike
+#     α::Float64
+#     H::VecF
+# end
+# MOMENTUM(p::Integer, α = .1) = MOMENTUM(α, zeros(p))
 # init(a::MOMENTUM, n, p) = MOMENTUM(a.weight, a.η, a.α, zeros(p))
 # function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j, s)
 #     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx, A.α)

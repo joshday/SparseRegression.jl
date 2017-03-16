@@ -98,10 +98,6 @@ Argument type      | Gets mapped to
 - `LogPenalty(η = 1.0)`
 
 ## Algorithms
-### Offline Algorithms
 - Proximal Gradient Method
   - Works with convex penalties (`NoPenalty`, `L1Penalty`, `L2Penalty`, `ElasticNetPenalty`)
   - `ProxGrad(;maxit=100, tol=1e-6, verbose=false, step=1.0)`
-### Online Algorithms
-- Stochastic Gradient Descent
-  - `SGD(wt::OnlineStats.Weight, η::Float64)`
