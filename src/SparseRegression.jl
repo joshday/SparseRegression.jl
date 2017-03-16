@@ -16,7 +16,7 @@ end
 export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
-    ProxGrad, Sweep,
+    ProxGrad, Sweep, SGD,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
@@ -142,7 +142,7 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-    print_item(io, "λ", o.λ)
+    typeof(o.penalty) != NoPenalty && print_item(io, "λ", o.λ)
     any(x -> x != 1.0, o.factor) && print_item(io, "λ scaling", o.factor)
     print_item(io, "Algorithm", o.algorithm)
 end
