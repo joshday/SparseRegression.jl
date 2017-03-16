@@ -14,7 +14,7 @@ eval(Expr(:toplevel, Expr(:export, setdiff(names(PenaltyFunctions), [:PenaltyFun
 export
     SparseReg, SolutionPath, predict, coef,
     # algorithms
-    ProxGrad,
+    ProxGrad, Sweep,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
@@ -26,7 +26,6 @@ const AVecF       = AbstractVector{Float64}
 const AMatF       = AbstractMatrix{Float64}
 const VecF        = Vector{Float64}
 const MatF        = Matrix{Float64}
-# const AverageMode = LossFunctions.AverageMode
 
 const LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
 const L1Regression          = L1DistLoss
@@ -111,32 +110,13 @@ function SparseReg(p::Integer, a1, a2, a3, a4, a5)
     SparseReg(zeros(p), args6...)
 end
 
+# "overwrite" one argument in a tuple based on type
 _a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Loss)      = t,r,a,λ,f
 _a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Penalty)   = l,t,a,λ,f
 _a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Algorithm) = l,r,t,λ,f
 _a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Float64)   = l,r,a,t,f
 _a(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::VecF)      = l,r,a,λ,t
 
-
-# # Type stable constructor with arbitrary argument order!
-# function SparseReg(p::Integer, args...)
-#     l = getarg(p, Loss, args...)
-#     r = getarg(p, Penalty, args...)
-#     a = getarg(p, Algorithm, args...)
-#     λ = getarg(p, Float64, args...)
-#     f = getarg(p, VecF, args...)
-#     @show l, a
-#     SparseReg{typeof(a), typeof(l), typeof(r)}(zeros(p), l, r, a, λ, f)
-# end
-# @generated function getarg(p, dt::Type{T}, args...) where T
-#     i = findfirst(x -> x <: T, args)
-#     @show args[i]
-#     if i == 0
-#         return :(_default_arg(p, T))
-#     else
-#         return args[i]
-#     end
-# end
 
 function SparseReg(x::AMatF, y::AVecF, args...)
     o = SparseReg(size(x, 2), args...)
