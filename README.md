@@ -13,7 +13,7 @@ Pkg.checkout("LossFunctions")
 ```
 
 
-## Example
+# Quick Example
 
 ```julia
 # For creating data for generalized linear models
@@ -31,7 +31,7 @@ SparseReg(x, y, LinearRegression(), L1Penalty(), .1, ProxGrad(verbose=true))
 
 # Design
 
-SparseRegression fits statistical models of the form `f(β) + g(β)` where `f` is the loss and `g` is a penalty/regularization term.
+SparseRegression fits statistical models of the form `f(β) + λ * g(β)` where `f` is the loss and `g` is a penalty/regularization term.
 
 ## SparseReg
 
@@ -39,12 +39,12 @@ SparseRegression fits statistical models of the form `f(β) + g(β)` where `f` i
 
 ```julia
 immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
-    β::VecF
-    loss::L
-    penalty::P
-    algorithm::A
-    λ::Float64
-    factor::VecF
+    β::VecF       # coefficient vector
+    loss::L       # loss f(β)
+    penalty::P    # penalty g(β)
+    algorithm::A  # algorithm used to calculate β, given other fields
+    λ::Float64    # regularization parameter
+    factor::VecF  # elementwise-adjustment to λ (default is ones)
 end
 ```
 
