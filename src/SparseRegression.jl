@@ -14,7 +14,7 @@ end
 
 
 export
-    SparseReg, SolutionPath, predict, coef,
+    SparseReg, SolutionPath, predict, classify, coef,
     # algorithms
     ProxGrad, Sweep, SGD,
     # Model typealiases
@@ -151,8 +151,10 @@ coef(o::SparseReg) = o.β
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))
 xβ(o::SparseReg, x::AMat) = x * o.β
 xβ(o::SparseReg, x::AVec) = dot(x, o.β)
-predict(o::SparseReg, x::AVec) = _predict(o.loss, xβ(o, x))
-predict(o::SparseReg, x::AMat) = _predict.(o.loss, xβ(o, x))
+predict(o::SparseReg, x::AVec) = predict_from_xβ(o.loss, xβ(o, x))
+predict(o::SparseReg, x::AMat) = predict_from_xβ.(o.loss, xβ(o, x))
+classify{A, L<:MarginLoss}(o::SparseReg{A,L}, x::AVec) = sign(xβ(o, x))
+classify{A, L<:MarginLoss}(o::SparseReg{A,L}, x::AMat) = sign.(xβ(o, x))
 loss(o::SparseReg, x::AMat, y::AVec, args...) = value(o.loss, y, predict(o, x), args...)
 
 #-------------------------------------------------------------------------------# helpers
