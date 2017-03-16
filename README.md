@@ -65,20 +65,19 @@ end
   - `DWDLike(q)`
 
 ### [Penalties](https://github.com/JuliaML/PenaltyFunctions.jl)
-- Penalties
-  - `NoPenalty()`
-  - `L1Penalty()`
-  - `L2Penalty()`
-  - `ElasticNetPenalty(a = .5)`
-  - `SCADPenalty(a = 3.7, γ = 1.0)`
-  - `MCPPenalty(γ = 2.0)`
-  - `LogPenalty(η = 1.0)`
+- `NoPenalty()`
+- `L1Penalty()`
+- `L2Penalty()`
+- `ElasticNetPenalty(a = .5)`
+- `SCADPenalty(a = 3.7, γ = 1.0)`
+- `MCPPenalty(γ = 2.0)`
+- `LogPenalty(η = 1.0)`
 
 ### Algorithms
-- Offline Algorithms
-  - Proximal Gradient Method
-    - Works with convex penalties (`NoPenalty`, `L1Penalty`, `L2Penalty`, `ElasticNetPenalty`)
-    - `ProxGrad(;maxit=100, tol=1e-6, verbose=false, step=1.0)`
-- Online Algorithms
-  - Stochastic Gradient Descent
-  - `SGD(wt::Weight, step::Float64)`
+#### Offline Algorithms
+- Proximal Gradient Method
+  - Works with convex penalties (`NoPenalty`, `L1Penalty`, `L2Penalty`, `ElasticNetPenalty`)
+  - `ProxGrad(;maxit=100, tol=1e-6, verbose=false, step=1.0)`
+#### Online Algorithms
+- Stochastic Gradient Descent
+- `SGD(wt::Weight, step::Float64)`
