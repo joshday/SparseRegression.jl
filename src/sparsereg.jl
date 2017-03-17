@@ -53,7 +53,7 @@ function SparseReg(n::Integer, p::Integer, a1, a2, a3, a4, a5)
     SparseReg(n, p, _a(args5, a5))
 end
 
-# "overwrite" one argument in a tuple based on type
+# "overwrite" one argument in a tuple based on last argument
 # Loss, Penalty, Algorithm, Float64, VecF
 _a(t::Tuple, arg::Loss)        = arg, t[2], t[3], t[4], t[5]
 _a(t::Tuple, arg::Penalty)     = t[1], arg, t[3], t[4], t[5]

@@ -17,7 +17,7 @@ function ProxGrad(;maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false, step:
     ProxGrad(maxit, tol, verbose, step, zeros(0), zeros(0), zeros(0))
 end
 
-# constructor with buffers
+# add buffers
 function init(n::Integer, p::Integer, a::ProxGrad)
     ProxGrad(a.maxit, a.tol, a.verbose, a.step, zeros(p), zeros(n), zeros(n))
 end

@@ -42,6 +42,7 @@ for l in losses
     for r in [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty()]
         x, y, β = data(l, n, p)
         o = SparseReg(x, y, l, r, ProxGrad(step=.1, maxit=500, tol = 1e-3))
+        o = SparseReg(x, y, rand(n), l, r, ProxGrad(step=.1, maxit=500, tol = 1e-3))
         print_with_color(:red, "  > $r\n")
     end
 end
