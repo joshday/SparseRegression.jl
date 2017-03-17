@@ -50,12 +50,14 @@ include("sparsereg.jl")
 include("common.jl")
 
 include("algorithms/proxgrad.jl")
-# include("algorithms/sweep.jl")
+include("algorithms/sweep.jl")
 # include("algorithms/sgdlike.jl")
 # include("solutionpath.jl")
 
 #-------------------------------------------------------------------------------# fit
 default_algorithm{L, P}(o::SparseReg{L, P}, obs; kw...) = ProxGrad(obs; kw...)
+default_algorithm(o::SparseReg{LinearRegression, NoPenalty}, obs; kw...) = Sweep(obs)
+default_algorithm(o::SparseReg{LinearRegression, L2Penalty}, obs; kw...) = Sweep(obs)
 
 function fitmodel(x::AMat, y::AVec, args...; kw...)
     n, p = size(x)

@@ -19,12 +19,7 @@ function ProxGrad(o::Obs; maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false
     ProxGrad(o, maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
 
-function Base.show(io::IO, A::ProxGrad)
-    print_with_color(default_color, io, "■ ProxGrad")
-    showfields(io, A, [:maxit, :tol, :verbose, :step])
-    println(io, "")
-    show(io, A.obs)
-end
+showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step]
 
 
 

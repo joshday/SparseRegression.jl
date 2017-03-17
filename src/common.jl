@@ -1,5 +1,9 @@
 #-------------------------------------------------------------------------------# printing
-name(a) = replace(string(typeof(a)), "SparseRegression.", "")
+function name(a; withparams = false)
+    s = replace(string(typeof(a)), "SparseRegression.", "")
+    withparams || replace(s, r"\{(.*)", "")
+end
+
 function print_item(io::IO, name::AbstractString, value, newline = true)
     print(io, "  >" * @sprintf("%13s", name * ":  "))
     print(io, value)
@@ -8,15 +12,27 @@ end
 
 #----------# Display fields like: (a = 1, b = 5.0, ...)
 function showfields(io::IO, o, nms)
-    s = "("
-    for nm in nms
-        s *= "$nm = $(getfield(o, nm))"
-        if nms[end] != nm
-            s *= ", "
+    if length(nms) != 0
+        s = "("
+        for nm in nms
+            s *= "$nm = $(getfield(o, nm))"
+            if nms[end] != nm
+                s *= ", "
+            end
         end
+        s *= ")"
+        return print(io, s)
+    else
+        return print(io, "")
     end
-    s *= ")"
-    print(io, s)
+end
+
+showme(o) = []
+function Base.show(io::IO, A::Algorithm)
+    print_with_color(default_color, io, "■ $(name(A))")
+    showfields(io, A, showme(A))
+    println(io, "")
+    show(io, A.obs)
 end
 
 #-------------------------------------------------------------------------------# helpers
