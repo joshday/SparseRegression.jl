@@ -34,7 +34,7 @@ function fit!(o::SparseReg, A::ProxGrad)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
     oldcost = -Inf
-    newcost = vecnorm(A.∇)
+    newcost = objective_value(o, A.obs, A.ŷ)
     niters = 0
     for k in 1:A.maxit
         oldcost = newcost
@@ -49,13 +49,17 @@ function fit!(o::SparseReg, A::ProxGrad)
             converged(oldcost, newcost, niters, A) && break
         elseif A.crit == :gradient
             newcost = vecnorm(A.∇)
-            converged(oldcost, newcost, niters, A) && break
+            vecnorm(A.∇) < A.tol && break
         end
     end
 
     if niters == A.maxit
-        tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
-        warn("DID NOT CONVERGE in $niters iterations, Relative Tolerance = $tolerance")
+        if A.crit == :objective
+            tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
+            warn("DID NOT CONVERGE in $niters iterations, Relative Tolerance = $tolerance")
+        elseif A.crit == :gradient
+            warn("DID NOT CONVERGE IN $niters iterations, gradient norm = $newcost")
+        end
     end
     o
 end
