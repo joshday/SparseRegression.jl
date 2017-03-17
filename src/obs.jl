@@ -21,7 +21,7 @@ function Obs(x::AMat, y::AVec, w::AVec = Ones(y))
 end
 
 function Base.show(io::IO, o::Obs)
-    println(io, "  □ Observations")
+    print_with_color(default_color, io, "  □ Observations\n")
     # x
     print(io, "  ")
     print_item(io, "x", typeof(o.x), false)

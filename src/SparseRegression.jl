@@ -1,8 +1,8 @@
 module SparseRegression
 
 import SweepOperator
-import StatsBase: predict, coef, fit!
 using LearnBase
+importall LearnBase
 using LossFunctions
 using PenaltyFunctions
 using OnlineStats
@@ -42,6 +42,8 @@ abstract type Algorithm end
 abstract type OfflineAlgorithm   <: Algorithm end
 abstract type OnlineAlgorithm    <: Algorithm end
 
+default_color = :light_cyan
+
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
 include("sparsereg.jl")
@@ -52,4 +54,22 @@ include("algorithms/proxgrad.jl")
 # include("algorithms/sgdlike.jl")
 # include("solutionpath.jl")
 
+#-------------------------------------------------------------------------------# fit
+default_algorithm{L, P}(o::SparseReg{L, P}, obs; kw...) = ProxGrad(obs; kw...)
+
+function fitmodel(x::AMat, y::AVec, args...; kw...)
+    n, p = size(x)
+    o = SparseReg(p, args...)
+    alg = default_algorithm(o, Obs(x, y); kw...)
+    fit!(o, alg)
+    FittedModel(o, alg)
 end
+function fitmodel(x::AMat, y::AVec, w::AVec, args...; kw...)
+    n, p = size(x)
+    o = SparseReg(p, args...)
+    alg = default_algorithm(o, Obs(x, y, w); kw...)
+    fit!(o, alg)
+    FittedModel(o, alg)
+end
+
+end #module

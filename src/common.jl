@@ -5,16 +5,6 @@ function print_item(io::IO, name::AbstractString, value, newline = true)
     print(io, value)
     newline && println(io)
 end
-function Base.show(io::IO, o::AbstractSparseReg)
-    println(io, "Sparse Regression Model")
-    print_item(io, "β", o.β)
-    print_item(io, "Loss", o.loss)
-    print_item(io, "Penalty", o.penalty)
-
-    showpen = !isa(o.penalty, NoPenalty)
-    showpen && print_item(io, "λ", o.λ)
-    showpen && any(x -> x != 1.0, o.factor) && print_item(io, "λ scaling", o.factor)
-end
 
 #----------# Display fields like: (a = 1, b = 5.0, ...)
 function showfields(io::IO, o, nms)
