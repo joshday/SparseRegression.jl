@@ -12,15 +12,12 @@ immutable ProxGrad <: OfflineAlgorithm
     deriv_vec::VecF
 end
 
-# constructor with "empty" buffers
-function ProxGrad(;maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false, step::Float64=1.0)
-    ProxGrad(maxit, tol, verbose, step, zeros(0), zeros(0), zeros(0))
+function ProxGrad(obs::Obs; maxit::Int = 100, tol::Float64 = 1e-6, verbose::Bool = false,
+                  step::Float64 = 1.0)
+    n, p = size(obs.x)
+    ProxGrad(maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
 
-# add buffers
-function init(n::Integer, p::Integer, a::ProxGrad)
-    ProxGrad(a.maxit, a.tol, a.verbose, a.step, zeros(p), zeros(n), zeros(n))
-end
 
 showme(o::ProxGrad) = [:maxit, :tol, :verbose, :step]
 
@@ -31,22 +28,22 @@ showme(o::ProxGrad) = [:maxit, :tol, :verbose, :step]
 # - line search?
 # - Estimate Lipschitz constant for step size?
 # - FISTA acceleration?
-function fit!(o::SparseReg{ProxGrad}, obs::Obs)
-    n, p = size(obs.x)
+function fit!(o::SparseReg{ProxGrad})
+    n, p = size(o.obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
     oldcost = -Inf
-    newcost = objective_value(o, obs, o.algorithm.ŷ)
+    newcost = objective_value(o, o.obs, o.algorithm.ŷ)
     niters = 0
     for k in 1:o.algorithm.maxit
         oldcost = newcost
         niters += 1
 
-        get_gradient!(o, obs)
+        get_gradient!(o, o.obs)
         update_β!(o)
-        update_ŷ!(o, obs)
+        update_ŷ!(o, o.obs)
 
-        newcost = objective_value(o, obs, o.algorithm.ŷ)
+        newcost = objective_value(o, o.obs, o.algorithm.ŷ)
         converged(oldcost, newcost, niters, o.algorithm) && break
     end
 

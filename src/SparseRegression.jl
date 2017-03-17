@@ -45,7 +45,6 @@ abstract type OnlineAlgorithm    <: Algorithm end
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
 include("sparsereg.jl")
-# include("online.jl")
 include("common.jl")
 
 include("algorithms/proxgrad.jl")

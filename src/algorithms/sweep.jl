@@ -1,5 +1,4 @@
-immutable Sweep <: OfflineAlgorithm end
-immutable SweepBuffer
+immutable Sweep <: OfflineAlgorithm
     a::MatF
     s::MatF
 end
