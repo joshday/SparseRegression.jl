@@ -61,7 +61,7 @@ function fit!(o::SparseReg, A::ProxGrad)
 end
 
 #--------------------------------------------------------------# components of loop
-function get_gradient!(o, A::ProxGrad)
+function get_gradient!(o, A::ProxGrad{Obs{Ones}})
     for i in eachindex(A.obs.y)
         @inbounds A.deriv_vec[i] = deriv(o.loss, A.obs.y[i], A.ŷ[i])
     end
@@ -69,11 +69,11 @@ function get_gradient!(o, A::ProxGrad)
     scale!(A.∇, 1 / length(A.obs.y))
 end
 # weighted version
-function get_gradient!(o, A::ProxGrad{Obs{Ones}})
+function get_gradient!(o, A::ProxGrad)
     for i in eachindex(A.obs.y)
         @inbounds A.deriv_vec[i] = deriv(o.loss, A.obs.y[i], A.ŷ[i]) * A.obs.w[i]
     end
-    At_mul_B!(A.∇, obs.x, A.deriv_vec)
+    At_mul_B!(A.∇, A.obs.x, A.deriv_vec)
     scale!(A.∇, 1 / length(A.obs.y))
 end
 

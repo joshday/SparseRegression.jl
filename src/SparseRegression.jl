@@ -3,6 +3,7 @@ module SparseRegression
 import SweepOperator
 using LearnBase
 importall LearnBase
+import StatsBase: coef
 using LossFunctions
 using PenaltyFunctions
 using OnlineStats
@@ -13,7 +14,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
 end
 
 export
-    SparseReg, Obs, SolutionPath, classify, fitmodel, fitpath,
+    SparseReg, Obs, SolutionPath, classify, fitmodel, fitpath, coef,
     # algorithms
     ProxGrad, Sweep, SGD,
     # Model typealiases

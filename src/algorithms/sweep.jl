@@ -7,7 +7,7 @@ function Sweep(obs::Obs)
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
     b = zeros(p + 1, p + 1)
-    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt(obs.w)) * obs.x, 0.0, view(a, 1:p, 1:p))  # x'wx
+    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(obs.w)) * obs.x, 0.0, view(a, 1:p, 1:p))  # x'wx
     BLAS.gemv!('T', 1 / n, Diagonal(obs.w) * obs.x, obs.y, 0.0, @view(a[1:p, end]))     # x'wy
     a[end, end] = dot(obs.y, Diagonal(obs.w) * obs.y) / n                               # y'wy
     Sweep(obs, a, b)
