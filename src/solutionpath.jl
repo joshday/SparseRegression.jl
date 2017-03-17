@@ -1,10 +1,10 @@
-immutable SolutionPath{S <: SparseReg, A <: Algorithm, T <: AVecF}
+immutable SolutionPath{S <: SparseReg, A <: Algorithm, T <: VecF}
     models::Vector{S}
     λs::T
     algorithm::A
 end
 
-function SolutionPath{L, P}(m::SparseReg{L, P}, λs::AVecF, A::Algorithm)
+function SolutionPath{L, P}(m::SparseReg{L, P}, λs::VecF, A::Algorithm)
     models = SparseReg{L, P}[]
     for λ in reverse(sort(λs))
         o = SparseReg(m, λ)
@@ -26,11 +26,11 @@ function fitpath(x::AMat, y::AVec, args...; λs::AVecF = linspace(0,1,20), kw...
     n, p = size(x)
     o = SparseReg(p, args...)
     alg = default_algorithm(o, Obs(x, y); kw...)
-    SolutionPath(o, λs, alg)
+    SolutionPath(o, collect(λs), alg)
 end
 function fitpath(x::AMat, y::AVec, w::AVec, args...; λs::VecF = linspace(0,1,20), kw...)
     n, p = size(x)
     o = SparseReg(p, args...)
     alg = default_algorithm(o, Obs(x, y, w); kw...)
-    SolutionPath(o, λs, alg)
+    SolutionPath(o, collect(λs), alg)
 end
