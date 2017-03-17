@@ -48,21 +48,15 @@ immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty}
 end
 ```
 
-### SparseReg Constructors
+### SparseReg Usage
 
-- Without Data
 ```julia
-o = SparseReg(n_predictors, args...)
-```
+o = SparseReg(size(x, 2), args...)  # without data (blank slate)
+fit!(o, x, y)
 
-- With Data
-```julia
-o = SparseReg(x, y, args...)
-```
+o = SparseReg(x, y, args...)  # with data
 
-- With Weighted data
-```julia
-o = SparseReg(x, y, w, args...)
+o = SparseReg(x, y, w, args...)  # with data, weighted observations
 ```
 
 Here, `args...` will get automatically mapped to the correct field:
