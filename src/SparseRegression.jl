@@ -51,8 +51,9 @@ include("common.jl")
 
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
+include("solutionpath.jl")
 # include("algorithms/sgdlike.jl")
-# include("solutionpath.jl")
+
 
 #-------------------------------------------------------------------------------# fit
 default_algorithm{L, P}(o::SparseReg{L, P}, obs; kw...) = ProxGrad(obs; kw...)

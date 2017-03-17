@@ -7,6 +7,9 @@ immutable SparseReg{L <: Loss, P <: Penalty} <: AbstractSparseReg
     factor::VecF
 end
 
+# For solution path
+SparseReg(o::SparseReg, λ::Float64) = SparseReg(copy(o.β), o.loss, o.penalty, λ, o.factor)
+
 # Constructors
 # Messy because: type-stable with arbitrary number/order of arguments
 

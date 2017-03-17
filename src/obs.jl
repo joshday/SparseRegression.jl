@@ -24,14 +24,11 @@ function Base.show(io::IO, o::Obs)
     print_with_color(default_color, io, "  □ Observations\n")
     # x
     print(io, "  ")
-    print_item(io, "x", typeof(o.x), false)
-    println(io, " $(size(o.x))")
+    print_item(io, "x", summary(o.x))
     # y
     print(io, "  ")
-    print_item(io, "y", typeof(o.y), false)
-    println(io, " $(size(o.y))")
+    print_item(io, "y", summary(o.y))
     # w
     print(io, "  ")
-    print_item(io, "weights", typeof(o.w), false)
-    print(io, " $(size(o.w))")
+    print_item(io, "weights", summary(o.w), false)
 end
