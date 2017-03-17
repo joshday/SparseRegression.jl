@@ -66,6 +66,7 @@ _b(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Algorithm) = l,r,t,λ,
 _b(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::Float64)   = l,r,a,t,f
 _b(l::Loss,r::Penalty,a::Algorithm,λ::Float64,f::VecF,t::VecF)      = l,r,a,λ,t
 
+init(p, l, r, a, λ, f) = zeros(p), l, r, init(a, p), λ, f
 
 function StreamReg(x::AMatF, y::AVecF, args...; kw...)
     o = StreamReg(size(x, 2), args...; kw...)

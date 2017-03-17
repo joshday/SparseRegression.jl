@@ -1,4 +1,5 @@
 abstract type SGDLike <: OnlineAlgorithm end
+init(p::Integer, alg::SGDLike) = alg
 
 function fit!{ALG <: SGDLike}(o::StreamReg{ALG}, obs::Obs)
     for i in eachindex(obs.y)
@@ -27,15 +28,15 @@ function updateβj!(o::StreamReg, j::Integer, γ::Float64, g::Float64, xj::Float
     o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
 end
 
-#------------------------------------------------------------------------------# MOMENTUM
-# "SGD with MOMENTUM"
-# immutable MOMENTUM <: SGDLike
-#     α::Float64
-#     H::VecF
-# end
-# MOMENTUM(p::Integer, α = .1) = MOMENTUM(α, zeros(p))
-# init(a::MOMENTUM, n, p) = MOMENTUM(a.weight, a.η, a.α, zeros(p))
-# function updateβj(A::MOMENTUM, γ, ηγ, gx, βj, P, j, s)
+------------------------------------------------------------------------------# Momentum
+"SGD with Momentum"
+immutable Momentum <: SGDLike
+    α::Float64
+    H::VecF
+end
+Momentum(p::Integer, α = .1) = Momentum(α, zeros(p))
+# init(a::Momentum, n, p) = Momentum(a.weight, a.η, a.α, zeros(p))
+# function updateβj(A::Momentum, γ, ηγ, gx, βj, P, j, s)
 #     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx, A.α)
 #     prox(P, βj - ηγ * A.H[j], ηγ * s)
 # end

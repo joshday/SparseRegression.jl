@@ -14,14 +14,14 @@ possible_args = vcat(losses, penalties, .1, rand(p), ProxGrad())
 
 @testset "SparseReg Constructor Type Stability" begin
     @testset "One Argument" begin
-        @inferred SparseReg(p)
+        @inferred SparseReg(n, p)
         for t in possible_args
-            @inferred SparseReg(p, t)
+            @inferred SparseReg(n, p, t)
         end
     end
     @testset "Two Arguments" begin
         for t1 in possible_args, t2 in possible_args
-            @inferred SparseReg(p, t1, t2)
+            @inferred SparseReg(n, p, t1, t2)
         end
     end
 end

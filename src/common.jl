@@ -14,6 +14,20 @@ function Base.show(io::IO, o::AbstractSparseReg)
     print_item(io, "Algorithm", o.algorithm)
 end
 
+# Algorithm
+function Base.show(io::IO, alg::Algorithm)
+    nms = showme(alg)
+    s = name(alg) * "("
+    for nm in nms
+        s *= "$nm = $(getfield(alg, nm))"
+        if nms[end] != nm
+            s *= ", "
+        end
+    end
+    s *= ")"
+    print(io, s)
+end
+
 #-------------------------------------------------------------------------------# helpers
 # scary names so that nobody uses them
 predict_from_xβ(l::Loss, xβ::Real) = xβ
@@ -44,8 +58,8 @@ predict(o::AbstractSparseReg, x::AMat) = predict_from_xβ.(o.loss, xβ(o, x))
 
 classify{A, L<:MarginLoss}(o::SparseReg{A,L}, x::AVec) = sign(xβ(o, x))
 classify{A, L<:MarginLoss}(o::SparseReg{A,L}, x::AMat) = sign.(xβ(o, x))
-classify{A, L<:MarginLoss}(o::StreamReg{A,L}, x::AVec) = sign(xβ(o, x))
-classify{A, L<:MarginLoss}(o::StreamReg{A,L}, x::AMat) = sign.(xβ(o, x))
+# classify{A, L<:MarginLoss}(o::StreamReg{A,L}, x::AVec) = sign(xβ(o, x))
+# classify{A, L<:MarginLoss}(o::StreamReg{A,L}, x::AMat) = sign.(xβ(o, x))
 
 loss(o::AbstractSparseReg, x::AMat, y::AVec, args...) =
     value(o.loss, y, predict(o, x), args...)

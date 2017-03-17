@@ -12,14 +12,12 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
     eval(Expr(:toplevel, Expr(:export, setdiff(names(eval(pkg)), [pkg])...)))
 end
 
-
 export
     SparseReg, SolutionPath, predict, classify, coef,
     # algorithms
     ProxGrad, Sweep, SGD,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
-
 
 #---------------------------------------------------------------------------------# types
 const AVec        = AbstractVector
@@ -43,18 +41,16 @@ abstract type AbstractSparseReg end
 abstract type Algorithm end
 abstract type OfflineAlgorithm   <: Algorithm end
 abstract type OnlineAlgorithm    <: Algorithm end
-Base.show(io::IO, a::Algorithm) = print(io, name(a))
-
 
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
-include("offline.jl")
-include("online.jl")
+include("sparsereg.jl")
+# include("online.jl")
 include("common.jl")
 
 include("algorithms/proxgrad.jl")
-include("algorithms/sweep.jl")
-include("algorithms/sgdlike.jl")
-include("solutionpath.jl")
+# include("algorithms/sweep.jl")
+# include("algorithms/sgdlike.jl")
+# include("solutionpath.jl")
 
 end
