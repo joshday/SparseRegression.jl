@@ -1,7 +1,7 @@
 module SparseRegression
 
 import SweepOperator
-import StatsBase: predict, coef
+import StatsBase: predict, coef, fit!
 using LearnBase
 using LossFunctions
 using PenaltyFunctions

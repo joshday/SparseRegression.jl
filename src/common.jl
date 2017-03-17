@@ -1,25 +1,26 @@
 #-------------------------------------------------------------------------------# printing
 name(a) = replace(string(typeof(a)), "SparseRegression.", "")
-function print_item(io::IO, name::AbstractString, value)
+function print_item(io::IO, name::AbstractString, value, newline = true)
     print(io, "  >" * @sprintf("%13s", name * ":  "))
-    println(io, value)
+    print(io, value)
+    newline && println(io)
 end
 function Base.show(io::IO, o::AbstractSparseReg)
     println(io, "Sparse Regression Model")
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-    typeof(o.penalty) != NoPenalty && print_item(io, "λ", o.λ)
-    any(x -> x != 1.0, o.factor) && print_item(io, "λ scaling", o.factor)
-    print_item(io, "Algorithm", o.algorithm)
+
+    showpen = !isa(o.penalty, NoPenalty)
+    showpen && print_item(io, "λ", o.λ)
+    showpen && any(x -> x != 1.0, o.factor) && print_item(io, "λ scaling", o.factor)
 end
 
-# Algorithm
-function Base.show(io::IO, alg::Algorithm)
-    nms = showme(alg)
-    s = name(alg) * "("
+#----------# Display fields like: (a = 1, b = 5.0, ...)
+function showfields(io::IO, o, nms)
+    s = "("
     for nm in nms
-        s *= "$nm = $(getfield(alg, nm))"
+        s *= "$nm = $(getfield(o, nm))"
         if nms[end] != nm
             s *= ", "
         end

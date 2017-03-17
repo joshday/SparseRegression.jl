@@ -19,3 +19,19 @@ function Obs(x::AMat, y::AVec, w::AVec = Ones(y))
     n1 == n2 == n3 || throw(DimensionMismatch("number of rows should match: $n1, $n2, $n3"))
     Obs(w, x, y)
 end
+
+function Base.show(io::IO, o::Obs)
+    println(io, "  □ Observations")
+    # x
+    print(io, "  ")
+    print_item(io, "x", typeof(o.x), false)
+    println(io, " $(size(o.x))")
+    # y
+    print(io, "  ")
+    print_item(io, "y", typeof(o.y), false)
+    println(io, " $(size(o.y))")
+    # w
+    print(io, "  ")
+    print_item(io, "weights", typeof(o.w), false)
+    print(io, " $(size(o.w))")
+end
