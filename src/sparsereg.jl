@@ -3,20 +3,20 @@ immutable SparseReg{A <: OfflineAlgorithm, L <: Loss, P <: Penalty} <: AbstractS
     β::VecF
     loss::L
     penalty::P
-    algorithm::A
     λ::Float64
     factor::VecF
+    algorithm::A
 end
 
-_defaults(p) = LinearRegression(), NoPenalty(), ProxGrad(), 0.1, zeros(p)
+_defaults(p) = LinearRegression(), NoPenalty(), 0.1, zeros(p), ProxGrad()
 
 
 # Type-stable constructor with arbitrary order of arguments.
 # There must be a better way to do this
 # generated functions?
 
-# t is a tuple of types: (Loss, Penalty, Algorithm, Float64, VecF)
-init(n, p, t::Tuple) = zeros(p), t[1], t[2], init(n, p, t[3]), t[4], t[5]
+# t is a tuple of types: (Loss, Penalty, Float64, VecF, Algorithm)
+init(n, p, t::Tuple) = zeros(p), t[1], t[2], t[3], t[4], init(n, p, t[5])
 
 SparseReg(n::Integer, p::Integer, t::Tuple) = SparseReg(init(n, p, t)...)
 
@@ -54,12 +54,12 @@ function SparseReg(n::Integer, p::Integer, a1, a2, a3, a4, a5)
 end
 
 # "overwrite" one argument in a tuple based on last argument
-# Loss, Penalty, Algorithm, Float64, VecF
+# Loss, Penalty, Float64, VecF, Algorithm
 _a(t::Tuple, arg::Loss)        = arg, t[2], t[3], t[4], t[5]
 _a(t::Tuple, arg::Penalty)     = t[1], arg, t[3], t[4], t[5]
-_a(t::Tuple, arg::Algorithm)   = t[1], t[2], arg, t[4], t[5]
-_a(t::Tuple, arg::Float64)     = t[1], t[2], t[3], arg, t[5]
-_a(t::Tuple, arg::VecF)        = t[1], t[2], t[3], t[4], arg
+_a(t::Tuple, arg::Float64)     = t[1], t[2], arg, t[4], t[5]
+_a(t::Tuple, arg::VecF)        = t[1], t[2], t[3], arg, t[5]
+_a(t::Tuple, arg::Algorithm)   = t[1], t[2], t[3], t[4], arg
 
 
 function SparseReg(x::AMatF, y::AVecF, args...)
