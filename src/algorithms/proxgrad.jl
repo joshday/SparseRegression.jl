@@ -7,6 +7,7 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
     tol::Float64
     verbose::Bool
     step::Float64
+    crit::Symbol    # objective, gradient
     # buffers
     ∇::VecF
     ŷ::VecF
@@ -14,12 +15,12 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
 end
 
 function ProxGrad(o::Obs; maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false,
-                  step::Float64=1.0)
+                  step::Float64=1.0, crit::Symbol = :objective)
     n, p = size(o.x)
-    ProxGrad(o, maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
+    ProxGrad(o, maxit, tol, verbose, step, crit, zeros(p), zeros(n), zeros(n))
 end
 
-showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step]
+showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step, :crit]
 
 
 
@@ -33,7 +34,7 @@ function fit!(o::SparseReg, A::ProxGrad)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
     oldcost = -Inf
-    newcost = objective_value(o, A.obs, A.ŷ)
+    newcost = vecnorm(A.∇)
     niters = 0
     for k in 1:A.maxit
         oldcost = newcost
@@ -43,8 +44,13 @@ function fit!(o::SparseReg, A::ProxGrad)
         update_β!(o, A)
         update_ŷ!(o, A)
 
-        newcost = objective_value(o, A.obs, A.ŷ)
-        converged(oldcost, newcost, niters, A) && break
+        if A.crit == :objective
+            newcost = objective_value(o, A.obs, A.ŷ)
+            converged(oldcost, newcost, niters, A) && break
+        elseif A.crit == :gradient
+            newcost = vecnorm(A.∇)
+            converged(oldcost, newcost, niters, A) && break
+        end
     end
 
     if niters == A.maxit
@@ -84,11 +90,11 @@ function update_ŷ!(o, A)
     xβ_to_ŷ!(o.loss, A.ŷ)
 end
 
-@inline function converged(oldcost, newcost, niters, alg)
+@inline function converged(oldcost, newcost, niters, A)
     tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
-    isconverged = tolerance < alg.tol
+    isconverged = tolerance < A.tol
     isconverged ?
-        alg.verbose && info("CONVERGED: $niters, Relative Tolerance = $tolerance") :
-        alg.verbose && info("Iteration: $niters, Relative Tolerance = $tolerance")
+        A.verbose && info("CONVERGED: $niters, Relative Tolerance = $tolerance") :
+        A.verbose && info("Iteration: $niters, Relative Tolerance = $tolerance")
     isconverged
 end

@@ -13,7 +13,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
 end
 
 export
-    SparseReg, SolutionPath, predict, classify, coef,
+    SparseReg, Obs, SolutionPath, classify, fitmodel, fitpath,
     # algorithms
     ProxGrad, Sweep, SGD,
     # Model typealiases

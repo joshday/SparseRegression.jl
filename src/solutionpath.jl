@@ -6,7 +6,7 @@ end
 
 function SolutionPath{L, P}(m::SparseReg{L, P}, λs::AVecF, A::Algorithm)
     models = SparseReg{L, P}[]
-    for λ in λs
+    for λ in reverse(sort(λs))
         o = SparseReg(m, λ)
         fit!(o, A)
         push!(models, o)
