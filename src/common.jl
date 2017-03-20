@@ -55,6 +55,12 @@ function objective_value(o::SparseReg, obs::Obs, ŷ::AVec)
     value(o.loss, obs.y, ŷ, AvgMode.WeightedMean(obs.w)) + value(o.penalty, o.β)
 end
 
+# return constant c such that (c * I - x'x / n) is positive definite
+# xtx_majorizing_constant(x::AMat) = eigs(x'x, nev=1)[1] / size(x, 1)  # slow but smaller
+xtx_majorizing_constant(x::AMat) = sum(diag(x'x)) / size(x, 1)  # fast but bigger
+
+changestep(s::Float64, x::AMat) = s / xtx_majorizing_constant(x)
+
 #-------------------------------------------------------------------------------# methods
 coef(o::AbstractSparseReg) = o.β
 logistic(x::Float64) = 1.0 / (1.0 + exp(-x))

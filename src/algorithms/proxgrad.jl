@@ -15,7 +15,7 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
 end
 
 function ProxGrad(o::Obs; maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false,
-                  step::Float64=1.0, crit::Symbol = :objective)
+                  step::Float64=1.0, crit::Symbol = :objective, adaptivestep::Bool = true)
     n, p = size(o.x)
     ProxGrad(o, maxit, tol, verbose, step, crit, zeros(p), zeros(n), zeros(n))
 end
@@ -26,7 +26,6 @@ showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step, :crit]
 
 
 # TODOs:
-# - line search?
 # - Estimate Lipschitz constant for step size?
 # - FISTA acceleration?
 function fit!(o::SparseReg, A::ProxGrad)

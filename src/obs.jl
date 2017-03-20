@@ -22,13 +22,16 @@ end
 
 function Base.show(io::IO, o::Obs)
     print_with_color(default_color, io, "  □ Observations\n")
+    print_w = !isa(o, Obs{Ones})
     # x
     print(io, "  ")
     print_item(io, "x", summary(o.x))
     # y
     print(io, "  ")
-    print_item(io, "y", summary(o.y))
+    print_item(io, "y", summary(o.y), print_w)
     # w
-    print(io, "  ")
-    print_item(io, "weights", summary(o.w), false)
+    if print_w
+        print(io, "  ")
+        print_item(io, "weights", summary(o.w), false)
+    end
 end
