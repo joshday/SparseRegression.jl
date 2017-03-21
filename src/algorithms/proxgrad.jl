@@ -7,7 +7,6 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
     tol::Float64
     verbose::Bool
     step::Float64
-    crit::Symbol    # objective, gradient
     # buffers
     ∇::VecF
     ŷ::VecF
@@ -15,13 +14,12 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
 end
 
 function ProxGrad(o::Obs; maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false,
-                  step::Float64=1.0, crit::Symbol = :objective, adaptivestep::Bool = true)
+                  step::Float64=1.0, adaptivestep::Bool = true)
     n, p = size(o.x)
-    ProxGrad(o, maxit, tol, verbose, step, crit, zeros(p), zeros(n), zeros(n))
+    ProxGrad(o, maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
 
-showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step, :crit]
-
+showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step]
 
 
 
@@ -43,22 +41,8 @@ function fit!(o::SparseReg, A::ProxGrad)
         update_β!(o, A)
         update_ŷ!(o, A)
 
-        if A.crit == :objective
-            newcost = objective_value(o, A.obs, A.ŷ)
-            converged(oldcost, newcost, niters, A) && break
-        elseif A.crit == :gradient
-            newcost = vecnorm(A.∇)
-            vecnorm(A.∇) < A.tol && break
-        end
-    end
-
-    if niters == A.maxit
-        if A.crit == :objective
-            tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
-            warn("DID NOT CONVERGE in $niters iterations, Relative Tolerance = $tolerance")
-        elseif A.crit == :gradient
-            warn("DID NOT CONVERGE IN $niters iterations, gradient norm = $newcost")
-        end
+        newcost = objective_value(o, A.obs, A.ŷ)
+        converged(oldcost, newcost, niters, A) && break
     end
     o
 end
@@ -99,5 +83,6 @@ end
     isconverged ?
         A.verbose && info("CONVERGED: $niters, Relative Tolerance = $tolerance") :
         A.verbose && info("Iteration: $niters, Relative Tolerance = $tolerance")
+        niters == A.maxit && warn("DID NOT CONVERGE in $niters iterations, Tol = $tolerance")
     isconverged
 end
