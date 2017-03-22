@@ -25,3 +25,6 @@ function Base.show(io::IO, o::Obs)
     print_item(io, "y", summary(o.y))
     print_item(io, "weights", summary(o.w), false)
 end
+
+nobs(o::Obs) = length(o.y)
+Base.size(o::Obs) = size(o.x)

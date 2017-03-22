@@ -39,42 +39,49 @@ const DWDLike               = DWDMarginLoss
 
 abstract type AbstractSparseReg end
 
-abstract type Algorithm end
-abstract type OfflineAlgorithm   <: Algorithm end
-abstract type OnlineAlgorithm    <: Algorithm end
+#-----------------------------------------------------------------------# AbstractSparseReg
+Base.show(io::IO, o::AbstractSparseReg) = showmodel(io, o)
+function showmodel(io::IO, o::AbstractSparseReg)
+    header(io, name(o))
+    show(io, o.θ)
+    header(io, "Model Specification")
+    print_item(io, "Loss", o.loss)
+    print_item(io, "Penalty", o.penalty)
+    print_item(io, "λ factor", o.factor)
+end
+coef(o::AbstractSparseReg) = o.θ
+coef(o::AbstractSparseReg, i) = @view o.θ.β[:, i]
+
+#-------------------------------------------------------------------------------# Coefficients
+immutable Coefficients
+    β::MatF
+    λ::VecF
+    function Coefficients(β::MatF, λ)
+        size(β, 2) == length(λ) || throw(DimensionMismatch())
+        new(β, λ)
+    end
+end
+Coefficients(p::Int, λ::VecF) = Coefficients(zeros(p, length(λ)), λ)
+function Base.show(io::IO, o::Coefficients)
+    header(io, name(o))
+    for (i, λ) in enumerate(o.λ)
+        print_item(io, "β$i($(round(λ, 2)))", o.β[:, i])
+    end
+end
 
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
-include("sparsereg.jl")
 include("printing.jl")
-
 include("algorithms/proxgrad.jl")
-include("algorithms/sweep.jl")
+
+# include("algorithms/sweep.jl")
 # include("solutionpath.jl")
 
-#----------------------------------------------------------------------# FittedModel
-immutable FittedModel{S <: SparseReg, A <: Algorithm}
-    model::S
-    algorithm::A
-end
-function Base.show(io::IO, o::FittedModel)
-    print_with_color(:light_cyan, io, "■■■■ FittedModel\n")
-    show(io, o.model); println(io)
-    show(io, o.algorithm)
-end
 
-function fitmodel(A::Algorithm, args...)
-    n, p = size(A.obs.x)
-    o = SparseReg(p, args...)
-    fit!(o, A)
-    FittedModel(o, A)
-end
 
-function fitpath(A::Algorithm, args...)
-    n, p = size(A.obs.x)
-    init = SparseReg(p, args...)
 
-end
+
+
 
 
 end #module
