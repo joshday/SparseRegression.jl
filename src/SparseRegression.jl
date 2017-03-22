@@ -46,14 +46,20 @@ abstract type OnlineAlgorithm    <: Algorithm end
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
 include("sparsereg.jl")
-# include("fittedmodel.jl")
+include("fittedmodel.jl")
 include("printing.jl")
 
 include("algorithms/proxgrad.jl")
-# include("algorithms/sweep.jl")
+include("algorithms/sweep.jl")
 # include("solutionpath.jl")
 # include("algorithms/sgdlike.jl")
 
+function fitmodel(A::Algorithm, args...)
+    n, p = size(A.obs.x)
+    o = SparseReg(p, args...)
+    fit!(o, A)
+    FittedModel(o, A)
+end
 
 
 end #module
