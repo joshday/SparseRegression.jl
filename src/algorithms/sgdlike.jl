@@ -1,21 +1,13 @@
 abstract type SGDLike <: OnlineAlgorithm end
-init(alg::OnlineAlgorithm, p::Integer) = alg
+abstract type SGradBuffer end
 
-function onlinefit(x, y, alg::Algorithm = SGD(), args...)
-    p = size(x, 2)
-    o = SparseReg(p, args...)
-    alg2 = init(alg, p)
-    fit!(o, alg2)
-    FittedModel(o, alg2)
-end
-
-function fit!(o::SparseReg, A::OnlineAlgorithm, obs::Obs)
+function fit!(o::SparseReg, A::SGrad, obs::Obs)
     for i in eachindex(A.obs.y)
-        OnlineStats.updatecounter!(o.weight)
+        OnlineStats.updatecounter!(obs.w)
         xi = @view obs.x[i, :]
         yi = obs.y[i]
         g = deriv(o.loss, yi, predict_from_xβ(o.loss, xi'o.β))
-        γ = OnlineStats.weight(o.weight)
+        γ = OnlineStats.weight(obs.weight)
         for j in eachindex(o.β)
             updateβj!(o, j, γ, g, xi[j])
         end
@@ -23,17 +15,28 @@ function fit!(o::SparseReg, A::OnlineAlgorithm, obs::Obs)
     o
 end
 
+immutable SGrad{A <: SGradBuffer} <: OnlineAlgorithm
+    sgdtype::A
+    η::Float64
+end
+SGrad(sgdtype, η::Float64 = 1.0) = SGrad(sgdtype, η)
+
+function updateβj!(o::SparseReg, a::SGradBuffer, j::Int, γ::Float64, ηγ::Float64, xj::Float64)
+
+end
+
+immutable SGD <: SGradBuffer end
+
 
 # -----------------------------------------------------------------------------------# SGD
 """
 Stochastic Gradient Descent
     SGD(wt::W, η = 1.0) where W <: Weight
 """
-immutable SGD{W <: Weight} <: SGDLike
+immutable SGD <: SGDLike
     η::Float64
-    weight::W
 end
-SGD(;η::Float64 = 1.0, weight::Weight = LearningRate()) = SGD(η, weight)
+SGD(obs::Obs{<:Weight}, η::Float64 = 1.0) = SGD(η)
 
 function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
     s = o.η * γ

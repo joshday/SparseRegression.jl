@@ -37,9 +37,6 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-    print_item(io, "λ", o.λ, false)
-    if any(x -> x != 1.0, o.factor)
-        println(io)
-        print_item(io, "λ scaling", o.factor)
-    end
+    print_item(io, "λ", o.λ)
+    print_item(io, "λ scaling", o.factor, false)
 end

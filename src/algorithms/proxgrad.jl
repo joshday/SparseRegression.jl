@@ -11,15 +11,15 @@ immutable ProxGrad <: OfflineAlgorithm
     ŷ::VecF
     deriv_vec::VecF
 end
-
-function ProxGrad(n::Integer, p::Integer; maxit::Int=100, tol::Float64=1e-6,
-                  verbose::Bool=false, step::Float64=1.0, adaptivestep::Bool = true)
+function ProxGrad(obs::Obs;
+        maxit::Int=100,
+        tol::Float64=1e-6,
+        verbose::Bool=false,
+        step::Float64=1.0)
+    n, p = size(obs)
     ProxGrad(maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
-
 showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step]
-
-
 
 # TODOs:
 # - Estimate Lipschitz constant for step size?
@@ -75,7 +75,7 @@ function update_ŷ!(o, A, obs)
     xβ_to_ŷ!(o.loss, A.ŷ)
 end
 
-@inline function converged(oldcost, newcost, niters, A)
+function converged(oldcost, newcost, niters, A)
     tolerance = abs(newcost - oldcost) / min(abs(newcost), abs(oldcost))
     isconverged = tolerance < A.tol
     isconverged ?

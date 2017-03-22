@@ -7,7 +7,7 @@ Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
 #----------------------------------------------------------------------#  Obs
-immutable Obs{W, X <: AMat, Y <: AVec}
+immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
     w::W
     x::X
     y::Y
@@ -19,7 +19,7 @@ function Obs(x::AMat, y::AVec, w::AVec = Ones(y))
     n1 == n2 == n3 || throw(DimensionMismatch("number of rows should match: $n1, $n2, $n3"))
     Obs(w, x, y)
 end
-
+Base.size(o::Obs) = size(o.x)
 function Base.show(io::IO, o::Obs)
     header(io, name(o))
     print_item(io, "x", summary(o.x))
