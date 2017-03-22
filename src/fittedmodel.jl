@@ -1,4 +1,4 @@
-#----------------------------------------------------------------------# FittedModel
+#----------------------------------------------------------------------# FullModelSpec
 immutable FittedModel{S <: SparseReg, A <: Algorithm, O <: Obs}
     model::S
     algorithm::A

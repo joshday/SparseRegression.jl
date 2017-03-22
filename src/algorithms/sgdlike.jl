@@ -1,48 +1,33 @@
 abstract type SGDLike <: OnlineAlgorithm end
-abstract type SGradBuffer end
 
-function fit!(o::SparseReg, A::SGrad, obs::Obs)
-    for i in eachindex(A.obs.y)
-        OnlineStats.updatecounter!(obs.w)
-        xi = @view obs.x[i, :]
-        yi = obs.y[i]
-        g = deriv(o.loss, yi, predict_from_xβ(o.loss, xi'o.β))
-        γ = OnlineStats.weight(obs.weight)
-        for j in eachindex(o.β)
-            updateβj!(o, j, γ, g, xi[j])
-        end
-    end
-    o
-end
-
-immutable SGrad{A <: SGradBuffer} <: OnlineAlgorithm
-    sgdtype::A
-    η::Float64
-end
-SGrad(sgdtype, η::Float64 = 1.0) = SGrad(sgdtype, η)
-
-function updateβj!(o::SparseReg, a::SGradBuffer, j::Int, γ::Float64, ηγ::Float64, xj::Float64)
-
-end
-
-immutable SGD <: SGradBuffer end
-
-
-# -----------------------------------------------------------------------------------# SGD
-"""
-Stochastic Gradient Descent
-    SGD(wt::W, η = 1.0) where W <: Weight
-"""
-immutable SGD <: SGDLike
-    η::Float64
-end
-SGD(obs::Obs{<:Weight}, η::Float64 = 1.0) = SGD(η)
-
-function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
-    s = o.η * γ
-    λ = o.λ * o.factor[j]
-    o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
-end
+# # -----------------------------------------------------------------------------------# fit!
+# function fit!(o::SparseReg, A::SGDLike, obs::Obs)
+#     for i in eachindex(obs.y)
+#         OnlineStats.updatecounter!(A.weight)
+#         xi = @view obs.x[i, :]
+#         yi = obs.y[i]
+#         g = deriv(o.loss, yi, predict_from_xβ(o.loss, dot(xi, o.β)))
+#         γ = OnlineStats.weight(A.weight)
+#         γg = γ * g
+#         for j in eachindex(o.β)
+#             updateβj!(o, A, j, γ, g, γg, xi[j])
+#         end
+#     end
+#     o
+# end
+#
+# # -----------------------------------------------------------------------------------# SGD
+# """
+# Stochastic Gradient Descent
+#     SGD(wt::W, η = 1.0) where W <: Weight
+# """
+# immutable SGD{W <: Weight} <: SGDLike
+#     η::Float64
+#     weight::W
+# end
+#
+# function updateβj!(o, A::SGrad{SGD}, j, )
+# end
 
 # ------------------------------------------------------------------------------# Momentum
 # "SGD with Momentum"
