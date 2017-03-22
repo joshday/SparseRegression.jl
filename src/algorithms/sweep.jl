@@ -8,7 +8,8 @@ function Base.show(io::IO, alg::Sweep)
     show(io, alg.obs)
 end
 
-function Sweep(obs::Obs)
+function Sweep(x, y)
+    obs = Obs(x, y)
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
     b = zeros(p + 1, p + 1)
@@ -17,7 +18,8 @@ function Sweep(obs::Obs)
     a[end, end] = dot(obs.y, Diagonal(obs.w) * obs.y) / n                               # y'wy
     Sweep(a, b, obs)
 end
-function Sweep(obs::Obs{Ones})
+function Sweep(x, y, w)
+    obs = Obs(x, y, w)
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
     b = zeros(p + 1, p + 1)

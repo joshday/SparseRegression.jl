@@ -17,7 +17,8 @@ function Base.show(io::IO, alg::ProxGrad)
     println(io)
     show(io, alg.obs)
 end
-function ProxGrad(o::Obs ;maxit = 100, tol = 1e-6, verbose = false, step = 1.0)
+function ProxGrad(args... ;maxit = 100, tol = 1e-6, verbose = false, step = 1.0)
+    o = Obs(args...)
     n, p = size(o.x)
     ProxGrad(maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n), o)
 end
