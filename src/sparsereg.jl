@@ -33,24 +33,13 @@ SparseReg(p::Integer,a1,a2,a3,a4)    = SparseReg(p, a(a(a(a(_d(p),a1),a2),a3),a4
 SparseReg(p::Integer,a1,a2,a3,a4,a5) = SparseReg(p, a(a(a(a(a(_d(p),a1),a2),a3),a4),a5))
 
 function Base.show(io::IO, o::SparseReg)
-    print_with_color(default_color, io, "■ Sparse Regression Model\n")
+    header(io, "SparseReg")
     print_item(io, "β", o.β)
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-
-    showpen = !isa(o.penalty, NoPenalty)
-    showpen && print_item(io, "λ", o.λ)
-    showpen && any(x -> x != 1.0, o.factor) && print_item(io, "λ scaling", o.factor)
-end
-
-#----------------------------------------------------------------------# FittedModel
-immutable FittedModel{S <: SparseReg, A <: Algorithm}
-    model::S
-    algorithm::A
-end
-function Base.show(io::IO, o::FittedModel)
-    print_with_color(default_color, io, "■■■■■■ FittedModel ■■■■■■\n")
-    show(io, o.model)
-    println(io)
-    show(io, o.algorithm)
+    print_item(io, "λ", o.λ, false)
+    if any(x -> x != 1.0, o.factor)
+        println(io)
+        print_item(io, "λ scaling", o.factor)
+    end
 end

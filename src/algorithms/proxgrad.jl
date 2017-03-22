@@ -1,8 +1,7 @@
 """
 Proximal Gradient Method
 """
-immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
-    obs::O
+immutable ProxGrad <: OfflineAlgorithm
     maxit::Int
     tol::Float64
     verbose::Bool
@@ -13,10 +12,9 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
     deriv_vec::VecF
 end
 
-function ProxGrad(o::Obs; maxit::Int=100, tol::Float64=1e-6, verbose::Bool=false,
-                  step::Float64=1.0, adaptivestep::Bool = true)
-    n, p = size(o.x)
-    ProxGrad(o, maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
+function ProxGrad(n::Integer, p::Integer; maxit::Int=100, tol::Float64=1e-6,
+                  verbose::Bool=false, step::Float64=1.0, adaptivestep::Bool = true)
+    ProxGrad(maxit, tol, verbose, step, zeros(p), zeros(n), zeros(n))
 end
 
 showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step]
@@ -26,45 +24,45 @@ showme(a::ProxGrad) = [:maxit, :tol, :verbose, :step]
 # TODOs:
 # - Estimate Lipschitz constant for step size?
 # - FISTA acceleration?
-function fit!(o::SparseReg, A::ProxGrad)
-    n, p = size(A.obs.x)
+function fit!(o::SparseReg, A::ProxGrad, obs::Obs)
+    n, p = size(obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
     oldcost = -Inf
-    newcost = objective_value(o, A.obs, A.ŷ)
+    newcost = objective_value(o, obs, A.ŷ)
     niters = 0
     for k in 1:A.maxit
         oldcost = newcost
         niters += 1
 
-        get_gradient!(o, A)
-        update_β!(o, A)
-        update_ŷ!(o, A)
+        get_gradient!(o, A, obs)
+        update_β!(o, A, obs)
+        update_ŷ!(o, A, obs)
 
-        newcost = objective_value(o, A.obs, A.ŷ)
+        newcost = objective_value(o, obs, A.ŷ)
         converged(oldcost, newcost, niters, A) && break
     end
     o
 end
 
 #--------------------------------------------------------------# components of loop
-function get_gradient!(o, A::ProxGrad{Obs{Ones}})
-    for i in eachindex(A.obs.y)
-        @inbounds A.deriv_vec[i] = deriv(o.loss, A.obs.y[i], A.ŷ[i])
+function get_gradient!(o, A::ProxGrad, obs::Obs{Ones})
+    for i in eachindex(obs.y)
+        @inbounds A.deriv_vec[i] = deriv(o.loss, obs.y[i], A.ŷ[i])
     end
-    At_mul_B!(A.∇, A.obs.x, A.deriv_vec)
-    scale!(A.∇, 1 / length(A.obs.y))
+    At_mul_B!(A.∇, obs.x, A.deriv_vec)
+    scale!(A.∇, 1 / length(obs.y))
 end
 # weighted version
-function get_gradient!(o, A::ProxGrad)
-    for i in eachindex(A.obs.y)
-        @inbounds A.deriv_vec[i] = deriv(o.loss, A.obs.y[i], A.ŷ[i]) * A.obs.w[i]
+function get_gradient!(o, A::ProxGrad, obs::Obs)
+    for i in eachindex(obs.y)
+        @inbounds A.deriv_vec[i] = deriv(o.loss, obs.y[i], A.ŷ[i]) * obs.w[i]
     end
-    At_mul_B!(A.∇, A.obs.x, A.deriv_vec)
-    scale!(A.∇, 1 / length(A.obs.y))
+    At_mul_B!(A.∇, obs.x, A.deriv_vec)
+    scale!(A.∇, 1 / length(obs.y))
 end
 
-function update_β!(o, A)
+function update_β!(o, A, obs)
     s = A.step
     @simd for j in eachindex(o.β)
         @inbounds λj = o.λ * o.factor[j]
@@ -72,8 +70,8 @@ function update_β!(o, A)
     end
 end
 
-function update_ŷ!(o, A)
-    A_mul_B!(A.ŷ, A.obs.x, o.β)
+function update_ŷ!(o, A, obs)
+    A_mul_B!(A.ŷ, obs.x, o.β)
     xβ_to_ŷ!(o.loss, A.ŷ)
 end
 

@@ -24,19 +24,19 @@ end
 
 Sweepable = Union{NoPenalty, L2Penalty}
 
-function fit!{P<:Sweepable}(o::SparseReg{LinearRegression, P}, A::Sweep)
-    p = size(A.obs.x, 2)
+function fit!{P<:Sweepable}(o::SparseReg{LinearRegression, P}, A::Sweep, obs::Obs)
+    p = size(obs.x, 2)
     copy!(A.s, A.a)
-    add_ridge!(o, A)
+    add_ridge!(o, A, obs)
     SweepOperator.sweep!(A.s, 1:p)
     o.β[:] = A.s[1:p, end]
     o
 end
 
 
-function add_ridge!{L}(o::SparseReg{L, NoPenalty}, A) end
-function add_ridge!{L}(o::SparseReg{L, L2Penalty}, A)
-    for i in 1:size(A.obs.x, 2)
+function add_ridge!{L}(o::SparseReg{L, NoPenalty}, A, obs) end
+function add_ridge!{L}(o::SparseReg{L, L2Penalty}, A, obs)
+    for i in 1:size(obs.x, 2)
         A.s[i, i] += o.λ * o.factor[i]
     end
 end

@@ -7,7 +7,7 @@ Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
 #----------------------------------------------------------------------#  Obs
-immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
+immutable Obs{W, X <: AMat, Y <: AVec}
     w::W
     x::X
     y::Y
@@ -21,17 +21,8 @@ function Obs(x::AMat, y::AVec, w::AVec = Ones(y))
 end
 
 function Base.show(io::IO, o::Obs)
-    print_with_color(default_color, io, "  □ Observations\n")
-    print_w = !isa(o, Obs{Ones})
-    # x
-    print(io, "  ")
+    header(io, name(o))
     print_item(io, "x", summary(o.x))
-    # y
-    print(io, "  ")
-    print_item(io, "y", summary(o.y), print_w)
-    # w
-    if print_w
-        print(io, "  ")
-        print_item(io, "weights", summary(o.w), false)
-    end
+    print_item(io, "y", summary(o.y))
+    print_item(io, "weights", summary(o.w), false)
 end

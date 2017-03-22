@@ -5,34 +5,37 @@ function name(a; withparams = false)
 end
 
 function print_item(io::IO, name::AbstractString, value, newline = true)
-    print(io, "  >" * @sprintf("%15s", name * ":  "))
+    print(io, "  >" * @sprintf("%12s", name * ":  "))
     print(io, value)
     newline && println(io)
 end
 
+header(io, s) = print_with_color(:light_cyan, io, "■ $s\n")
+
 #----------# Display fields like: (a = 1, b = 5.0, ...)
-function showfields(io::IO, o, nms)
-    if length(nms) != 0
-        s = "("
-        for nm in nms
-            s *= "$nm = $(getfield(o, nm))"
-            if nms[end] != nm
-                s *= ", "
-            end
-        end
-        s *= ")"
-        return print(io, s)
-    else
-        return print(io, "")
-    end
-end
+# function showfields(io::IO, o, nms)
+#     if length(nms) != 0
+#         s = "("
+#         for nm in nms
+#             s *= "$nm = $(getfield(o, nm))"
+#             if nms[end] != nm
+#                 s *= ", "
+#             end
+#         end
+#         s *= ")"
+#         return print(io, s)
+#     else
+#         return print(io, "")
+#     end
+# end
 
 showme(o) = []
 function Base.show(io::IO, A::Algorithm)
-    print_with_color(default_color, io, "■ $(name(A))")
-    showfields(io, A, showme(A))
-    println(io, "")
-    show(io, A.obs)
+    header(io, name(A))
+    nms = showme(A)
+    for nm in nms
+        print_item(io, "$nm", getfield(A, nm), nm != nms[end])
+    end
 end
 
 #-------------------------------------------------------------------------------# helpers

@@ -43,11 +43,10 @@ abstract type Algorithm end
 abstract type OfflineAlgorithm   <: Algorithm end
 abstract type OnlineAlgorithm    <: Algorithm end
 
-default_color = :light_cyan
-
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
 include("sparsereg.jl")
+include("fittedmodel.jl")
 include("common.jl")
 
 include("algorithms/proxgrad.jl")
@@ -57,23 +56,25 @@ include("solutionpath.jl")
 
 
 #-------------------------------------------------------------------------------# fit
-default_algorithm{L, P}(o::SparseReg{L, P}, obs; kw...) = ProxGrad(obs; kw...)
+default_algorithm{L, P}(o::SparseReg{L, P}, obs; kw...) = ProxGrad(size(obs.x)...; kw...)
 default_algorithm(o::SparseReg{LinearRegression, NoPenalty}, obs; kw...) = Sweep(obs)
 default_algorithm(o::SparseReg{LinearRegression, L2Penalty}, obs; kw...) = Sweep(obs)
 
 function fitmodel(x::AMat, y::AVec, args...; kw...)
     n, p = size(x)
     o = SparseReg(p, args...)
-    alg = default_algorithm(o, Obs(x, y); kw...)
-    fit!(o, alg)
-    FittedModel(o, alg)
+    obs = Obs(x, y)
+    alg = default_algorithm(o, obs; kw...)
+    fit!(o, alg, obs)
+    FittedModel(o, alg, obs)
 end
 function fitmodel(x::AMat, y::AVec, w::AVec, args...; kw...)
     n, p = size(x)
     o = SparseReg(p, args...)
-    alg = default_algorithm(o, Obs(x, y, w); kw...)
-    fit!(o, alg)
-    FittedModel(o, alg)
+    obs = Obs(x, y, w)
+    alg = default_algorithm(o, obs; kw...)
+    fit!(o, alg, obs)
+    FittedModel(o, alg, obs)
 end
 
 end #module

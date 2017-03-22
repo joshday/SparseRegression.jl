@@ -1,38 +1,46 @@
-# abstract type SGDLike <: OnlineAlgorithm end
-# init(p::Integer, alg::SGDLike) = alg
-#
-# function fit!{ALG <: SGDLike}(o::SparseReg{ALG}, obs::Obs)
-#     for i in eachindex(obs.y)
-#         OnlineStats.updatecounter!(o.weight)
-#         xi = @view obs.x[i, :]
-#         yi = obs.y[i]
-#         g = deriv(o.loss, yi, predict_from_xβ(o.loss, xi'o.β))
-#         γ = OnlineStats.weight(o.weight)
-#         for j in eachindex(o.β)
-#             updateβj!(o, j, γ, g, xi[j])
-#         end
-#     end
-#     o
-# end
-#
-#
-# #-----------------------------------------------------------------------------------# SGD
-# """
-# Stochastic Gradient Descent
-#     SGD(wt::W, η = 1.0) where W <: Weight
-# """
-# immutable SGD{W <: Weight} <: SGDLike
-#     η::Float64
-#     weight::W
-# end
-# SGD(;η::Float64 = 1.0, weight::Weight = LearningRate()) = SGD(η, weight)
-# init(n, p, alg::SGD) = alg
-# function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
-#     s = o.η * γ
-#     λ = o.λ * o.factor[j]
-#     o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
-# end
-# 
+abstract type SGDLike <: OnlineAlgorithm end
+init(alg::OnlineAlgorithm, p::Integer) = alg
+
+function onlinefit(x, y, alg::Algorithm = SGD(), args...)
+    p = size(x, 2)
+    o = SparseReg(p, args...)
+    alg2 = init(alg, p)
+    fit!(o, alg2)
+    FittedModel(o, alg2)
+end
+
+function fit!(o::SparseReg, A::OnlineAlgorithm, obs::Obs)
+    for i in eachindex(A.obs.y)
+        OnlineStats.updatecounter!(o.weight)
+        xi = @view obs.x[i, :]
+        yi = obs.y[i]
+        g = deriv(o.loss, yi, predict_from_xβ(o.loss, xi'o.β))
+        γ = OnlineStats.weight(o.weight)
+        for j in eachindex(o.β)
+            updateβj!(o, j, γ, g, xi[j])
+        end
+    end
+    o
+end
+
+
+# -----------------------------------------------------------------------------------# SGD
+"""
+Stochastic Gradient Descent
+    SGD(wt::W, η = 1.0) where W <: Weight
+"""
+immutable SGD{W <: Weight} <: SGDLike
+    η::Float64
+    weight::W
+end
+SGD(;η::Float64 = 1.0, weight::Weight = LearningRate()) = SGD(η, weight)
+
+function updateβj!(o::SparseReg, j::Integer, γ::Float64, g::Float64, xj::Float64)
+    s = o.η * γ
+    λ = o.λ * o.factor[j]
+    o.β[j] -= s * (g * xj + λ * deriv(o.penalty, o.β[j]))
+end
+
 # ------------------------------------------------------------------------------# Momentum
 # "SGD with Momentum"
 # immutable Momentum <: SGDLike
