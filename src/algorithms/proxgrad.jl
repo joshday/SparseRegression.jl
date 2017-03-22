@@ -12,10 +12,8 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
     obs::O
 end
 function Base.show(io::IO, alg::ProxGrad)
-    header(io, "ProxGrad")
-    print_items(io, alg, [:maxit, :tol, :verbose, :step])
-    println(io)
-    show(io, alg.obs)
+    print_with_color(:light_cyan, io, "ProxGrad")
+    printfields(io, alg, [:maxit, :tol, :verbose, :step])
 end
 function ProxGrad(args... ;maxit = 100, tol = 1e-6, verbose = false, step = 1.0)
     o = Obs(args...)
@@ -28,7 +26,8 @@ end
 # TODOs:
 # - Estimate Lipschitz constant for step size?
 # - FISTA acceleration?
-function fit!(o::SparseReg, A::ProxGrad)
+function fit!(o::SparseReg)
+    A = o.algorithm
     n, p = size(A.obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
 
@@ -46,7 +45,7 @@ function fit!(o::SparseReg, A::ProxGrad)
         newcost = objective_value(o, A)
         converged(oldcost, newcost, niters, A) && break
     end
-    o, A
+    o
 end
 
 #--------------------------------------------------------------# objective_value

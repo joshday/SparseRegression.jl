@@ -1,10 +1,11 @@
 #----------------------------------------------------------------------# SparseReg
-immutable SparseReg{L <: Loss, P <: Penalty} <: AbstractSparseReg
+immutable SparseReg{A <: Algorithm, L <: Loss, P <: Penalty} <: AbstractSparseReg
     β::VecF
     loss::L
     penalty::P
     λ::Float64
     factor::VecF
+    algorithm::A
 end
 function Base.show(io::IO, o::SparseReg)
     header(io, "SparseReg")
@@ -12,22 +13,27 @@ function Base.show(io::IO, o::SparseReg)
     print_item(io, "Loss",          o.loss)
     print_item(io, "Penalty",       o.penalty)
     print_item(io, "λ",             o.λ)
-    print_item(io, "λ scaling",     o.factor, false)
+    print_item(io, "λ scaling",     o.factor)
+    print_item(io, "algorithm",     o.algorithm, false)
 end
 
 #---------------# Constructors: type-stable with arbitrary number/order of arguments
-_d(p) = zeros(p), LinearRegression(), NoPenalty(), 0.1, ones(p)  # defaults
+function _d(A)
+    p = size(A.obs.x, 2)
+    zeros(p), LinearRegression(), NoPenalty(), 0.1, ones(p)  # defaults
+end
 _a(t::Tuple, argu::Loss)      = t[1], argu, t[3], t[4], t[5]     # replace loss
 _a(t::Tuple, argu::Penalty)   = t[1], t[2], argu, t[4], t[5]     # replace penalty
 _a(t::Tuple, argu::Float64)   = t[1], t[2], t[3], argu, t[5]     # replace λ
 _a(t::Tuple, argu::VecF)      = t[1], t[2], t[3], t[4], argu     # replace factor
 
-SparseReg(t::Tuple)                 = SparseReg(t...)
-SparseReg(p::Integer)               = SparseReg(_d(p))
-SparseReg(p::Integer,a)             = SparseReg(_a(_d(p),a))
-SparseReg(p::Integer,a,b)           = SparseReg(_a(_a(_d(p),a),b))
-SparseReg(p::Integer,a,b,c)         = SparseReg(_a(_a(_a(_d(p),a),b),c))
-SparseReg(p::Integer,a,b,c,d)       = SparseReg(_a(_a(_a(_a(_d(p),a),b),c),d))
+SparseReg(A, t::Tuple) = fit!(SparseReg(t..., A))
+SparseReg(A)               = SparseReg(A, _d(A))
+SparseReg(A,a)             = SparseReg(A, _a(_d(A),a))
+SparseReg(A,a,b)           = SparseReg(A, _a(_a(_d(A),a),b))
+SparseReg(A,a,b,c)         = SparseReg(A, _a(_a(_a(_d(A),a),b),c))
+SparseReg(A,a,b,c,d)       = SparseReg(A, _a(_a(_a(_a(_d(A),a),b),c),d))
+
 
 #------------------------------------------------------------# SparseReg methods
 # scary names so that nobody uses them

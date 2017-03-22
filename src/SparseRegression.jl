@@ -49,8 +49,8 @@ include("sparsereg.jl")
 include("printing.jl")
 
 include("algorithms/proxgrad.jl")
-include("algorithms/sweep.jl")
-include("solutionpath.jl")
+# include("algorithms/sweep.jl")
+# include("solutionpath.jl")
 
 #----------------------------------------------------------------------# FittedModel
 immutable FittedModel{S <: SparseReg, A <: Algorithm}
@@ -73,7 +73,7 @@ end
 function fitpath(A::Algorithm, args...)
     n, p = size(A.obs.x)
     init = SparseReg(p, args...)
-    
+
 end
 
 
