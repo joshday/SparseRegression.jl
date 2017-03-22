@@ -4,8 +4,7 @@ immutable Sweep{O <: Obs} <: OfflineAlgorithm
     obs::O
 end
 function Base.show(io::IO, alg::Sweep)
-    header(io, "Sweep")
-    show(io, alg.obs)
+    print_with_color(:light_cyan, io, "Sweep")
 end
 
 function Sweep(x, y)
@@ -31,7 +30,8 @@ end
 
 Sweepable = Union{NoPenalty, L2Penalty}
 
-function fit!{P<:Sweepable}(o::SparseReg{LinearRegression, P}, A::Sweep)
+function fit!(o::SparseReg{<:Sweep, LinearRegression, <:Sweepable})
+    A = o.algorithm
     p = size(A.obs.x, 2)
     copy!(A.s, A.a)
     add_ridge!(o, A)
@@ -41,8 +41,8 @@ function fit!{P<:Sweepable}(o::SparseReg{LinearRegression, P}, A::Sweep)
 end
 
 
-function add_ridge!{L}(o::SparseReg{L, NoPenalty}, A) end
-function add_ridge!{L}(o::SparseReg{L, L2Penalty}, A)
+function add_ridge!{S,L}(o::SparseReg{S, L, NoPenalty}, A) end
+function add_ridge!{S,L}(o::SparseReg{S, L, L2Penalty}, A)
     for i in 1:size(A.obs.x, 2)
         A.s[i, i] += o.λ * o.factor[i]
     end

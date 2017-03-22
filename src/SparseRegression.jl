@@ -49,7 +49,7 @@ include("sparsereg.jl")
 include("printing.jl")
 
 include("algorithms/proxgrad.jl")
-# include("algorithms/sweep.jl")
+include("algorithms/sweep.jl")
 # include("solutionpath.jl")
 
 #----------------------------------------------------------------------# FittedModel

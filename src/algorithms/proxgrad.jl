@@ -26,7 +26,7 @@ end
 # TODOs:
 # - Estimate Lipschitz constant for step size?
 # - FISTA acceleration?
-function fit!(o::SparseReg)
+function fit!(o::SparseReg{<:ProxGrad})
     A = o.algorithm
     n, p = size(A.obs.x)
     p == length(o.β) || throw(ArgumentError("x dimension does not match β"))
