@@ -12,7 +12,7 @@ immutable ProxGrad{O <: Obs} <: OfflineAlgorithm
     obs::O
 end
 function Base.show(io::IO, alg::ProxGrad)
-    header(io, name(alg))
+    header(io, "ProxGrad")
     print_items(io, alg, [:maxit, :tol, :verbose, :step])
     println(io)
     show(io, alg.obs)

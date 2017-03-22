@@ -14,7 +14,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
 end
 
 export
-    SparseReg, Obs, SolutionPath, classify, coef,
+    SparseReg, Obs, SolutionPath, classify, coef, fitmodel,
     # algorithms
     ProxGrad, Sweep, SGD,
     # Model typealiases
@@ -46,13 +46,22 @@ abstract type OnlineAlgorithm    <: Algorithm end
 #-------------------------------------------------------------------------------# includes
 include("obs.jl")
 include("sparsereg.jl")
-include("fittedmodel.jl")
 include("printing.jl")
 
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
 # include("solutionpath.jl")
-# include("algorithms/sgdlike.jl")
+
+#----------------------------------------------------------------------# FittedModel
+immutable FittedModel{S <: SparseReg, A <: Algorithm}
+    model::S
+    algorithm::A
+end
+function Base.show(io::IO, o::FittedModel)
+    print_with_color(:light_cyan, io, "■■■■ FittedModel\n")
+    show(io, o.model); println(io)
+    show(io, o.algorithm)
+end
 
 function fitmodel(A::Algorithm, args...)
     n, p = size(A.obs.x)
