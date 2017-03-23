@@ -65,7 +65,10 @@ Coefficients(p::Int, λ::VecF) = Coefficients(zeros(p, length(λ)), λ)
 function Base.show(io::IO, o::Coefficients)
     header(io, name(o))
     for (i, λ) in enumerate(o.λ)
-        print_item(io, "β$i($(round(λ, 2)))", o.β[:, i]')
+        print(io, @sprintf("%4s", "$i:"))
+        print(io, @sprintf("%12s", "β($(round(λ,3))) = "))
+        show(io, o.β[:, i]')
+        println(io)
     end
 end
 

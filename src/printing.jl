@@ -11,7 +11,7 @@ function header(io, s, ln::Bool = true)
     ln && println(io)
 end
 function print_item(io::IO, name::AbstractString, value, newline = true)
-    print(io, "  >" * @sprintf("%13s", name * ":  "))
+    print(io, "  >" * @sprintf("%15s", name * ":  "))
     print(io, value)
     newline && println(io)
 end
