@@ -51,37 +51,22 @@ function showmodel(io::IO, o::AbstractSparseReg)
 end
 coef(o::AbstractSparseReg) = o.θ
 coef(o::AbstractSparseReg, i) = @view o.θ.β[:, i]
+nparams(o::AbstractSparseReg) = size(o.θ.β, 1)
 
-#-------------------------------------------------------------------------------# Coefficients
-immutable Coefficients
-    β::MatF
-    λ::VecF
-    function Coefficients(β::MatF, λ)
-        size(β, 2) == length(λ) || throw(DimensionMismatch())
-        new(β, λ)
-    end
-end
-Coefficients(p::Int, λ::VecF) = Coefficients(zeros(p, length(λ)), λ)
-function Base.show(io::IO, o::Coefficients)
-    header(io, name(o))
-    for (i, λ) in enumerate(o.λ)
-        print(io, @sprintf("%4s", "$i:"))
-        print(io, @sprintf("%12s", "β($(round(λ,3))) = "))
-        show(io, o.β[:, i]')
-        println(io)
-    end
-end
+
+#---------------------------------------------------------------------------# random helpers
+defaultλ() = collect(linspace(0, 1, 10))
 
 #-------------------------------------------------------------------------------# includes
-include("obs.jl")
+include("obs_coefs.jl")
+
 include("printing.jl")
 include("algorithms/proxgrad.jl")
-
-# include("algorithms/sweep.jl")
-# include("solutionpath.jl")
+include("algorithms/sweep.jl")
 
 
-
+#-------------------------------------------------------------------------------# fit
+fit(::Type{ProximalGradientModel}, args...; kw...) = ProximalGradientModel(Obs(args...); kw...)
 
 
 

@@ -3,6 +3,7 @@ immutable ProximalGradientModel{
         P <: ConvexElementPenalty,
         O <: Obs
     } <: AbstractSparseReg
+    # AbstractSparseReg
     θ::Coefficients
     loss::L
     penalty::P
@@ -20,7 +21,7 @@ immutable ProximalGradientModel{
     deriv_vec::VecF
 end
 function ProximalGradientModel(obs::Obs;
-        λ::VecF = collect(0:.01:.1),
+        λ::VecF = defaultλ(),
         loss::Loss = LinearRegression(),
         penalty::Penalty = NoPenalty(),
         factor::VecF = ones(size(obs.x, 2)),
@@ -30,7 +31,7 @@ function ProximalGradientModel(obs::Obs;
         step::Float64 = 1.0,
     )
     n, p = size(obs)
-    c = Coefficients(p, λ)
+    c = Coefficients(obs, λ)
     o = ProximalGradientModel(c, loss, penalty, factor, obs, maxit, tol, verbose, step,
                               zeros(p), zeros(n), zeros(n))
     fit!(o)
