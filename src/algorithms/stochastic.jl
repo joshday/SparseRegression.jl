@@ -68,7 +68,9 @@ function fit!(o::StochasticModel, obs::Obs)
         ηγ = o.η * γ
         for (k, λ) in enumerate(o.θ.λ)
             for j in 1:nparams(o)
-                updateβj!(o, γ, ηγ, xi, yi, j, k, λ)
+                # updateβj!(o, γ, ηγ, xi, yi, j, k, λ * o.factor[j])
+                gx = o.g[k] * xi[j]
+                updateβj!(o, j, k, γ, ηγ, gx, λ * o.factor[j])
             end
         end
     end
@@ -85,9 +87,8 @@ end
 "Stochastic Gradient Descent"
 immutable SGD <: StochasticUpdater end
 init(o::SGD, p, d) = o
-function updateβj!(o::StochasticModel{SGD}, γ, ηγ, xi, yi, j, k, λ)
-    λj = λ * o.factor[j]
-    o.θ.β[j, k] -= ηγ * (o.g[k] * xi[j] + λj * deriv(o.penalty, o.θ.β[j, k]))
+function updateβj!(o::StochasticModel{SGD}, j, k, γ, ηγ, gx, λj)
+    o.θ.β[j, k] -= ηγ * (gx + λj * deriv(o.penalty, o.θ.β[j, k]))
 end
 
 #----------------------------------------------------------------------------------# Momentum
@@ -98,34 +99,36 @@ immutable Momentum <: StochasticUpdater
 end
 Momentum(α = .1) = Momentum(α, zeros(0, 0))
 init(o::Momentum, p, d) = Momentum(o.α, fill(ϵ, p, d))
-function updateβj!(o::StochasticModel{Momentum}, γ, ηγ, xi, yi, j, k, λ)
+function updateβj!(o::StochasticModel{Momentum}, j, k, γ, ηγ, gx, λj)
     U = o.updater
-    ∇ = o.g[k] * xi[j] + λ * o.factor[j] * deriv(o.penalty, o.θ.β[j, k])
-    U.H[j, k] = OnlineStats.smooth(U.H[j, k], ∇, U.α)
-    o.θ.β[j, k] -= ηγ * U.H[j, k]
+    @inbounds ∇ = gx + λj * deriv(o.penalty, o.θ.β[j, k])
+    @inbounds U.H[j, k] = OnlineStats.smooth(U.H[j, k], ∇, U.α)
+    @inbounds o.θ.β[j, k] -= ηγ * U.H[j, k]
 end
 
 
-#---------------------------------------------------------------------------------# FOBOS
-"Stochastic Proximal Gradient"
-immutable SPG <: StochasticUpdater end
-init(o::SPG, p, d) = o
-function updateβj!(o::StochasticModel{SPG}, γ, ηγ, xi, yi, j, k, λ)
-    λj = λ * o.factor[j]
-    gx = o.g[k] * xi[j]
-    o.θ.β[j, k] = prox(o.penalty, o.θ.β[j,k] - ηγ * gx, ηγ * λj)
+#---------------------------------------------------------------------------------# SPGD
+"Stochastic Proximal Gradient Descent"
+immutable SPGD <: StochasticUpdater end
+init(o::SPGD, p, d) = o
+function updateβj!(o::StochasticModel{SPGD}, j, k, γ, ηγ, gx, λj)
+    @inbounds o.θ.β[j, k] = prox(o.penalty, o.θ.β[j,k] - ηγ * gx, ηγ * λj)
 end
 
-# "Proximal Stochastic Gradient Descent"
-# immutable FOBOS{W <: Weight} <: SGDLike
-#     weight::W
-#     η::Float64
-# end
-# FOBOS(wt::Weight = LearningRate(), η::Number = 1.0) = FOBOS(wt, η)
-# init(alg::FOBOS, n, p) = alg
-# updateβj(A::FOBOS, γ, ηγ, gx, βj, P, j, s) = prox(P, βj - ηγ * gx, ηγ * s)
-#
-# #-------------------------------------------------------------------------------# ADAGRAD
+#-------------------------------------------------------------------------------# ADAGRAD
+"Adaptive Gradient"
+immutable ADAGRAD <: StochasticUpdater
+    H::MatF
+end
+ADAGRAD() = ADAGRAD(zeros(0, 0))
+init(o::ADAGRAD, p, d) = ADAGRAD(fill(ϵ, p, d))
+function updateβj!(o::StochasticModel{ADAGRAD}, j, k, γ, ηγ, gx, λj)
+    U = o.updater
+    @inbounds U.H[j, k] = OnlineStats.smooth(U.H[j, k], gx * gx, γ)
+    @inbounds s = ηγ * inv(sqrt(U.H[j, k]) + ϵ)
+    @inbounds o.θ.β[j, k] = prox(o.penalty, o.θ.β[j, k] - s * gx, s * λj)
+end
+
 # "ADAGRAD"
 # type ADAGRAD{W <: Weight} <: SGDLike
 #     weight::W
