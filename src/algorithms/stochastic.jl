@@ -129,20 +129,6 @@ function updateβj!(o::StochasticModel{ADAGRAD}, j, k, γ, ηγ, gx, λj)
     @inbounds o.θ.β[j, k] = prox(o.penalty, o.θ.β[j, k] - s * gx, s * λj)
 end
 
-# "ADAGRAD"
-# type ADAGRAD{W <: Weight} <: SGDLike
-#     weight::W
-#     η::Float64
-#     H::VecF
-# end
-# ADAGRAD(wt::Weight = LearningRate(), η::Number = 1.0) = ADAGRAD(wt, η, zeros(0))
-# init(a::ADAGRAD, n, p) = (a.H = zeros(p); a)
-# function updateβj(A::ADAGRAD, γ, ηγ, gx, βj, P, j, s)
-#     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx * gx, 1 / A.weight.nups)
-#     @inbounds step = ηγ / (sqrt(A.H[j]) + ϵ)
-#     prox(P, βj - step * gx, step * s)
-# end
-#
 # #----------------------------------------------------------------------------------# ADAM
 # "ADAM"
 # type ADAM{W <: Weight} <: SGDLike

@@ -22,7 +22,13 @@ include(Pkg.dir("SparseRegression", "test", "datagenerator.jl"))
 
 x, y, b = DataGenerator.linregdata(10_000, 10)
 
-fit(SweepModel, x, y)
+observations = Obs(x, y)
 
-fit(ProximalGradientModel, x, y, loss = HuberLoss(2.0), penalty = L1Penalty())
+SweepModel(observations; penalty = L2Penalty(), λ = collect(0:.01:.1))
+# fit(SweepModel, observations; penalty = L2Penalty, λ = collect(0:.01:.1))
+
+ProximalGradientModel(observations; loss = HuberLoss(2.0), penalty = L1Penalty())
+# fit(ProximalGradientModel, x, y; loss = HuberLoss(2.0), penalty = L1Penalty())
+
+StochasticModel(observations, ADAGRAD(); loss = L1Regression(), penalty = ElasticNetPenalty(.1))
 ```
