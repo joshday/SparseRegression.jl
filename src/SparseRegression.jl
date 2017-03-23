@@ -15,6 +15,7 @@ end
 
 export
     ProximalGradientModel, SweepModel, Obs, classify, coef,
+    StochasticModel, SGD,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
