@@ -47,16 +47,11 @@ function fit!(o::ProximalGradientModel)
         newL = Inf
         niters = 0
         for _ in 1:o.maxit
-
             update_g!(o)
             update_β!(o, β, λ)
             update_ŷ!(o, β)
-
-            oldL = newL
-            newL = _L(o, β)
-            niters += 1
-
-            converged(o, oldL, newL, niters) && break
+            oldL, newL, niters, isconverged = converged(o, oldL, newL, niters, β)
+            isconverged && break
         end
     end
 end
@@ -69,11 +64,9 @@ function update_ŷ!(o, β)
     A_mul_B!(o.ŷ, o.obs.x, β)
     xβ_to_ŷ!(o.loss, o.ŷ)
 end
-
 predict_from_xβ(l::Loss, xβ::Real) = xβ
 predict_from_xβ(l::LogitMarginLoss, xβ::Real) = 1.0 / (1.0 + exp(-xβ))
 predict_from_xβ(l::PoissonLoss, xβ::Real) = exp(xβ)
-
 xβ_to_ŷ!(l::Loss, xβ::AVec) = xβ;  # no-op if linear predictor == ŷ
 function xβ_to_ŷ!(l::Union{LogitMarginLoss, PoissonLoss}, xβ::AVec)
     for i in eachindex(xβ)
@@ -81,6 +74,7 @@ function xβ_to_ŷ!(l::Union{LogitMarginLoss, PoissonLoss}, xβ::AVec)
     end
     xβ
 end
+
 #--------------------------------------------------------------# update_g!
 function update_g!(o)
     for i in eachindex(o.obs.y)
@@ -96,6 +90,7 @@ function add_weight!(v::VecF, w::AVecF)
         @inbounds v[i] *= w[i]
     end
 end
+
 #--------------------------------------------------------------# update_β!
 function update_β!(o, β, λ)
     s = o.step
@@ -104,8 +99,12 @@ function update_β!(o, β, λ)
         @inbounds β[j] = prox(o.penalty, β[j] - s * o.∇[j], s * λj)
     end
 end
+
 #--------------------------------------------------------------# converged
-function converged(o, oldL, newL, niters)
+function converged(o, oldL, newL, niters, β)
+    oldL = newL
+    newL = _L(o, β)
+    niters += 1
     tolerance = abs(newL - oldL) / min(abs(newL), abs(oldL))
     isconverged = tolerance < o.tol
     isconverged || niters == o.maxit &&
@@ -113,5 +112,5 @@ function converged(o, oldL, newL, niters)
     isconverged ?
         o.verbose && info("CONVERGED: $niters, RelTol = $tolerance") :
         o.verbose && info("Iteration: $niters, RelTol = $tolerance")
-    isconverged
+    oldL, newL, niters, isconverged
 end
