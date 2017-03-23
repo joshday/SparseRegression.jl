@@ -48,14 +48,23 @@ SparseRegression fits models of the form `f(β) +  λ * g(β)` where
 
 Many statistical learning models fit in this form (regularized GLMs, SVMs, etc.)
 
-Types are designed around the abstract type `AbstractSparseReg`.  These types define the algorithm used to fit a model and hold "sufficient statistics"/buffers.  
+#### AbstractSparseReg
+Types are designed around the abstract type `AbstractSparseReg`.  These types define the algorithm used to fit a model and hold "sufficient statistics"/buffers.
 
-  - `ProximalGradientModel`
+  - `ProximalGradientModel(obs::Obs; kw...)`
     - Any Loss
     - Convex penalties: `NoPenalty()`, `L1Penalty()`, `L2Penalty()`, `ElasticNetPenalty(a)`
-  - `SweepModel`
+  - `SweepModel(obs::Obs)`
     - `LinearRegression()`, `L2DistLoss()`
     - `NoPenalty()` or `L2Penalty()`
-  - `StochasticModel`
+  - `StochasticModel(obs::Obs [, updater]; kw...)`
     - Any Loss
     - Convex penalties: : `NoPenalty()`, `L1Penalty()`, `L2Penalty()`, `ElasticNetPenalty(a)`
+    - Possible `updater`s are:
+      - `SGD()`: stochastic gradient descent
+      - `Momentum()`: stochastic gradient descent with momentum
+      - `SPGD()`: stochastic proximal gradient descent
+      - `ADAGRAD()`: Adaptive SPGD
+
+#### Observations
+Observations are held in a type: `Obs(x, y)` (or `Obs(x, y, w)` for weighted observations)
