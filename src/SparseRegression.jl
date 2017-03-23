@@ -14,9 +14,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
 end
 
 export
-    SparseReg, Obs, SolutionPath, classify, coef, fitmodel,
-    # algorithms
-    ProxGrad, Sweep, SGD,
+    ProximalGradientModel, SweepModel, Obs, classify, coef,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
@@ -57,7 +55,7 @@ nparams(o::AbstractSparseReg) = size(o.θ.β, 1)
 #---------------------------------------------------------------------------# random helpers
 defaultλ() = collect(linspace(0, 1, 10))
 defaultloss() = LinearRegression()
-defaultpenalty() = L1Penalty()
+defaultpenalty() = L2Penalty()
 
 #-------------------------------------------------------------------------------# includes
 include("obs_coefs.jl")

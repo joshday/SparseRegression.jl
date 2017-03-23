@@ -1,3 +1,4 @@
+module DataGenerator
 using Distributions; D = Distributions
 
 defaultβ(p) = collect(linspace(-1, 1, p))
@@ -21,4 +22,5 @@ function poissonregdata(n, p, β = defaultβ(p), V = eye(p), μ = zeros(p))
 	x = rand(D.MvNormal(μ, V), n)'
 	y = Float64[rand(D.Poisson(exp(η))) for η in x * β]
 	return x, y, β
+end
 end
