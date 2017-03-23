@@ -1,20 +1,53 @@
-abstract type SGDLike <: OnlineAlgorithm end
+abstract type StochasticUpdater end
 
-# # -----------------------------------------------------------------------------------# fit!
-# function fit!(o::SparseReg, A::SGDLike, obs::Obs)
-#     for i in eachindex(obs.y)
-#         OnlineStats.updatecounter!(A.weight)
-#         xi = @view obs.x[i, :]
-#         yi = obs.y[i]
-#         g = deriv(o.loss, yi, predict_from_xβ(o.loss, dot(xi, o.β)))
-#         γ = OnlineStats.weight(A.weight)
-#         γg = γ * g
-#         for j in eachindex(o.β)
-#             updateβj!(o, A, j, γ, g, γg, xi[j])
-#         end
-#     end
-#     o
-# end
+immutable StochasticModel{
+        U <: StochasticUpdater,
+        L <: Loss,
+        P <: Penalty,
+        W <: Weight
+    } <: AbstractSparseReg
+    # AbstractSparseReg
+    θ::Coefficients
+    loss::L
+    penalty::P
+    factor::VecF
+    # Weighting
+    weight::W
+    η::Float64
+end
+function StochasticModel(p::Integer;
+        λ::VecF = defaultλ(),
+        loss::Loss = defaultloss(),
+        penalty::Penalty = defaultpenalty(),
+        factor::VecF = ones(p),
+        weight::Weight = LearningRate(),
+        η::Float64 = 1.0
+    )
+    StochasticModel()
+end
+# -----------------------------------------------------------------------------------# fit!
+function fit!(o::StochasticModel, x::AMat, y::AVec)
+
+
+    # for i in eachindex(obs.y)
+    #     OnlineStats.updatecounter!(A.weight)
+    #     xi = @view obs.x[i, :]
+    #     yi = obs.y[i]
+    #     g = deriv(o.loss, yi, predict_from_xβ(o.loss, dot(xi, o.β)))
+    #     γ = OnlineStats.weight(A.weight)
+    #     γg = γ * g
+    #     for j in eachindex(o.β)
+    #         updateβj!(o, A, j, γ, g, γg, xi[j])
+    #     end
+    # end
+    # o
+end
+
+
+immutable SGD <: StochasticUpdater end
+
+
+
 #
 # # -----------------------------------------------------------------------------------# SGD
 # """

@@ -53,15 +53,16 @@ nparams(o::AbstractSparseReg) = size(o.θ.β, 1)
 
 
 #---------------------------------------------------------------------------# random helpers
-defaultλ() = collect(linspace(0, 1, 10))
-defaultloss() = LinearRegression()
-defaultpenalty() = L2Penalty()
+defaultλ()          =  collect(linspace(0, 1, 10))
+defaultloss()       = LinearRegression()
+defaultpenalty()    = L2Penalty()
 
 #-------------------------------------------------------------------------------# includes
 include("obs_coefs.jl")
 include("printing.jl")
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
+include("algorithms/stochastic.jl")
 
 
 #-------------------------------------------------------------------------------# fit

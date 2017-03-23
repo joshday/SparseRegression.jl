@@ -38,7 +38,8 @@ immutable Coefficients
         new(β, λ)
     end
 end
-Coefficients(o::Obs, λ::VecF) = Coefficients(zeros(size(o.x, 2), length(λ)), λ)
+Coefficients(o::Obs, λ::VecF) = Coefficients(size(o.x, 2), λ)
+Coefficients(p::Int, λ::VecF) = Coefficients(zeros(p, length(λ)), λ)
 function Base.show(io::IO, o::Coefficients)
     header(io, name(o))
     for (i, λ) in enumerate(o.λ)
