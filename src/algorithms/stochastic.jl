@@ -41,7 +41,7 @@ function StochasticModel(obs::Obs, updater = SGD(); kw...)
 end
 function Base.show(io::IO, o::StochasticModel)
     showmodel(io, o)
-    header(io, "Learning Rate")
+    header(io, "Update Specification")
     print_item(io, "weight", o.weight)
     print_item(io, "η", o.η)
     print_item(io, "updater", o.updater)
@@ -82,6 +82,7 @@ function update_g!(o::StochasticModel, xi, yi)
 end
 
 # -----------------------------------------------------------------------------------# SGD
+"Stochastic Gradient Descent"
 immutable SGD <: StochasticUpdater end
 init(o::SGD, p, d) = o
 function updateβj!(o::StochasticModel{SGD}, γ, ηγ, xi, yi, j, k, λ)
@@ -90,6 +91,7 @@ function updateβj!(o::StochasticModel{SGD}, γ, ηγ, xi, yi, j, k, λ)
 end
 
 #----------------------------------------------------------------------------------# Momentum
+"Stochastic Gradient Descent with Momentum"
 immutable Momentum <: StochasticUpdater
     α::Float64
     H::MatF
@@ -104,20 +106,16 @@ function updateβj!(o::StochasticModel{Momentum}, γ, ηγ, xi, yi, j, k, λ)
 end
 
 
-# ------------------------------------------------------------------------------# Momentum
-# "SGD with Momentum"
-# immutable Momentum <: SGDLike
-#     α::Float64
-#     H::VecF
-# end
-# Momentum(p::Integer, α = .1) = Momentum(α, zeros(p))
-# init(a::Momentum, n, p) = Momentum(a.weight, a.η, a.α, zeros(p))
-# function updateβj(A::Momentum, γ, ηγ, gx, βj, P, j, s)
-#     @inbounds A.H[j] = OnlineStats.smooth(A.H[j], gx, A.α)
-#     prox(P, βj - ηγ * A.H[j], ηγ * s)
-# end
-#
-# #---------------------------------------------------------------------------------# FOBOS
+#---------------------------------------------------------------------------------# FOBOS
+"Stochastic Proximal Gradient"
+immutable SPG <: StochasticUpdater end
+init(o::SPG, p, d) = o
+function updateβj!(o::StochasticModel{SPG}, γ, ηγ, xi, yi, j, k, λ)
+    λj = λ * o.factor[j]
+    gx = o.g[k] * xi[j]
+    o.θ.β[j, k] = prox(o.penalty, o.θ.β[j,k] - ηγ * gx, ηγ * λj)
+end
+
 # "Proximal Stochastic Gradient Descent"
 # immutable FOBOS{W <: Weight} <: SGDLike
 #     weight::W
