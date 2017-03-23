@@ -21,14 +21,14 @@ immutable ProximalGradientModel{
     deriv_vec::VecF
 end
 function ProximalGradientModel(obs::Obs;
-        λ::VecF = defaultλ(),
-        loss::Loss = LinearRegression(),
-        penalty::Penalty = NoPenalty(),
-        factor::VecF = ones(size(obs.x, 2)),
-        maxit::Int = 100,
-        tol::Float64 = 1e-6,
-        verbose::Bool = false,
-        step::Float64 = 1.0,
+        λ::VecF             = defaultλ(),
+        loss::Loss          = defaultloss(),
+        penalty::Penalty    = defaultpenalty(),
+        factor::VecF        = ones(size(obs.x, 2)),
+        maxit::Int          = 100,
+        tol::Float64        = 1e-6,
+        verbose::Bool       = false,
+        step::Float64       = 1.0,
     )
     n, p = size(obs)
     c = Coefficients(obs, λ)

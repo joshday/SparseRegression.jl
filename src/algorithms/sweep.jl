@@ -13,8 +13,12 @@ immutable SweepModel{L <: SweepLoss, P <: SweepPenalty, O <: Obs} <: AbstractSpa
     a::MatF   # [x y]'[x y]
     s::MatF   # sweep!(a, 1:p)
 end
-function SweepModel(obs::Obs; λ::VecF = defaultλ(), loss::SweepLoss = LinearRegression(),
-        penalty::SweepPenalty = NoPenalty(), factor::VecF = ones(size(obs.x, 2)))
+function SweepModel(obs::Obs;
+        λ::VecF                 = defaultλ(),
+        loss::SweepLoss         = defaultloss(),
+        penalty::SweepPenalty   = defaultpenalty(),
+        factor::VecF            = ones(size(obs.x, 2))
+    )
     c = Coefficients(obs, λ)
     a = make_a(obs)
     o = SweepModel(c, loss, penalty, factor, obs, a, copy(a))

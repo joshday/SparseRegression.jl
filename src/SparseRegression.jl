@@ -56,17 +56,21 @@ nparams(o::AbstractSparseReg) = size(o.θ.β, 1)
 
 #---------------------------------------------------------------------------# random helpers
 defaultλ() = collect(linspace(0, 1, 10))
+defaultloss() = LinearRegression()
+defaultpenalty() = L1Penalty()
 
 #-------------------------------------------------------------------------------# includes
 include("obs_coefs.jl")
-
 include("printing.jl")
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
 
 
 #-------------------------------------------------------------------------------# fit
-fit(::Type{ProximalGradientModel}, args...; kw...) = ProximalGradientModel(Obs(args...); kw...)
+for m in [:ProximalGradientModel, :SweepModel]
+    @eval fit(::Type{$(m)}, args...; kw...) = $(m)(Obs(args...); kw...)
+end
+
 
 
 
