@@ -16,16 +16,28 @@ immutable StochasticModel{
     weight::W
     η::Float64
     updater::U
+    # Buffer
+    xβ::VecF
+    g::VecF
 end
-function StochasticModel(updater::StochasticUpdater;
+function StochasticModel(p::Integer, updater::StochasticUpdater = SGD();
         λ::VecF = defaultλ(),
         loss::Loss = defaultloss(),
         penalty::Penalty = defaultpenalty(),
-        factor::VecF = ones(updater.p),
+        factor::VecF = ones(p),
         weight::Weight = LearningRate(),
-        η::Float64 = 1.0
-    )
-    StochasticModel(Coefficients(updater.p, λ), loss, penalty, factor, weight, η, updater)
+        η::Float64 = 1.0)
+    d = length(λ)
+    c = Coefficients(p, λ)
+    u = init(updater, p , d)
+    o = StochasticModel(c, loss, penalty, factor, weight, η, u, zeros(d), zeros(d))
+    init!(o)  # Inialize βs to something nonzero
+    o
+end
+function StochasticModel(obs::Obs, updater = SGD(); kw...)
+    o = StochasticModel(nparams(obs), updater; kw...)
+    fit!(o, obs)
+    o
 end
 function Base.show(io::IO, o::StochasticModel)
     showmodel(io, o)
@@ -35,50 +47,62 @@ function Base.show(io::IO, o::StochasticModel)
     print_item(io, "updater", o.updater)
 end
 
+function init!(o::StochasticModel)
+    for i in eachindex(o.θ.β)
+        @inbounds o.θ.β[i] = randn()
+    end
+end
+
 # -----------------------------------------------------------------------------------# fit!
 fit!(o::StochasticModel, args...) = fit!(o, Obs(args...))
 
 function fit!(o::StochasticModel, obs::Obs)
-    for (k, λ) in enumerate(o.θ.λ)
-        β = @view o.θ.β[:, k]
-        for i in eachindex(obs.y)
-            OnlineStats.updatecounter!(o.weight)
-            xi = @view obs.x[i, :]
-            yi = obs.y[i]
-            g = deriv(o.loss, yi, predict_from_xβ(o.loss, dot(xi, β)))
-            g = weight_g(g, obs, i)
-            γ = OnlineStats.weight(o.weight)
-            for j in eachindex(β)
-                updateβj!(o, γ, g, β, xi, yi, j, λ)
+    for i in eachindex(obs.y)
+        OnlineStats.updatecounter!(o.weight)
+        xi = @view obs.x[i, :]
+        yi = obs.y[i]
+        At_mul_B!(o.xβ, o.θ.β, xi)
+        update_g!(o, xi, yi)
+        !isa(obs, Obs{Ones}) && scale!(o.g, obs.w[i])
+        γ = OnlineStats.weight(o.weight)
+        ηγ = o.η * γ
+        for (k, λ) in enumerate(o.θ.λ)
+            for j in 1:nparams(o)
+                updateβj!(o, γ, ηγ, xi, yi, j, k, λ)
             end
         end
     end
     o
 end
-weight_g(g, obs::Obs{Ones}, i) = g
-weight_g(g, obs::Obs, i) = g * obs.w[i]
 
-
-
-immutable SGD <: StochasticUpdater p::Int end
-function updateβj!(o::StochasticModel{SGD}, γ, g, β, xi, yi, j, λ)
-    β[j] -= o.η * γ * (g * xi[j] + λ * o.factor[j] * deriv(o.penalty, β[j]))
+function update_g!(o::StochasticModel, xi, yi)
+    for k in eachindex(o.g)
+        o.g[k] = deriv(o.loss, yi, predict_from_xβ(o.loss, o.xβ[k]))
+    end
 end
 
+# -----------------------------------------------------------------------------------# SGD
+immutable SGD <: StochasticUpdater end
+init(o::SGD, p, d) = o
+function updateβj!(o::StochasticModel{SGD}, γ, ηγ, xi, yi, j, k, λ)
+    λj = λ * o.factor[j]
+    o.θ.β[j, k] -= ηγ * (o.g[k] * xi[j] + λj * deriv(o.penalty, o.θ.β[j, k]))
+end
 
-#
-# # -----------------------------------------------------------------------------------# SGD
-# """
-# Stochastic Gradient Descent
-#     SGD(wt::W, η = 1.0) where W <: Weight
-# """
-# immutable SGD{W <: Weight} <: SGDLike
-#     η::Float64
-#     weight::W
-# end
-#
-# function updateβj!(o, A::SGrad{SGD}, j, )
-# end
+#----------------------------------------------------------------------------------# Momentum
+immutable Momentum <: StochasticUpdater
+    α::Float64
+    H::MatF
+end
+Momentum(α = .1) = Momentum(α, zeros(0, 0))
+init(o::Momentum, p, d) = Momentum(o.α, fill(ϵ, p, d))
+function updateβj!(o::StochasticModel{Momentum}, γ, ηγ, xi, yi, j, k, λ)
+    U = o.updater
+    ∇ = o.g[k] * xi[j] + λ * o.factor[j] * deriv(o.penalty, o.θ.β[j, k])
+    U.H[j, k] = OnlineStats.smooth(U.H[j, k], ∇, U.α)
+    o.θ.β[j, k] -= ηγ * U.H[j, k]
+end
+
 
 # ------------------------------------------------------------------------------# Momentum
 # "SGD with Momentum"

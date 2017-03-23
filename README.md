@@ -25,4 +25,4 @@ x, y, b = DataGenerator.linregdata(10_000, 10)
 fit(SweepModel, x, y)
 
 fit(ProximalGradientModel, x, y, loss = HuberLoss(2.0), penalty = L1Penalty())
-``
+```

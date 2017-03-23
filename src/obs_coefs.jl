@@ -7,6 +7,13 @@ Base.getindex(o::Ones, i::Integer) = 1.
 Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 
 #----------------------------------------------------------------------#  Obs
+"""
+    Obs(x, y)
+    Obs(x, y, w)
+
+The Observations for a SparseRegression model with optional user-defined weights.
+Observations are in rows.
+"""
 immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
     w::W
     x::X
@@ -27,6 +34,7 @@ function Base.show(io::IO, o::Obs)
 end
 
 nobs(o::Obs) = length(o.y)
+nparams(o::Obs) = size(o.x, 2)
 Base.size(o::Obs) = size(o.x)
 
 #-------------------------------------------------------------------------------# Coefficients

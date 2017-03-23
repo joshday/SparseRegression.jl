@@ -58,6 +58,8 @@ defaultλ()          =  collect(linspace(0, 1, 10))
 defaultloss()       = LinearRegression()
 defaultpenalty()    = L2Penalty()
 
+ϵ = 1e-5
+
 #-------------------------------------------------------------------------------# includes
 include("obs_coefs.jl")
 include("printing.jl")
