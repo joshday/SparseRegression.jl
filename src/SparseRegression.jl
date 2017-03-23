@@ -47,7 +47,7 @@ function showmodel(io::IO, o::AbstractSparseReg)
     header(io, "Model Specification")
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
-    print_item(io, "λ factor", o.factor)
+    print_item(io, "λ factor", o.factor')
 end
 coef(o::AbstractSparseReg) = o.θ
 coef(o::AbstractSparseReg, i) = @view o.θ.β[:, i]
@@ -65,7 +65,7 @@ Coefficients(p::Int, λ::VecF) = Coefficients(zeros(p, length(λ)), λ)
 function Base.show(io::IO, o::Coefficients)
     header(io, name(o))
     for (i, λ) in enumerate(o.λ)
-        print_item(io, "β$i($(round(λ, 2)))", o.β[:, i])
+        print_item(io, "β$i($(round(λ, 2)))", o.β[:, i]')
     end
 end
 
