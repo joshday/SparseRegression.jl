@@ -1,4 +1,5 @@
 abstract type StochasticUpdater end
+Base.show(io::IO, o::StochasticUpdater) = print(io, name(o))
 
 immutable StochasticModel{
         U <: StochasticUpdater,
@@ -14,38 +15,55 @@ immutable StochasticModel{
     # Weighting
     weight::W
     η::Float64
+    updater::U
 end
-function StochasticModel(p::Integer;
+function StochasticModel(updater::StochasticUpdater;
         λ::VecF = defaultλ(),
         loss::Loss = defaultloss(),
         penalty::Penalty = defaultpenalty(),
-        factor::VecF = ones(p),
+        factor::VecF = ones(updater.p),
         weight::Weight = LearningRate(),
         η::Float64 = 1.0
     )
-    StochasticModel()
+    StochasticModel(Coefficients(updater.p, λ), loss, penalty, factor, weight, η, updater)
 end
+function Base.show(io::IO, o::StochasticModel)
+    showmodel(io, o)
+    header(io, "Learning Rate")
+    print_item(io, "weight", o.weight)
+    print_item(io, "η", o.η)
+    print_item(io, "updater", o.updater)
+end
+
 # -----------------------------------------------------------------------------------# fit!
-function fit!(o::StochasticModel, x::AMat, y::AVec)
+fit!(o::StochasticModel, args...) = fit!(o, Obs(args...))
 
-
-    # for i in eachindex(obs.y)
-    #     OnlineStats.updatecounter!(A.weight)
-    #     xi = @view obs.x[i, :]
-    #     yi = obs.y[i]
-    #     g = deriv(o.loss, yi, predict_from_xβ(o.loss, dot(xi, o.β)))
-    #     γ = OnlineStats.weight(A.weight)
-    #     γg = γ * g
-    #     for j in eachindex(o.β)
-    #         updateβj!(o, A, j, γ, g, γg, xi[j])
-    #     end
-    # end
-    # o
+function fit!(o::StochasticModel, obs::Obs)
+    for (k, λ) in enumerate(o.θ.λ)
+        β = @view o.θ.β[:, k]
+        for i in eachindex(obs.y)
+            OnlineStats.updatecounter!(o.weight)
+            xi = @view obs.x[i, :]
+            yi = obs.y[i]
+            g = deriv(o.loss, yi, predict_from_xβ(o.loss, dot(xi, β)))
+            g = weight_g(g, obs, i)
+            γ = OnlineStats.weight(o.weight)
+            for j in eachindex(β)
+                updateβj!(o, γ, g, β, xi, yi, j, λ)
+            end
+        end
+    end
+    o
 end
+weight_g(g, obs::Obs{Ones}, i) = g
+weight_g(g, obs::Obs, i) = g * obs.w[i]
 
 
-immutable SGD <: StochasticUpdater end
 
+immutable SGD <: StochasticUpdater p::Int end
+function updateβj!(o::StochasticModel{SGD}, γ, g, β, xi, yi, j, λ)
+    β[j] -= o.η * γ * (g * xi[j] + λ * o.factor[j] * deriv(o.penalty, β[j]))
+end
 
 
 #
