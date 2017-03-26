@@ -1,4 +1,4 @@
-immutable ProximalGradientModel{
+struct ProximalGradientModel{
         L <: Loss,
         P <: ConvexElementPenalty,
         O <: Obs

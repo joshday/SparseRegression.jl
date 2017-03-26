@@ -1,7 +1,7 @@
 SweepLoss = Union{LinearRegression, L2DistLoss}
 SweepPenalty = Union{NoPenalty, L2Penalty}
 
-immutable SweepModel{L <: SweepLoss, P <: SweepPenalty, O <: Obs} <: AbstractSparseReg
+struct SweepModel{L <: SweepLoss, P <: SweepPenalty, O <: Obs} <: AbstractSparseReg
     # AbstractSparseReg
     θ::Coefficients
     loss::L

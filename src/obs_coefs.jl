@@ -1,6 +1,6 @@
 #----------------------------------------------------------------------#  Ones
 # constant vector of ones
-immutable Ones <: AVecF n::Int end
+struct Ones <: AVecF n::Int end
 Ones(y::AVec) = Ones(length(y))
 Base.size(o::Ones) = (o.n, )
 Base.getindex(o::Ones, i::Integer) = 1.
@@ -14,7 +14,7 @@ Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
 The Observations for a SparseRegression model with optional user-defined weights.
 Observations are in rows.
 """
-immutable Obs{W <: AVec, X <: AMat, Y <: AVec}
+struct Obs{W <: AVec, X <: AMat, Y <: AVec}
     w::W
     x::X
     y::Y
@@ -38,7 +38,7 @@ nparams(o::Obs) = size(o.x, 2)
 Base.size(o::Obs) = size(o.x)
 
 #-------------------------------------------------------------------------------# Coefficients
-immutable Coefficients
+struct Coefficients
     β::MatF
     λ::VecF
     function Coefficients(β::MatF, λ)

@@ -1,7 +1,7 @@
 abstract type StochasticUpdater end
 Base.show(io::IO, o::StochasticUpdater) = print(io, name(o))
 
-immutable StochasticModel{
+mutable struct StochasticModel{
         U <: StochasticUpdater,
         L <: Loss,
         P <: Penalty,
@@ -13,6 +13,8 @@ immutable StochasticModel{
     penalty::P
     factor::VecF
     # Weighting
+    nobs::Int
+    nups::Int
     weight::W
     η::Float64
     updater::U
@@ -30,7 +32,7 @@ function StochasticModel(p::Integer, updater::StochasticUpdater = SGD();
     d = length(λ)
     c = Coefficients(p, λ)
     u = init(updater, p , d)
-    o = StochasticModel(c, loss, penalty, factor, weight, η, u, zeros(d), zeros(d))
+    o = StochasticModel(c, loss, penalty, factor, 0, 0, weight, η, u, zeros(d), zeros(d))
     init!(o)  # Inialize βs to something nonzero
     o
 end
@@ -53,18 +55,20 @@ function init!(o::StochasticModel)
     end
 end
 
+updatecounter!(o::StochasticModel, n2::Int = 1) = (o.nups += 1; o.nobs += n2)
+
 # -----------------------------------------------------------------------------------# fit!
 fit!(o::StochasticModel, args...) = fit!(o, Obs(args...))
 
 function fit!(o::StochasticModel, obs::Obs)
     for i in eachindex(obs.y)
-        OnlineStats.updatecounter!(o.weight)
+        updatecounter!(o)
         xi = @view obs.x[i, :]
         yi = obs.y[i]
         At_mul_B!(o.xβ, o.θ.β, xi)
         update_g!(o, xi, yi)
         !isa(obs, Obs{Ones}) && scale!(o.g, obs.w[i])
-        γ = OnlineStats.weight(o.weight)
+        γ = OnlineStats.weight(o.weight, o.nobs, 1, o.nups)
         ηγ = o.η * γ
         for (k, λ) in enumerate(o.θ.λ)
             for j in 1:nparams(o)
@@ -85,7 +89,7 @@ end
 
 # -----------------------------------------------------------------------------------# SGD
 "Stochastic Gradient Descent"
-immutable SGD <: StochasticUpdater end
+struct SGD <: StochasticUpdater end
 init(o::SGD, p, d) = o
 function updateβj!(o::StochasticModel{SGD}, j, k, γ, ηγ, gx, λj)
     o.θ.β[j, k] -= ηγ * (gx + λj * deriv(o.penalty, o.θ.β[j, k]))
@@ -93,7 +97,7 @@ end
 
 #----------------------------------------------------------------------------------# Momentum
 "Stochastic Gradient Descent with Momentum"
-immutable Momentum <: StochasticUpdater
+struct Momentum <: StochasticUpdater
     α::Float64
     H::MatF
 end
@@ -109,7 +113,7 @@ end
 
 #---------------------------------------------------------------------------------# SPGD
 "Stochastic Proximal Gradient Descent"
-immutable SPGD <: StochasticUpdater end
+struct SPGD <: StochasticUpdater end
 init(o::SPGD, p, d) = o
 function updateβj!(o::StochasticModel{SPGD}, j, k, γ, ηγ, gx, λj)
     @inbounds o.θ.β[j, k] = prox(o.penalty, o.θ.β[j,k] - ηγ * gx, ηγ * λj)
@@ -117,7 +121,7 @@ end
 
 #-------------------------------------------------------------------------------# ADAGRAD
 "Adaptive Gradient"
-immutable ADAGRAD <: StochasticUpdater
+struct ADAGRAD <: StochasticUpdater
     H::MatF
 end
 ADAGRAD() = ADAGRAD(zeros(0, 0))
