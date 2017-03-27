@@ -10,6 +10,7 @@ Note: SparseRegression requires Julia 0.6
 Pkg.clone("https://github.com/JuliaML/PenaltyFunctions.jl")
 Pkg.clone("https://github.com/joshday/SparseRegression.jl")
 Pkg.checkout("LossFunctions")
+Pkg.checkout("OnlineStats", "redesign")
 ```
 
 # Example
