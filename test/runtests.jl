@@ -8,7 +8,7 @@ losses = [LinearRegression(), L1Regression(), LogisticRegression(), PoissonRegre
 penalties = [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty(.5), LogPenalty(),
           SCADPenalty(), MCPPenalty()]
 
-#------------------------------------------------------------# 
+#------------------------------------------------------------#
 println("\n")
 info("Fitting Every Loss for ProximalGradientModel/StochasticModel")
 n, p = 1000, 5
