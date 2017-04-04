@@ -13,8 +13,6 @@ mutable struct StochasticModel{
     penalty::P
     factor::VecF
     # Weighting
-    nobs::Int
-    nups::Int
     weight::W
     η::Float64
     updater::U
@@ -32,7 +30,7 @@ function StochasticModel(p::Integer, updater::StochasticUpdater = SGD();
     d = length(λ)
     c = Coefficients(p, λ)
     u = init(updater, p , d)
-    o = StochasticModel(c, loss, penalty, factor, 0, 0, weight, η, u, zeros(d), zeros(d))
+    o = StochasticModel(c, loss, penalty, factor, weight, η, u, zeros(d), zeros(d))
     init!(o)  # Inialize βs to something nonzero
     o
 end
@@ -55,7 +53,8 @@ function init!(o::StochasticModel)
     end
 end
 
-updatecounter!(o::StochasticModel, n2::Int = 1) = (o.nups += 1; o.nobs += n2)
+updatecounter!(o::StochasticModel, n2::Int = 1) = OnlineStats.updatecounter!(o.weight, n2)
+weight(o::StochasticModel, n2::Int = 1) = OnlineStats.weight(o.weight, n2)
 
 # -----------------------------------------------------------------------------------# fit!
 fit!(o::StochasticModel, args...) = fit!(o, Obs(args...))
@@ -68,7 +67,7 @@ function fit!(o::StochasticModel, obs::Obs)
         At_mul_B!(o.xβ, o.θ.β, xi)
         update_g!(o, xi, yi)
         !isa(obs, Obs{Ones}) && scale!(o.g, obs.w[i])
-        γ = OnlineStats.weight(o.weight, o.nobs, 1, o.nups)
+        γ = weight(o)
         ηγ = o.η * γ
         for (k, λ) in enumerate(o.θ.λ)
             for j in 1:nparams(o)
