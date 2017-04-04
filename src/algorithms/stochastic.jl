@@ -82,7 +82,7 @@ end
 
 function update_g!(o::StochasticModel, xi, yi)
     for k in eachindex(o.g)
-        o.g[k] = deriv(o.loss, yi, predict_from_xβ(o.loss, o.xβ[k]))
+        o.g[k] = deriv(o.loss, yi, o.xβ[k])
     end
 end
 
