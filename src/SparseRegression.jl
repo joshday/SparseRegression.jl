@@ -1,12 +1,12 @@
 module SparseRegression
 
 import SweepOperator
-using LearnBase
 importall LearnBase
-import StatsBase: coef, fit, fit!
+using LearnBase
 using LossFunctions
 using PenaltyFunctions
 using OnlineStats
+using RecipesBase
 
 # Reexports
 for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]

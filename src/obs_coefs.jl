@@ -11,8 +11,8 @@ Base.getindex{I <: Integer}(o::Ones, rng::AVec{I}) = Ones(length(rng))
     Obs(x, y)
     Obs(x, y, w)
 
-The Observations for a SparseRegression model with optional user-defined weights.
-Observations are in rows.
+Simple structure for holding observations with (optional) user-defined weights.
+It is assumed that observations are stored in rows.
 """
 struct Obs{W <: AVec, X <: AMat, Y <: AVec}
     w::W
@@ -38,6 +38,12 @@ nparams(o::Obs) = size(o.x, 2)
 Base.size(o::Obs) = size(o.x)
 
 #-------------------------------------------------------------------------------# Coefficients
+"""
+    Coefficients(o::Obs, λ::VecF)
+    Coefficients(p::Integer, λ::VecF)
+
+Structure for storing the solution path of a SparseRegression model.
+"""
 struct Coefficients
     β::MatF
     λ::VecF
