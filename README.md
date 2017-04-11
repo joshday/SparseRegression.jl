@@ -12,7 +12,6 @@ Note: SparseRegression requires Julia 0.6
 
 ```julia
 Pkg.clone("https://github.com/joshday/SparseRegression.jl")
-Pkg.checkout("LossFunctions")
 Pkg.checkout("OnlineStats")
 ```
 
