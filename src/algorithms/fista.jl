@@ -1,4 +1,4 @@
-struct ProximalGradientModel{
+struct FISTAModel{
         L <: Loss,
         P <: ConvexElementPenalty,
         O <: Obs
@@ -16,11 +16,13 @@ struct ProximalGradientModel{
     verbose::Bool
     step::Float64
     # buffers
+    βext::VecF  # extrapolated coefficients
+    βold::VecF
     ∇::VecF
     xβ::VecF
     deriv_vec::VecF
 end
-function ProximalGradientModel(obs::Obs;
+function FISTAModel(obs::Obs;
         λ::VecF             = defaultλ(),
         loss::Loss          = defaultloss(),
         penalty::Penalty    = defaultpenalty(),
@@ -32,39 +34,35 @@ function ProximalGradientModel(obs::Obs;
     )
     n, p = size(obs)
     c = Coefficients(obs, λ)
-    o = ProximalGradientModel(c, loss, penalty, factor, obs, maxit, tol, verbose, step,
-                              zeros(p), zeros(n), zeros(n))
+    o = FISTAModel(c, loss, penalty, factor, obs, maxit, tol, verbose, step,
+                              zeros(p), zeros(p), zeros(p), zeros(n), zeros(n))
     fit!(o)
     o
 end
 
 # TODOs:
 # - Estimate Lipschitz constant for step size?
-function fit!(o::ProximalGradientModel)
+function fit!(o::FISTAModel)
     for (k, λ) in enumerate(o.θ.λ)
         β = @view(o.θ.β[:, k])
         newL = Inf
         niters = 0
-        for _ in 1:o.maxit
-            update_g!(o)
-            update_β!(o, β, λ)
-            update_xβ!(o, β)
+        for t in 1:o.maxit
+            update_g!(o, β, t)  # update gradient
+            update_β!(o, β, λ)  # do proximal gradient step
+
             newL, niters, isconverged = converged(o, newL, niters, β)
             isconverged && break
         end
     end
 end
 
-#--------------------------------------------------------------# objective value
-function _L(o::ProximalGradientModel, β)
-    value(o.loss, o.obs.y, o.xβ, AvgMode.Mean()) + value(o.penalty, β)
-end
-
-#--------------------------------------------------------------# update_xβ!
-update_xβ!(o::ProximalGradientModel, β) = A_mul_B!(o.xβ, o.obs.x, β)
-
-#--------------------------------------------------------------# update_g!
-function update_g!(o::ProximalGradientModel)
+function update_g!(o::FISTAModel, β, t)
+    copy!(o.βext, β)
+    if t > 2
+        OnlineStats.smooth!(o.βext, o.βold, (t - 2) / (t + 1))
+    end
+    A_mul_B!(o.xβ, o.obs.x, o.βext)
     for i in eachindex(o.obs.y)
         @inbounds o.deriv_vec[i] = deriv(o.loss, o.obs.y[i], o.xβ[i])
     end
@@ -72,15 +70,9 @@ function update_g!(o::ProximalGradientModel)
     At_mul_B!(o.∇, o.obs.x, o.deriv_vec)
     scale!(o.∇, 1 / length(o.obs.y))
 end
-multiply_weights!(v::VecF, w::Ones) = return
-function multiply_weights!(v::VecF, w::AVecF)
-    for i in eachindex(v)
-        @inbounds v[i] *= w[i]
-    end
-end
 
-#--------------------------------------------------------------# update_β!
-function update_β!(o::ProximalGradientModel, β, λ)
+function update_β!(o, β, λ)
+    copy!(o.βold, β)
     s = o.step
     for j in eachindex(β)
         @inbounds λj = λ * o.factor[j]
@@ -88,8 +80,11 @@ function update_β!(o::ProximalGradientModel, β, λ)
     end
 end
 
-#--------------------------------------------------------------# converged
-function converged(o::ProximalGradientModel, newL, niters, β)
+function _L(o::FISTAModel, β)
+    value(o.loss, o.obs.y, o.xβ, AvgMode.Mean()) + value(o.penalty, β)
+end
+
+function converged(o, newL, niters, β)
     oldL = newL
     newL = _L(o, β)
     niters += 1

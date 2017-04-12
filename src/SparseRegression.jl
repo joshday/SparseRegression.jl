@@ -64,6 +64,7 @@ const ϵ = 1e-5
 include("obs_coefs.jl")
 include("printing.jl")
 include("algorithms/proxgrad.jl")
+include("algorithms/fista.jl")
 include("algorithms/sweep.jl")
 include("algorithms/stochastic.jl")
 
