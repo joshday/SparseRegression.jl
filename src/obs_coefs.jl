@@ -63,3 +63,4 @@ function Base.show(io::IO, o::Coefficients)
         println(io)
     end
 end
+Base.size(θ::Coefficients) = size(θ.β)

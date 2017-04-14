@@ -63,16 +63,17 @@ const ϵ = 1e-5
 #-------------------------------------------------------------------------------# includes
 include("obs_coefs.jl")
 include("printing.jl")
-include("algorithms/proxgrad.jl")
-include("algorithms/fista.jl")
-include("algorithms/sweep.jl")
-include("algorithms/stochastic.jl")
+include("sparsereg.jl")
+# include("algorithms/proxgrad.jl")
+# include("algorithms/fista.jl")
+# include("algorithms/sweep.jl")
+# include("algorithms/stochastic.jl")
 
 
 #-------------------------------------------------------------------------------# fit
-for m in [:ProximalGradientModel, :SweepModel]
-    @eval fit(::Type{$(m)}, args...; kw...) = $(m)(Obs(args...); kw...)
-end
+# for m in [:ProximalGradientModel, :SweepModel]
+#     @eval fit(::Type{$(m)}, args...; kw...) = $(m)(Obs(args...); kw...)
+# end
 
 
 
