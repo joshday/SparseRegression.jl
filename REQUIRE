@@ -1,8 +1,7 @@
 julia 0.6-
 
 LearnBase
+LearningStrategies
 LossFunctions
 PenaltyFunctions
 SweepOperator
-OnlineStats
-RecipesBase

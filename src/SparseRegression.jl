@@ -2,20 +2,20 @@ module SparseRegression
 
 import SweepOperator
 importall LearnBase
+importall StatsBase
+importall LearningStrategies
 using LearnBase
 using LossFunctions
 using PenaltyFunctions
-using OnlineStats
-using RecipesBase
+using LearningStrategies
 
 # Reexports
-for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :OnlineStats]
+for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions]
     eval(Expr(:toplevel, Expr(:export, setdiff(names(eval(pkg)), [pkg])...)))
 end
 
 export
-    ProximalGradientModel, SweepModel, Obs, classify, coef,
-    StochasticModel, SGD, Momentum, SPGD, ADAGRAD,
+    SparseReg, ProxGrad,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
 
@@ -36,35 +36,14 @@ const SVMLike               = L1HingeLoss
 const QuantileRegression    = QuantileLoss
 const DWDLike               = DWDMarginLoss
 
-abstract type AbstractSparseReg end
-
-#-----------------------------------------------------------------------# AbstractSparseReg
-Base.show(io::IO, o::AbstractSparseReg) = showmodel(io, o)
-function showmodel(io::IO, o::AbstractSparseReg)
-    header(io, name(o))
-    show(io, o.θ)
-    header(io, "Model Specification")
-    print_item(io, "Loss", o.loss)
-    print_item(io, "Penalty", o.penalty)
-    print_item(io, "λ factor", o.factor')
-end
-coef(o::AbstractSparseReg) = o.θ
-coef(o::AbstractSparseReg, i) = @view o.θ.β[:, i]
-nparams(o::AbstractSparseReg) = size(o.θ.β, 1)
-
-
 #---------------------------------------------------------------------------# random helpers
-defaultλ()          =  collect(linspace(0, 1, 10))
-defaultloss()       = LinearRegression()
-defaultpenalty()    = L2Penalty()
-
 const ϵ = 1e-5
 
 #-------------------------------------------------------------------------------# includes
-include("obs_coefs.jl")
+include("obs.jl")
 include("printing.jl")
 include("sparsereg.jl")
-# include("algorithms/proxgrad.jl")
+include("algorithms/proxgrad.jl")
 # include("algorithms/fista.jl")
 # include("algorithms/sweep.jl")
 # include("algorithms/stochastic.jl")

@@ -1,5 +1,8 @@
-#----------------------------------------------------------------------#  Ones
-# constant vector of ones
+#----------------------------------------------------------------#  Ones
+"""
+    Ones(n)
+Create a vector of ones with length `n`.
+"""
 struct Ones <: AVecF n::Int end
 Ones(y::AVec) = Ones(length(y))
 Base.size(o::Ones) = (o.n, )
@@ -27,7 +30,7 @@ function Obs(x::AMat, y::AVec, w::AVec = Ones(y))
     Obs(w, x, y)
 end
 function Base.show(io::IO, o::Obs)
-    header(io, name(o))
+    println(io, typeof(o))
     print_item(io, "x", summary(o.x))
     print_item(io, "y", summary(o.y))
     print_item(io, "weights", summary(o.w), false)
@@ -36,31 +39,3 @@ end
 nobs(o::Obs) = length(o.y)
 nparams(o::Obs) = size(o.x, 2)
 Base.size(o::Obs) = size(o.x)
-
-#-------------------------------------------------------------------------------# Coefficients
-"""
-    Coefficients(o::Obs, λ::VecF)
-    Coefficients(p::Integer, λ::VecF)
-
-Structure for storing the solution path of a SparseRegression model.
-"""
-struct Coefficients
-    β::MatF
-    λ::VecF
-    function Coefficients(β::MatF, λ)
-        size(β, 2) == length(λ) || throw(DimensionMismatch())
-        new(β, λ)
-    end
-end
-Coefficients(o::Obs, λ::VecF) = Coefficients(size(o.x, 2), λ)
-Coefficients(p::Int, λ::VecF) = Coefficients(zeros(p, length(λ)), λ)
-function Base.show(io::IO, o::Coefficients)
-    header(io, name(o))
-    for (i, λ) in enumerate(o.λ)
-        print(io, @sprintf("%4s", "$i:"))
-        print(io, @sprintf("%12s", "β($(round(λ,3))) = "))
-        show(io, o.β[:, i]')
-        println(io)
-    end
-end
-Base.size(θ::Coefficients) = size(θ.β)

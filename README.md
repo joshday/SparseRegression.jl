@@ -6,13 +6,16 @@
 
 This package relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.
 
+SparseRegression aims to solve statistical learning problems of the form:
+
+![](https://cloud.githubusercontent.com/assets/8075494/25072239/5d85db30-2297-11e7-817e-e7bebaf056cd.png)
+
 # Installation
 
 Note: SparseRegression requires Julia 0.6
 
 ```julia
 Pkg.clone("https://github.com/joshday/SparseRegression.jl")
-Pkg.checkout("OnlineStats")
 ```
 
 # Example
