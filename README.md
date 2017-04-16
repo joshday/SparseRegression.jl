@@ -26,17 +26,10 @@ include(Pkg.dir("SparseRegression", "test", "datagenerator.jl"))
 
 x, y, b = DataGenerator.linregdata(10_000, 10)
 
-observations = Obs(x, y)
 
-SweepModel(observations; penalty = L2Penalty(), λ = collect(0:.01:.1))
+s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty(), .1)
+fit!(s, ProxGrad(), MaxIter(50), Converged(coef))
 
-ProximalGradientModel(observations; loss = HuberLoss(2.0), penalty = L1Penalty())
-
-StochasticModel(observations, ADAGRAD(); loss = L1Regression(), penalty = ElasticNetPenalty(.1))
+s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty(), .1)
+fit!(s, Sweep())
 ```
-
-# Notes on Design
-
-
-#### Observations
-Observations are held in a type: `Obs(x, y)` (or `Obs(x, y, w)` for weighted observations)
