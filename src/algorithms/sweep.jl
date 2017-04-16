@@ -1,41 +1,22 @@
-SweepLoss = Union{LinearRegression, L2DistLoss}
-SweepPenalty = Union{NoPenalty, L2Penalty}
-
-struct SweepModel{L <: SweepLoss, P <: SweepPenalty, O <: Obs} <: AbstractSparseReg
-    # AbstractSparseReg
-    θ::Coefficients
-    loss::L
-    penalty::P
-    factor::VecF
-    # observations
-    obs::O
-    # buffers
-    a::MatF   # [x y]'[x y]
-    s::MatF   # sweep!(a, 1:p)
+struct Sweep <: AlgorithmStrategy
+    A::MatF  # [x y]'[x y]
+    S::MatF  # sweep!(a, 1:p)
 end
-function SweepModel(obs::Obs;
-        λ::VecF                 = defaultλ(),
-        loss::SweepLoss         = defaultloss(),
-        penalty::SweepPenalty   = defaultpenalty(),
-        factor::VecF            = ones(size(obs.x, 2))
-    )
-    c = Coefficients(obs, λ)
-    a = make_a(obs)
-    o = SweepModel(c, loss, penalty, factor, obs, a, copy(a))
-    fit!(o)
-    o
+Sweep() = Sweep(zeros(0,0), zeros(0,0))
+function Sweep(a::Sweep, o::Obs)
+    A = make_A(o)
+    Sweep(A, zeros(A))
 end
-
-function make_a(obs::Obs)
+function make_A(obs::Obs)
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
     b = zeros(p + 1, p + 1)
-    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(obs.w)) * obs.x, 0.0, view(a, 1:p, 1:p))  # x'wx
+    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(obs.w)) * obs.x, 0.0, view(a, 1:p, 1:p)) # x'wx
     BLAS.gemv!('T', 1 / n, Diagonal(obs.w) * obs.x, obs.y, 0.0, @view(a[1:p, end]))     # x'wy
     a[end, end] = dot(obs.y, Diagonal(obs.w) * obs.y) / n                               # y'wy
     a
 end
-function make_a(obs::Obs{Ones})
+function make_A(obs::Obs{Ones})
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)
     BLAS.syrk!('U', 'T', 1 / n, obs.x, 0.0, view(a, 1:p, 1:p))      # x'x
@@ -44,20 +25,18 @@ function make_a(obs::Obs{Ones})
     a
 end
 
-function fit!(o::SweepModel)
-    p = nparams(o)
-    for (k, λ) in enumerate(o.θ.λ)
-        copy!(o.s, o.a)
-        add_ridge!(o, λ)
-        SweepOperator.sweep!(o.s, 1:p)
-        o.θ.β[:, k] = o.s[1:p, end]
-    end
+function learn!(o::SparseReg, a::Sweep, item)
+    n, p = size(o.obs)
+    copy!(a.S, a.A)
+    add_ridge!(o, a, o.λfactor)
+    SweepOperator.sweep!(a.S, 1:p)
+    o.β[:] = a.S[1:p, end]
 end
-#
-#
-function add_ridge!{L}(o::SweepModel{L, NoPenalty}, λ) end
-function add_ridge!{L}(o::SweepModel{L, L2Penalty}, λ)
-    for i in 1:nparams(o)
-        o.s[i, i] += λ * o.factor[i]  # TODO: check math
+
+
+function add_ridge!{L}(o::SparseReg{L, NoPenalty}, a::Sweep, λf::VecF) end
+function add_ridge!{L}(o::SparseReg{L, L2Penalty}, a::Sweep, λf::VecF)
+    for i in eachindex(o.β)
+        a.S[i, i] += λf[i]
     end
 end

@@ -45,10 +45,10 @@ include("sparsereg.jl")
 #---------------------------------------------------------------------------# random helpers
 # AlgorithmStrategy needs constructor with method: MyAlg(a::MyAlg, o::Obs)
 abstract type AlgorithmStrategy <: LearningStrategy end
-function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(),
+function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1),
               args::LearningStrategy...)
     a2 = typeof(a)(a, o.obs)
-    ml = MetaLearner(a2, args...)
+    ml = MetaLearner(a2, m, args...)
     learn!(o, ml)
     o
 end
@@ -59,7 +59,7 @@ const ϵ = 1e-5
 
 include("algorithms/proxgrad.jl")
 # include("algorithms/fista.jl")
-# include("algorithms/sweep.jl")
+include("algorithms/sweep.jl")
 # include("algorithms/stochastic.jl")
 
 
