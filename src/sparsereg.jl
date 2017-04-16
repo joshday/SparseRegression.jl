@@ -13,12 +13,19 @@ function SparseReg(o::Obs, l::Loss, pen::Penalty, λfactor::VecF)
 end
 function Base.show(io::IO, o::SparseReg)
     header(io, name(o))
-    print_item(io, "β", o.β)
+    print_item(io, "β", o.β')
     print_item(io, "λ factor", o.λfactor')
     print_item(io, "Loss", o.loss)
     print_item(io, "Penalty", o.penalty)
 end
+
 coef(o::SparseReg) = o.β
+
+xβ(o::SparseReg, x::AMat = o.obs.x) = x * o.β
+xβ(o::SparseReg, xi::AVec) = dot(x, o.β)
+
+predict(o::SparseReg, x::AMat = o.obs.x) = xβ(o, x)
+predict(o::SparseReg{MarginLoss}, x::AMat = o.obs.x) = map(x -> 1 / (1 + exp(-x)), xβ(o, x))
 
 
 # To calculate a gradient, we need two storage buffers

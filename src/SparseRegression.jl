@@ -15,7 +15,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    SparseReg, Obs, ProxGrad,
+    SparseReg, Obs, ProxGrad, Sweep,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
     # functions
@@ -43,10 +43,11 @@ include("printing.jl")
 include("sparsereg.jl")
 
 #---------------------------------------------------------------------------# random helpers
+
 # AlgorithmStrategy needs constructor with method: MyAlg(a::MyAlg, o::Obs)
 abstract type AlgorithmStrategy <: LearningStrategy end
-function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1),
-              args::LearningStrategy...)
+
+function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
     a2 = typeof(a)(a, o.obs)
     ml = MetaLearner(a2, m, args...)
     learn!(o, ml)
