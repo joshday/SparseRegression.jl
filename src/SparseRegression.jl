@@ -10,14 +10,16 @@ using PenaltyFunctions
 using LearningStrategies
 
 # Reexports
-for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions]
+for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
     eval(Expr(:toplevel, Expr(:export, setdiff(names(eval(pkg)), [pkg])...)))
 end
 
 export
-    SparseReg, ProxGrad,
+    SparseReg, Obs, ProxGrad,
     # Model typealiases
-    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression
+    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
+    # functions
+    coef
 
 #---------------------------------------------------------------------------------# types
 const AVec        = AbstractVector
@@ -36,13 +38,25 @@ const SVMLike               = L1HingeLoss
 const QuantileRegression    = QuantileLoss
 const DWDLike               = DWDMarginLoss
 
-#---------------------------------------------------------------------------# random helpers
-const ϵ = 1e-5
-
-#-------------------------------------------------------------------------------# includes
 include("obs.jl")
 include("printing.jl")
 include("sparsereg.jl")
+
+#---------------------------------------------------------------------------# random helpers
+# AlgorithmStrategy needs constructor with method: MyAlg(a::MyAlg, o::Obs)
+abstract type AlgorithmStrategy <: LearningStrategy end
+function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(),
+              args::LearningStrategy...)
+    a2 = typeof(a)(a, o.obs)
+    ml = MetaLearner(a2, args...)
+    learn!(o, ml)
+    o
+end
+
+const ϵ = 1e-5
+
+#-------------------------------------------------------------------------------# includes
+
 include("algorithms/proxgrad.jl")
 # include("algorithms/fista.jl")
 # include("algorithms/sweep.jl")

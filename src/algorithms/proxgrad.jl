@@ -1,5 +1,14 @@
 # -------------------------------------------------------------------------# ProxGrad
-struct ProxGrad <: LearningStrategy
+"""
+    ProxGrad(stepsize)
+Proximal Gradient Descent.  `stepsize` is the step size for the gradient descent part of the algorithm.
+### Example
+    using DataGenerator, SparseRegression
+    x, y, b = linregdata(1000, 10)
+    s = SparseReg(Obs(x,y), LinearRegression(), L2Penalty(), .1)
+    fit!(s, ProxGrad(), MaxIter(50), Converged(coef))
+"""
+struct ProxGrad <: AlgorithmStrategy
     step::Float64
     derivs::VecF
     ∇::VecF
