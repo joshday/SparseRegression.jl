@@ -39,5 +39,5 @@ The core iterations are performed with [LearningStrategies.jl](https://github.co
 SparseRegression.jl provides:
 1. `SparseReg`, a type for organizing a model
 2. New `LearningStrategy` subtypes for minimizing the objective function of a model
- - `ProxGrad(stepsize)`
- - `Sweep()`
+   - `ProxGrad(stepsize)`
+   - `Sweep()`
