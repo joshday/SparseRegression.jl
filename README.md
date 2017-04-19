@@ -9,9 +9,11 @@ SparseRegression aims to solve statistical learning problems of the form:
 
 <img width=400 src="https://cloud.githubusercontent.com/assets/8075494/25072239/5d85db30-2297-11e7-817e-e7bebaf056cd.png">
 
+That is, we want to minimize a loss, subject to element-wise regularization of the coefficients.  
+
 # Installation
 
-Note: SparseRegression requires Julia 0.6
+SparseRegression requires Julia 0.6
 
 ```julia
 Pkg.clone("https://github.com/joshday/SparseRegression.jl")
@@ -32,3 +34,10 @@ fit!(s, ProxGrad(), MaxIter(50), Converged(coef))
 s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty(), .1)
 fit!(s, Sweep())
 ```
+
+# Low-level details
+The core iterations are performed with [LearningStrategies.jl](https://github.com/JuliaML/LearningStrategies.jl).  
+
+SparseRegression.jl provides:
+1. `SparseReg`, a type for organizing a model
+2. New `LearningStrategy` subtypes for minimizing the objective function of a model
