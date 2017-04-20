@@ -9,7 +9,13 @@ using SparseRegression, DataGenerator
 
 x, y, β = linregdata(10_000, 100; β = vcat(ones(5), zeros(95)))
 
-βols = x \ y
 
-o = ProximalGradientModel(Obs(x, y), penalty = L1Penalty(), factor = inv.(abs.(βols)))
+λ = .1 * inv.(abs.(x \ y))  # λj = .1 * inv(abs(βj))
+o = SparseReg(Obs(x, y), L1Penalty(), λ)
+fit!(o, ProxGrad(), MaxIter(100))
+
+println()
+println("The true β is $β")
+println()
+println("The adaptive lasso estimated β is $(coef(o))")
 end

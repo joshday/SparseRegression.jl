@@ -9,20 +9,20 @@ end
 function SparseReg(o::Obs, t::Tuple)
     l = t[1]
     p = t[2]
-    λ = t[3]
+    λf = t[3]
     n, d = size(o)
-    SparseReg(zeros(d), λ * ones(d), l, p, o)
+    SparseReg(zeros(d), λf, l, p, o)
 end
 
-d() = (LinearRegression(), L2Penalty(), .1)
+d(o::Obs) = (LinearRegression(), L2Penalty(), fill(.1, size(o.x, 2)))
 a(argu::Loss, t::Tuple)    = (argu, t[2], t[3])
 a(argu::Penalty, t::Tuple) = (t[1], argu, t[3])
-a(argu::Float64, t::Tuple) = (t[1], t[2], argu)
+a(argu::VecF, t::Tuple) = (t[1], t[2], argu)
 
-SparseReg(o::Obs)                   = SparseReg(o, d())
-SparseReg(o::Obs, a1)               = SparseReg(o, a(a1, d()))
-SparseReg(o::Obs, a1, a2)           = SparseReg(o, a(a2, a(a1, d())))
-SparseReg(o::Obs, a1, a2, a3)       = SparseReg(o, a(a3, a(a2, a(a1, d()))))
+SparseReg(o::Obs)               = SparseReg(o, d(o))
+SparseReg(o::Obs, a1)           = SparseReg(o, a(a1, d(o)))
+SparseReg(o::Obs, a1, a2)       = SparseReg(o, a(a2, a(a1, d(o))))
+SparseReg(o::Obs, a1, a2, a3)   = SparseReg(o, a(a3, a(a2, a(a1, d(o)))))
 
 function Base.show(io::IO, o::SparseReg)
     header(io, name(o))
@@ -40,7 +40,7 @@ xβ(o::SparseReg, xi::AVec) = dot(x, o.β)
 predict(o::SparseReg, x::AMat = o.obs.x) = xβ(o, x)
 predict(o::SparseReg{MarginLoss}, x::AMat = o.obs.x) = map(x -> 1 / (1 + exp(-x)), xβ(o, x))
 
-factor!(o::SparseReg, f::VecF) = (o.λfactor[:] = f)
+factor!(o::SparseReg, f::VecF) = (o.λfactor[:] = f; o)
 
 
 # To calculate a gradient, we need two storage buffers
