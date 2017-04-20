@@ -5,7 +5,7 @@
 
 This package relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.  SparseRegression aims to solve statistical learning problems of the form:
 
-<img width=400 src="https://cloud.githubusercontent.com/assets/8075494/25072239/5d85db30-2297-11e7-817e-e7bebaf056cd.png">
+<img width=300 src="https://cloud.githubusercontent.com/assets/8075494/25072239/5d85db30-2297-11e7-817e-e7bebaf056cd.png">
 
 That is, we want to minimize a loss, subject to element-wise regularization of the coefficients.  
 
@@ -34,7 +34,7 @@ fit!(s, Sweep())
 ```
 
 # Low-level details
-The core iterations are performed with [LearningStrategies.jl](https://github.com/JuliaML/LearningStrategies.jl).  
+The core iterations are performed with [JuliaML/LearningStrategies.jl](https://github.com/JuliaML/LearningStrategies.jl).  
 
 SparseRegression.jl provides:
 1. `SparseReg`, a type for organizing a model

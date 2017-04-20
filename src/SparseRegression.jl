@@ -22,12 +22,12 @@ export
     coef
 
 #---------------------------------------------------------------------------------# types
-const AVec        = AbstractVector
-const AMat        = AbstractMatrix
-const AVecF       = AbstractVector{Float64}
-const AMatF       = AbstractMatrix{Float64}
-const VecF        = Vector{Float64}
-const MatF        = Matrix{Float64}
+const AVec  = AbstractVector
+const AMat  = AbstractMatrix
+const AVecF = AbstractVector{Float64}
+const AMatF = AbstractMatrix{Float64}
+const VecF  = Vector{Float64}
+const MatF  = Matrix{Float64}
 
 const LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
 const L1Regression          = L1DistLoss
@@ -38,26 +38,14 @@ const SVMLike               = L1HingeLoss
 const QuantileRegression    = QuantileLoss
 const DWDLike               = DWDMarginLoss
 
-include("obs.jl")
-include("printing.jl")
-include("sparsereg.jl")
-
-#---------------------------------------------------------------------------# random helpers
-
-# AlgorithmStrategy needs constructor with method: MyAlg(a::MyAlg, o::Obs)
 abstract type AlgorithmStrategy <: LearningStrategy end
-
-function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
-    a2 = typeof(a)(a, o.obs)
-    ml = MetaLearner(a2, m, args...)
-    learn!(o, ml)
-    o
-end
 
 const ϵ = 1e-5
 
 #-------------------------------------------------------------------------------# includes
-
+include("obs.jl")
+include("printing.jl")
+include("sparsereg.jl")
 include("algorithms/proxgrad.jl")
 include("algorithms/sweep.jl")
 

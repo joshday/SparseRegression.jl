@@ -14,10 +14,11 @@ function SparseReg(o::Obs, t::Tuple)
     SparseReg(zeros(d), λf, l, p, o)
 end
 
-d(o::Obs) = (LinearRegression(), L2Penalty(), fill(.1, size(o.x, 2)))
-a(argu::Loss, t::Tuple)    = (argu, t[2], t[3])
-a(argu::Penalty, t::Tuple) = (t[1], argu, t[3])
-a(argu::VecF, t::Tuple) = (t[1], t[2], argu)
+d(o::Obs, λ::Float64 = .1) = (LinearRegression(), L2Penalty(), fill(λ, size(o.x, 2)))
+
+a(argu::Loss, t::Tuple)     = (argu, t[2], t[3])
+a(argu::Penalty, t::Tuple)  = (t[1], argu, t[3])
+a(argu::VecF, t::Tuple)     = (t[1], t[2], argu)
 
 SparseReg(o::Obs)               = SparseReg(o, d(o))
 SparseReg(o::Obs, a1)           = SparseReg(o, a(a1, d(o)))
@@ -43,6 +44,24 @@ predict(o::SparseReg{MarginLoss}, x::AMat = o.obs.x) = map(x -> 1 / (1 + exp(-x)
 factor!(o::SparseReg, f::VecF) = (o.λfactor[:] = f; o)
 
 
+#------------------------------------------------------------------------# SparseRegPath
+struct SparseRegPath{S <: SparseReg}
+    path::Vector{S}
+    λs::VecF
+end
+function SparseRegPath(o::SparseReg, λs::AVecF)
+    λf = o.λfactor
+    SparseRegPath([SparseReg(o.obs, o.loss, o.penalty, λ * λf) for λ in λs], collect(λs))
+end
+function Base.show(io::IO, o::SparseRegPath)
+    println(io, name(o, true))
+    for i in 1:length(o.path)
+        β = coef(o.path[i])
+        println(io, "  > " * @sprintf("β(%.2f) : ", o.λs[i]) * "$β")
+    end
+end
+
+#------------------------------------------------------------------------# gradient!
 # To calculate a gradient, we need two storage buffers
 #  - length n: stores derivatives with respect to x*β
 #  - length p: stores x' * derivatives
@@ -63,4 +82,19 @@ function derivatives!(nvec, o::SparseReg)
     for i in eachindex(nvec)
         nvec[i] *= o.obs.w[i]
     end
+end
+
+#------------------------------------------------------------------------# fit!
+function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
+    a2 = typeof(a)(a, o.obs)
+    ml = MetaLearner(a2, m, args...)
+    learn!(o, ml)
+    o
+end
+#------------------------------------------------------------------------# fit!
+function fit!(path::SparseRegPath, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
+    for o in path.path
+        fit!(o, a, m, args...)
+    end
+    path
 end
