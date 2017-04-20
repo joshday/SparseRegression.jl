@@ -91,7 +91,6 @@ function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args.
     learn!(o, ml)
     o
 end
-#------------------------------------------------------------------------# fit!
 function fit!(path::SparseRegPath, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
     for o in path.path
         fit!(o, a, m, args...)

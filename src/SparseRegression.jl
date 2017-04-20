@@ -47,6 +47,7 @@ include("obs.jl")
 include("printing.jl")
 include("sparsereg.jl")
 include("algorithms/proxgrad.jl")
+include("algorithms/fista.jl")
 include("algorithms/sweep.jl")
 
 
