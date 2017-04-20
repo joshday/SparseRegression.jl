@@ -39,5 +39,6 @@ The core iterations are performed with [JuliaML/LearningStrategies.jl](https://g
 SparseRegression.jl provides:
 1. `SparseReg`, a type for organizing a model
 2. New `LearningStrategy` subtypes for minimizing the objective function of a model
-   - `ProxGrad(stepsize)`
-   - `Sweep()`
+   - `ProxGrad(stepsize)`: Proximal Gradient Method
+   - `Fista(stepsize)`: Faster iterative shrinkage and thresholding algorithm
+   - `Sweep()`:  Linear/Ridge regression via the sweep operator
