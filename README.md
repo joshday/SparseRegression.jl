@@ -26,10 +26,10 @@ include(Pkg.dir("SparseRegression", "test", "datagenerator.jl"))
 x, y, b = DataGenerator.linregdata(10_000, 10)
 
 
-s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty(), .1)
+s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty())
 fit!(s, ProxGrad(), MaxIter(50), Converged(coef))
 
-s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty(), .1)
+s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty())
 fit!(s, Sweep())
 ```
 
