@@ -12,7 +12,7 @@ x, y, β = linregdata(10_000, 100; β = vcat(ones(5), zeros(95)))
 
 λ = .1 * inv.(abs.(x \ y))  # λj = .1 * inv(abs(βj))
 o = SparseReg(Obs(x, y), L1Penalty(), λ)
-fit!(o, ProxGrad(), MaxIter(100))
+learn!(o, ProxGrad(), MaxIter(100))
 
 println()
 println("The true β is $β")

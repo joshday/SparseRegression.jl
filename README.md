@@ -3,11 +3,27 @@
 
 # SparseRegression
 
-This package relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.  SparseRegression aims to solve statistical learning problems of the form:
+This package relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.   
+
+
+# Readme Contents
+1. [What Can SparseRegression Do?](#what-can-sparseregression-do)
+2. [Installation](#installation)
+3. [Toy Example](#toy-example)
+4. [Algorithms](#algorithms)
+
+
+# What Can SparseRegression Do?
+
+SparseRegression aims to solve statistical learning problems of the form:
 
 <img width=300 src="https://cloud.githubusercontent.com/assets/8075494/25072239/5d85db30-2297-11e7-817e-e7bebaf056cd.png">
 
-That is, we want to minimize a loss, subject to element-wise regularization of the coefficients.  
+That is, we want to minimize a loss, subject to element-wise regularization of the coefficients.
+
+- With few exceptions, SparseRegression can handle:
+  - any Loss from [LossFunctions.jl](https://github.com/JuliaML/LossFunctions.jl#available-losses)
+  - any ElementPenalty from [PenaltyFunctions.jl](https://github.com/JuliaML/PenaltyFunctions.jl#available-penalties)
 
 # Installation
 
@@ -17,28 +33,24 @@ SparseRegression requires Julia 0.6
 Pkg.clone("https://github.com/joshday/SparseRegression.jl")
 ```
 
-# Example
+# Toy Example
 
 ```julia
 using SparseRegression
+
 include(Pkg.dir("SparseRegression", "test", "datagenerator.jl"))
 
 x, y, b = DataGenerator.linregdata(10_000, 10)
 
-
 s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty())
-fit!(s, ProxGrad(), MaxIter(50), Converged(coef))
 
-s = SparseReg(Obs(x, y), LinearRegression(), L2Penalty())
-fit!(s, Sweep())
+learn!(s, ProxGrad(), MaxIter(50), Converged(coef))
 ```
 
-# Low-level details
-The core iterations are performed with [JuliaML/LearningStrategies.jl](https://github.com/JuliaML/LearningStrategies.jl).  
+# Algorithms
 
-SparseRegression.jl provides:
-1. `SparseReg`, a type for organizing a model
-2. New `LearningStrategy` subtypes for minimizing the objective function of a model
-   - `ProxGrad(stepsize)`: Proximal Gradient Method
-   - `Fista(stepsize)`: Faster iterative shrinkage and thresholding algorithm
-   - `Sweep()`:  Linear/Ridge regression via the sweep operator
+### `ProxGrad(s)`
+
+### `Fista(s)`
+
+### `Sweep()`

@@ -25,7 +25,7 @@ function make_A(obs::Obs{Ones})
     a
 end
 
-function learn!(o::SparseReg, a::Sweep, item)
+function learn!(o::SparseReg, a::Sweep, item::Void)
     n, p = size(o.obs)
     copy!(a.S, a.A)
     add_ridge!(o, a, o.λfactor)

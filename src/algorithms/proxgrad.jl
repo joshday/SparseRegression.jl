@@ -16,7 +16,7 @@ end
 ProxGrad(step::Float64 = 1.0, n = 0, p = 0) = ProxGrad(step, zeros(n), zeros(p))
 ProxGrad(a::ProxGrad, o::Obs) = ProxGrad(a.step, size(o)...)
 
-function learn!(o::SparseReg, a::ProxGrad, item)
+function learn!(o::SparseReg, a::ProxGrad, item::Void)
     @inbounds gradient!(a.derivs, a.∇, o)
     s = a.step
     for j in eachindex(o.β)

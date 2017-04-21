@@ -17,7 +17,7 @@ function Fista(step::Float64 = 1.0, n = 0, p = 0)
 end
 Fista(a::Fista, o::Obs) = Fista(a.step, size(o)...)
 
-function learn!(o::SparseReg, a::Fista, item)
+function learn!(o::SparseReg, a::Fista, item::Void)
     copy!(a.β2, a.β1)
     copy!(a.β1, o.β)
     a.t += 1

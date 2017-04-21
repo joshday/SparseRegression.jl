@@ -84,16 +84,16 @@ function derivatives!(nvec, o::SparseReg)
     end
 end
 
-#------------------------------------------------------------------------# fit!
-function fit!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
+#------------------------------------------------------------------------# learn!
+function learn!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
     a2 = typeof(a)(a, o.obs)
     ml = MetaLearner(a2, m, args...)
     learn!(o, ml)
     o
 end
-function fit!(path::SparseRegPath, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
+function learn!(path::SparseRegPath, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
     for o in path.path
-        fit!(o, a, m, args...)
+        learn!(o, a, m, args...)
     end
     path
 end
