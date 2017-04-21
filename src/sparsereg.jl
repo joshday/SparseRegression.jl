@@ -79,9 +79,7 @@ function derivatives!{L,P}(nvec, o::SparseReg{L, P, Obs{Ones}})
 end
 function derivatives!(nvec, o::SparseReg)
     deriv!(nvec, o.loss, o.obs.y, nvec)
-    for i in eachindex(nvec)
-        nvec[i] *= o.obs.w[i]
-    end
+    nvec .*= o.obs.w
 end
 
 #------------------------------------------------------------------------# learn!

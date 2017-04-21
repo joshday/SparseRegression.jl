@@ -37,5 +37,5 @@ function Base.show(io::IO, o::Obs)
 end
 
 nobs(o::Obs) = length(o.y)
-nparams(o::Obs) = size(o.x, 2)
 Base.size(o::Obs) = size(o.x)
+Base.size(o::Obs, i) = size(o.x, i)
