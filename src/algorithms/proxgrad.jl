@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------# ProxGrad
 """
-    ProxGrad(stepsize)
-Proximal Gradient Descent.  `stepsize` is the step size for the gradient descent part of the algorithm.
+    ProxGrad(s)
+Proximal Gradient Descent.  `s` is the step size for the gradient descent part of the algorithm.
 ### Example
     using DataGenerator, SparseRegression
     x, y, b = linregdata(1000, 10)

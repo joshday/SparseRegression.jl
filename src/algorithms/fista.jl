@@ -1,8 +1,8 @@
 """
 ```julia
-Fista(stepsize)
+Fista(s)
 ```
-Fast Iterative Shrinkage and Thresholding Algorithm.
+Fast Iterative Shrinkage and Thresholding Algorithm with step size `s`.
 """
 mutable struct Fista <: AlgorithmStrategy
     step::Float64

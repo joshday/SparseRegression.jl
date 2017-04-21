@@ -75,10 +75,13 @@ learn!(s, ProxGrad(), MaxIter(50), Converged(coef))
 # Algorithms
 
 ### `ProxGrad(s)`
-Proximal Gradient Method with step size `s`.
+Proximal Gradient Method with step size `s`.  Handles any loss and convex penalty.
 
 ### `Fista(s)`
-Fast Iterative Shrinkage-Thresholding Algorithm (accelerated proximal gradient) with step size `s`.
+Fast Iterative Shrinkage-Thresholding Algorithm (accelerated proximal gradient) with step size `s`.  Handles any loss and convex penalty.
 
 ### `Sweep()`
-Linear or Ridge regression via the [sweep operator](https://github.com/joshday/SweepOperator.jl)
+Linear or Ridge regression via the [sweep operator](https://github.com/joshday/SweepOperator.jl).
+
+### `GradientDescent(s)`
+Gradient Descent (ignoring penalty) with step size `s`.

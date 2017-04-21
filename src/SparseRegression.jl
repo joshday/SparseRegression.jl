@@ -15,7 +15,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    SparseReg, Obs, ProxGrad, Sweep,
+    SparseReg, Obs, ProxGrad, Fista, Sweep, GradientDescent,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
     # functions
@@ -46,6 +46,7 @@ const ϵ = 1e-5
 include("obs.jl")
 include("printing.jl")
 include("sparsereg.jl")
+include("algorithms/gradientdescent.jl")
 include("algorithms/proxgrad.jl")
 include("algorithms/fista.jl")
 include("algorithms/sweep.jl")
