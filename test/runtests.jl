@@ -19,7 +19,7 @@ for l in losses
     x, y, β = data(l, n, p)
 
     s = SparseReg(Obs(x, y), l)
-    fit!(s, ProxGrad(), MaxIter(100))
+    learn!(s, ProxGrad(), MaxIter(100))
 end
 
 
