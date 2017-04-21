@@ -84,4 +84,4 @@ Fast Iterative Shrinkage-Thresholding Algorithm (accelerated proximal gradient) 
 Linear or Ridge regression via the [sweep operator](https://github.com/joshday/SweepOperator.jl).
 
 ### `GradientDescent(s)`
-Gradient Descent (ignoring penalty) with step size `s`.
+Gradient Descent with step size `s`.  Handles any loss and penalty.

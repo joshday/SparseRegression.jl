@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------# GradientDescent
 """
     GradientDescent(s)
-Gradient Descent (ignoring the penalty) with step size `s`.
+Gradient Descent with step size `s`.
 """
 struct GradientDescent <: AlgorithmStrategy
     step::Float64
@@ -15,6 +15,6 @@ function learn!(o::SparseReg, a::GradientDescent, item::Void)
     gradient!(a.derivs, a.∇, o)
     s = a.step
     for j in eachindex(o.β)
-        @inbounds o.β[j] -= s * a.∇[j]
+        @inbounds o.β[j] -= s * (a.∇[j] + deriv(o.penalty, o.β[j]))
     end
 end
