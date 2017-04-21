@@ -67,8 +67,6 @@ end
 #  - length p: stores x' * derivatives
 function gradient!(nvec::VecF, pvec::VecF, o::SparseReg)
     n, p = size(o.obs)
-    @boundscheck length(nvec) == n
-    @boundscheck length(pvec) == p
     A_mul_B!(nvec, o.obs.x, o.β)                      # x * β
     derivatives!(nvec, o)                             # nvec = deriv(loss, y, x*β)
     BLAS.gemv!('T', 1 / n, o.obs.x, nvec, 0.0, pvec)  # ∇ = mean(x' * nvec)

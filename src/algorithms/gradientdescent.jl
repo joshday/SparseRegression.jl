@@ -12,7 +12,7 @@ GradientDescent(step::Float64 = 1.0, n = 0, p = 0) = GradientDescent(step, zeros
 GradientDescent(a::GradientDescent, o::Obs) = GradientDescent(a.step, size(o)...)
 
 function learn!(o::SparseReg, a::GradientDescent, item::Void)
-    @inbounds gradient!(a.derivs, a.∇, o)
+    gradient!(a.derivs, a.∇, o)
     s = a.step
     for j in eachindex(o.β)
         @inbounds o.β[j] -= s * a.∇[j]

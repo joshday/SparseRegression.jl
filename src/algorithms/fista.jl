@@ -27,7 +27,7 @@ function learn!(o::SparseReg, a::Fista, item::Void)
             @inbounds o.β[j] = a.β1[j] + γ * (a.β1[j] - a.β2[j])
         end
     end
-    @inbounds gradient!(a.derivs, a.∇, o)
+    gradient!(a.derivs, a.∇, o)
     s = a.step
     for j in eachindex(o.β)
         @inbounds o.β[j] = prox(o.penalty, o.β[j] - s * a.∇[j], s * o.λfactor[j])
