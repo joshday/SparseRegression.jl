@@ -3,13 +3,18 @@
     GradientDescent(s)
 Gradient Descent with step size `s`.
 """
-struct GradientDescent <: AlgorithmStrategy
+mutable struct GradientDescent <: AlgorithmStrategy
     step::Float64
     derivs::VecF
     ∇::VecF
+    GradientDescent(step::Float64 = 1.0) = new(step, zeros(0), zeros(0))
 end
-GradientDescent(step::Float64 = 1.0, n = 0, p = 0) = GradientDescent(step, zeros(n), zeros(p))
-GradientDescent(a::GradientDescent, o::Obs) = GradientDescent(a.step, size(o)...)
+
+function pre_hook(a::GradientDescent, o::SparseReg)
+    n, p = size(o.obs)
+    a.derivs = zeros(n)
+    a.∇ = zeros(p)
+end
 
 function learn!(o::SparseReg, a::GradientDescent, item::Void)
     gradient!(a.derivs, a.∇, o)
@@ -17,4 +22,5 @@ function learn!(o::SparseReg, a::GradientDescent, item::Void)
     for j in eachindex(o.β)
         @inbounds o.β[j] -= s * (a.∇[j] + deriv(o.penalty, o.β[j]))
     end
+    o
 end

@@ -82,8 +82,7 @@ end
 
 #------------------------------------------------------------------------# learn!
 function learn!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
-    a2 = typeof(a)(a, o.obs)
-    ml = MetaLearner(a2, m, args...)
+    ml = MetaLearner(a, m, args...)
     learn!(o, ml)
     o
 end

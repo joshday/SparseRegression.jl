@@ -1,12 +1,14 @@
-struct Sweep <: AlgorithmStrategy
+mutable struct Sweep <: AlgorithmStrategy
     A::MatF  # [x y]'[x y]
     S::MatF  # sweep!(a, 1:p)
+    Sweep() = new(zeros(0,0), zeros(0,0))
 end
-Sweep() = Sweep(zeros(0,0), zeros(0,0))
-function Sweep(a::Sweep, o::Obs)
-    A = make_A(o)
-    Sweep(A, zeros(A))
+
+function pre_hook(a::Sweep, s::SparseReg)
+    a.A = make_A(s.obs)
+    a.S = zeros(a.A)
 end
+
 function make_A(obs::Obs)
     n, p = size(obs.x)
     a = zeros(p + 1, p + 1)

@@ -11,11 +11,16 @@ mutable struct Fista <: AlgorithmStrategy
     β1::VecF
     β2::VecF
     t::Int
+    Fista(step::Float64 = 1.0) = new(step, zeros(0), zeros(0), zeros(0), zeros(0), 0)
 end
-function Fista(step::Float64 = 1.0, n = 0, p = 0)
-    Fista(step, zeros(n), zeros(p), zeros(p), zeros(p), 0)
+
+function pre_hook(a::Fista, s::SparseReg)
+    n, p = size(s.obs)
+    a.derivs = zeros(n)
+    a.∇ = zeros(p)
+    a.β1 = zeros(p)
+    a.β2 = zeros(p)
 end
-Fista(a::Fista, o::Obs) = Fista(a.step, size(o)...)
 
 function learn!(o::SparseReg, a::Fista, item::Void)
     copy!(a.β2, a.β1)
