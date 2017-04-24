@@ -10,17 +10,34 @@ penalties = [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty(.5), LogPe
 
 #------------------------------------------------------------#
 println("\n")
-info("Fitting Every Loss for ProxGrad")
-n, p = 1000, 5
+info("Tests Start Here")
 data(::Loss, n, p) = DataGenerator.linregdata(n, p)
 data(::MarginLoss, n, p) = DataGenerator.logregdata(n, p)
-for l in losses
-    print_with_color(:blue, "$l\n")
-    x, y, β = data(l, n, p)
 
-    s = SparseReg(Obs(x, y), l)
-    learn!(s, ProxGrad(), MaxIter(100))
+function _test(l::Loss, p::Penalty, a::LearningStrategy)
+    x, y, β = data(l, 1000, 5)
+    o = SparseReg(Obs(x, y), l, p)
+    learn!(o, a, MaxIter(10))
+    coef(o)
+    predict(o, x)
 end
+
+@testset "ProxGrad Sanity Check" begin
+    for l in losses, p in penalties
+        isa(p, PenaltyFunctions.ConvexElementPenalty) && _test(l, p, ProxGrad())
+    end
+end
+@testset "Sweep Sanity Check" begin
+    for l in [L2DistLoss(), LinearRegression()], p in [NoPenalty(), L2Penalty()]
+        _test(l, p, Sweep())
+    end
+end
+@testset "GradientDescent Sanity Check" begin
+    for l in losses, p in penalties
+        _test(l, p, GradientDescent())
+    end
+end
+
 
 
 end

@@ -19,7 +19,7 @@ export
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
     # functions
-    coef
+    coef, predict
 
 #---------------------------------------------------------------------------------# types
 const AVec  = AbstractVector
