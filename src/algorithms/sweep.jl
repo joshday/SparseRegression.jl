@@ -5,8 +5,10 @@ mutable struct Sweep <: AlgorithmStrategy
 end
 
 function pre_hook(a::Sweep, s::SparseReg)
-    a.A = make_A(s.obs)
-    a.S = zeros(a.A)
+    if length(a.A) == 0
+        a.A = make_A(s.obs)
+        a.S = zeros(a.A)
+    end
 end
 
 function make_A(obs::Obs)

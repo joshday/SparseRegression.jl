@@ -16,9 +16,11 @@ mutable struct ProxGrad <: AlgorithmStrategy
 end
 
 function pre_hook(a::ProxGrad, s::SparseReg)
-    n, p = size(s.obs)
-    a.derivs = zeros(n)
-    a.∇ = zeros(p)
+    if length(a.derivs) == 0
+        n, p = size(s.obs)
+        a.derivs = zeros(n)
+        a.∇ = zeros(p)
+    end
 end
 
 function learn!(o::SparseReg, a::ProxGrad, item::Void)

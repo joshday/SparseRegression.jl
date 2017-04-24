@@ -10,10 +10,12 @@ mutable struct GradientDescent <: AlgorithmStrategy
     GradientDescent(step::Float64 = 1.0) = new(step, zeros(0), zeros(0))
 end
 
-function pre_hook(a::GradientDescent, o::SparseReg)
-    n, p = size(o.obs)
-    a.derivs = zeros(n)
-    a.∇ = zeros(p)
+function pre_hook(a::GradientDescent, s::SparseReg)
+    if length(a.derivs) == 0
+        n, p = size(s.obs)
+        a.derivs = zeros(n)
+        a.∇ = zeros(p)
+    end
 end
 
 function learn!(o::SparseReg, a::GradientDescent, item::Void)

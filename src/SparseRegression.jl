@@ -15,7 +15,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    SparseReg, Obs, ProxGrad, Fista, Sweep, GradientDescent,
+    SparseReg, Ones, Obs, ProxGrad, Fista, Sweep, GradientDescent,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
     # functions

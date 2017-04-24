@@ -72,10 +72,10 @@ function gradient!(nvec::VecF, pvec::VecF, o::SparseReg)
     BLAS.gemv!('T', 1 / n, o.obs.x, nvec, 0.0, pvec)  # ∇ = mean(x' * nvec)
 end
 
-function derivatives!{L,P}(nvec, o::SparseReg{L, P, Obs{Ones}})
+function derivatives!{L,P,O<:Obs{Ones}}(nvec::VecF, o::SparseReg{L, P, O})
     deriv!(nvec, o.loss, o.obs.y, nvec)
 end
-function derivatives!(nvec, o::SparseReg)
+function derivatives!(nvec::VecF, o::SparseReg)
     deriv!(nvec, o.loss, o.obs.y, nvec)
     nvec .*= o.obs.w
 end
