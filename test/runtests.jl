@@ -84,6 +84,12 @@ end
         @inferred SparseReg(o, rand(5), L2DistLoss(), L2Penalty())
         @inferred SparseReg(o, rand(5), L2Penalty(), L2DistLoss())
     end
+    @testset "predict" begin
+        s = SparseReg(o, L2DistLoss())
+        @test predict(s) == predict(s, x)
+        s = SparseReg(o, LogitMarginLoss())
+        @test predict(s) == predict(s, x)
+    end
 end
 
 

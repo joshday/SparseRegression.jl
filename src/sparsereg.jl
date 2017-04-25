@@ -38,6 +38,7 @@ coef(o::SparseReg) = o.β
 xβ(o::SparseReg, x::AMat = o.obs.x) = x * o.β
 xβ(o::SparseReg, xi::AVec) = dot(x, o.β)
 
+predict(o::SparseReg, x::AVec) = predict(o, x')
 predict(o::SparseReg, x::AMat = o.obs.x) = xβ(o, x)
 predict(o::SparseReg{MarginLoss}, x::AMat = o.obs.x) = map(x -> 1 / (1 + exp(-x)), xβ(o, x))
 
@@ -72,13 +73,13 @@ function gradient!(nvec::VecF, pvec::VecF, o::SparseReg)
     BLAS.gemv!('T', 1 / n, o.obs.x, nvec, 0.0, pvec)  # ∇ = mean(x' * nvec)
 end
 
-function derivatives!{L,P,O<:Obs{Ones}}(nvec::VecF, o::SparseReg{L, P, O})
-    deriv!(nvec, o.loss, o.obs.y, nvec)
-end
 function derivatives!(nvec::VecF, o::SparseReg)
     deriv!(nvec, o.loss, o.obs.y, nvec)
-    nvec .*= o.obs.w
+    multiply_by_weights!(nvec, o.obs)
 end
+
+multiply_by_weights!(nvec::VecF, obs::Obs{Ones}) = nothing
+multiply_by_weights!(nvec::VecF, obs::Obs) = (nvec .*= obs.w)
 
 #------------------------------------------------------------------------# learn!
 function learn!(o::SparseReg, a::AlgorithmStrategy, m::MaxIter = MaxIter(1), args...)
