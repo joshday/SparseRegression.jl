@@ -44,6 +44,9 @@ predict(o::SparseReg{MarginLoss}, x::AMat = o.obs.x) = map(x -> 1 / (1 + exp(-x)
 
 factor!(o::SparseReg, f::VecF) = (o.λfactor[:] = f; o)
 
+fitted(o::SparseReg) = predict(o)
+residuals(o::SparseReg) = o.obs.y - fitted(o)
+
 
 #------------------------------------------------------------------------# SparseRegPath
 struct SparseRegPath{S <: SparseReg}
