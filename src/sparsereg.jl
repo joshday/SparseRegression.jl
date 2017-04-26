@@ -36,7 +36,7 @@ end
 coef(o::SparseReg) = o.β
 
 xβ(o::SparseReg, x::AMat = o.obs.x) = x * o.β
-xβ(o::SparseReg, xi::AVec) = dot(x, o.β)
+xβ(o::SparseReg, xi::AVec) = dot(xi, o.β)
 
 predict(o::SparseReg, x::AVec) = predict(o, x')
 predict(o::SparseReg, x::AMat = o.obs.x) = xβ(o, x)
@@ -58,7 +58,10 @@ function SparseRegPath(o::SparseReg, λs::AVecF)
     SparseRegPath([SparseReg(o.obs, o.loss, o.penalty, λ * λf) for λ in λs], collect(λs))
 end
 function Base.show(io::IO, o::SparseRegPath)
-    println(io, name(o, true))
+    header(io, name(o))
+    print_item(io, "λ factor", o.path[1].λfactor)
+    print_item(io, "Loss", o.path[1].loss)
+    print_item(io, "Penalty", o.path[1].penalty)
     for i in 1:length(o.path)
         β = coef(o.path[i])
         println(io, "  > " * @sprintf("β(%.2f) : ", o.λs[i]) * "$β")

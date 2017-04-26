@@ -15,11 +15,11 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    SparseReg, Ones, Obs, ProxGrad, Fista, Sweep, GradientDescent,
+    SparseReg, SparseRegPath, Ones, Obs, ProxGrad, Fista, Sweep, GradientDescent,
     # Model typealiases
     LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
     # functions
-    coef, predict
+    coef, predict, fitted, residuals
 
 #---------------------------------------------------------------------------------# types
 const AVec  = AbstractVector

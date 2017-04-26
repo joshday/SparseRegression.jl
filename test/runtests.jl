@@ -14,6 +14,7 @@ o = Obs(randn(100,5), randn(100))
 show(o)
 println()
 show(SparseReg(o))
+show(SparseRegPath(SparseReg(o), 0:.01:.1))
 
 #------------------------------------------------------------# Tests Here
 println("\n\n\n")
@@ -23,25 +24,34 @@ data(::MarginLoss, n, p) = DataGenerator.logregdata(n, p)
 
 function _test(l::Loss, p::Penalty, a::LearningStrategy)
     x, y, β = data(l, 1000, 5)
-    o = SparseReg(Obs(x, y), l, p)
+    o = @inferred SparseReg(Obs(x, y), l, p)
+    learn!(o, a, MaxIter(4))
+    coef(o)
+    predict(o, x)
+
+    w = rand(1000)
+    o = @inferred SparseReg(Obs(x, y, w), l, p)
     learn!(o, a, MaxIter(10))
     coef(o)
     predict(o, x)
 end
 
-@testset "ProxGrad Sanity Check" begin
-    for l in losses, p in penalties
-        isa(p, PenaltyFunctions.ConvexElementPenalty) && _test(l, p, ProxGrad())
+@testset "Sanity Checks" begin
+    @testset "ProxGrad/Fista Sanity Check" begin
+        for l in losses, p in penalties
+            isa(p, PenaltyFunctions.ConvexElementPenalty) && _test(l, p, ProxGrad())
+            isa(p, PenaltyFunctions.ConvexElementPenalty) && _test(l, p, Fista())
+        end
     end
-end
-@testset "Sweep Sanity Check" begin
-    for l in [L2DistLoss(), LinearRegression()], p in [NoPenalty(), L2Penalty()]
-        _test(l, p, Sweep())
+    @testset "Sweep Sanity Check" begin
+        for l in [L2DistLoss(), LinearRegression()], p in [NoPenalty(), L2Penalty()]
+            _test(l, p, Sweep())
+        end
     end
-end
-@testset "GradientDescent Sanity Check" begin
-    for l in losses, p in penalties
-        _test(l, p, GradientDescent())
+    @testset "GradientDescent Sanity Check" begin
+        for l in losses, p in penalties
+            _test(l, p, GradientDescent())
+        end
     end
 end
 
@@ -59,6 +69,7 @@ end
     @test size(o) == (100, 5)
     @test size(o, 1) == 100
     @test size(o, 2) == 5
+    @test nobs(o) == size(o, 1)
 end
 @testset "SparseReg" begin
     x, y, β = DataGenerator.linregdata(100, 5)
@@ -87,8 +98,15 @@ end
     @testset "predict" begin
         s = SparseReg(o, L2DistLoss())
         @test predict(s) == predict(s, x)
+        xi = rand(5)
+        @test SparseRegression.xβ(s, xi) == predict(s, xi)
         s = SparseReg(o, LogitMarginLoss())
         @test predict(s) == predict(s, x)
+        @test predict(s) == fitted(s)
+    end
+    @testset "SparseRegPath" begin
+        s = SparseReg(Obs(x, y), ones(5))
+        path = SparseRegPath(s, 0:.01:.1)
     end
 end
 
