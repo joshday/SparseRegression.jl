@@ -14,7 +14,7 @@ function SparseReg(o::Obs, t::Tuple)
     SparseReg(zeros(d), λf, l, p, o)
 end
 
-d(o::Obs, λ::Float64 = .1) = (LinearRegression(), L2Penalty(), fill(λ, size(o.x, 2)))
+d(o::Obs) = (LinearRegression(), L2Penalty(), fill(.1, size(o.x, 2)))
 
 a(argu::Loss, t::Tuple)     = (argu, t[2], t[3])
 a(argu::Penalty, t::Tuple)  = (t[1], argu, t[3])
