@@ -7,7 +7,8 @@ function name(a, withparams = false)
 end
 
 function header(io, s, ln::Bool = true)
-    print_with_color(:light_cyan, io, "■ $s")
+    # print_with_color(:light_cyan, io, "■ $s")
+    print(io, "■ $s")
     ln && println(io)
 end
 function print_item(io::IO, name::AbstractString, value, newline = true)

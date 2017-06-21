@@ -1,3 +1,22 @@
+"""
+```julia
+SparseReg(o::Obs, args...)
+```
+Create a sparse regression object with observations `o` and additional arguments.  The order of additional arguments does not matter and can be of types
+- `Loss`
+- `Penalty`
+- `AbstractVector{Float64}`
+
+The created model must then be `learn!`-ed using LearningStrategies.jl
+
+### Example
+```julia
+using SparseRegression, DataGenerator
+x, y, _ = linregdata(1000, 10)
+o = SparseReg(Obs(x, y), LinearRegression(), L1Penalty(), .1 * ones(10))
+learn!(o, ProxGrad(), MaxIter(50), Converged(coef))
+```
+"""
 struct SparseReg{L <: Loss, P <: Penalty, O <: Obs}
     β::VecF
     λfactor::VecF
@@ -49,6 +68,11 @@ residuals(o::SparseReg) = o.obs.y - fitted(o)
 
 
 #------------------------------------------------------------------------# SparseRegPath
+"""
+```julia
+SparseRegPath(o, λs)
+```
+"""
 struct SparseRegPath{S <: SparseReg}
     path::Vector{S}
     λs::VecF
