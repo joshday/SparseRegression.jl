@@ -22,7 +22,7 @@ function learn!(o::SparseReg, a::GradientDescent, item::Void)
     gradient!(a.derivs, a.∇, o)
     s = a.step
     for j in eachindex(o.β)
-        @inbounds o.β[j] -= s * (a.∇[j] + deriv(o.penalty, o.β[j]))
+        @inbounds o.β[j] -= s * (a.∇[j] + o.λfactor[j] * deriv(o.penalty, o.β[j]))
     end
     o
 end
