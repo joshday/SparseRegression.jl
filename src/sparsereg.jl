@@ -59,7 +59,7 @@ function SparseRegPath(o::SparseReg, λs::AVecF)
 end
 function Base.show(io::IO, o::SparseRegPath)
     header(io, name(o))
-    print_item(io, "λ factor", o.path[1].λfactor)
+    print_item(io, "λ factor", o.path[end].λfactor)
     print_item(io, "Loss", o.path[1].loss)
     print_item(io, "Penalty", o.path[1].penalty)
     for i in 1:length(o.path)
@@ -67,6 +67,7 @@ function Base.show(io::IO, o::SparseRegPath)
         println(io, "  > " * @sprintf("β(%.2f) : ", o.λs[i]) * "$β")
     end
 end
+coef(o::SparseRegPath) = coef.(o.path)
 
 #------------------------------------------------------------------------# gradient!
 # To calculate a gradient, we need two storage buffers
@@ -98,4 +99,30 @@ function learn!(path::SparseRegPath, a::AlgorithmStrategy, m::MaxIter = MaxIter(
         learn!(o, a, m, args...)
     end
     path
+end
+
+
+
+#------------------------------------------------------------------------# recipes
+@recipe function f(o::SparseReg)
+    β = coef(o)
+    seriestype --> :scatter
+    xlab --> "Coefficients"
+    ylab --> "Value"
+    label --> "Estimate"
+    group --> β .!= 0
+    1:length(β), β
+end
+
+@recipe function f(o::SparseRegPath)
+    λfactor = o.path[end].λfactor
+    xlab --> "lambda"
+    label --> ["factor[$j] = $(λfactor[j])" for j in 1:length(λfactor)]
+    β = coef(o)
+    nλ, p = length(o.λs), length(β[1])
+    mat = zeros(p, nλ)
+    for i in 1:nλ
+        mat[:, i] = β[i]
+    end
+    o.λs, mat'
 end

@@ -8,6 +8,7 @@ using LearnBase
 using LossFunctions
 using PenaltyFunctions
 using LearningStrategies
+using RecipesBase
 
 # Reexports
 for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
