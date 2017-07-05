@@ -1,5 +1,4 @@
 module DataGenerator
-using Distributions; D = Distributions
 
 defaultβ(p) = collect(linspace(-1, 1, p))
 
@@ -23,4 +22,4 @@ end
 # 	y = Float64[rand(D.Poisson(exp(η))) for η in x * β]
 # 	return x, y, β
 # end
-end
+end #module
