@@ -42,7 +42,7 @@ function ProxGrad(obs::Obs, step::Float64 = 1.0)
     n, p = size(obs)
     ProxGrad(obs, step, zeros(n), zeros(p))
 end
-function learn!(o::Model, a::ProxGrad, item::Void)
+function learn!(o::SModel, a::ProxGrad, item::Void)
     gradient!(a.derivs, a.∇, o.β, o.loss, a.obs)
     s = a.step
     for j in eachindex(o.β)
@@ -69,8 +69,8 @@ function Fista(obs::Obs, step::Float64 = 1.0)
     n, p = size(obs)
     Fista(obs, step, zeros(n), zeros(p), zeros(p), zeros(p), 0)
 end
-pre_hook(a::Fista, o::Model) = (a.t = 0)
-function learn!(o::Model, a::Fista, item::Void)
+pre_hook(a::Fista, o::SModel) = (a.t = 0)
+function learn!(o::SModel, a::Fista, item::Void)
     copy!(a.β2, a.β1)
     copy!(a.β1, o.β)
     a.t += 1
@@ -103,7 +103,7 @@ function GradientDescent(obs::Obs, step::Float64 = 1.0)
     n, p = size(obs)
     GradientDescent(obs, step, zeros(n), zeros(p))
 end
-function learn!(o::Model, a::GradientDescent, item::Void)
+function learn!(o::SModel, a::GradientDescent, item::Void)
     gradient!(a.derivs, a.∇, o.β, o.loss, a.obs)
     s = a.step
     for j in eachindex(o.β)
@@ -115,7 +115,7 @@ end
 
 # For algorithms that only need a single iteration to solve
 abstract type OneIterAlgorithm <: Algorithm end
-finished(a::OneIterAlgorithm, o::Model, i::Void) = true
+finished(a::OneIterAlgorithm, o::SModel, i::Void) = true
 #-----------------------------------------------------------------------# Sweep
 """
     Sweep(obs)
@@ -146,7 +146,7 @@ function make_A(obs::Obs{Void})
     a[end, end] = dot(obs.y, obs.y) / n                             # y'y
     a
 end
-function learn!(o::Model, a::Sweep, item::Void)
+function learn!(o::SModel, a::Sweep, item::Void)
     n, p = size(a.obs)
     copy!(a.S, a.A)
     add_ridge!(o, a, o.λfactor)
@@ -155,8 +155,8 @@ function learn!(o::Model, a::Sweep, item::Void)
         @inbounds o.β[j] = a.S[j, end]
     end
 end
-function add_ridge!{L}(o::Model{L, NoPenalty}, a::Sweep, λf::Vector{Float64}) end
-function add_ridge!{L}(o::Model{L, L2Penalty}, a::Sweep, λf::Vector{Float64})
+function add_ridge!{L}(o::SModel{L, NoPenalty}, a::Sweep, λf::Vector{Float64}) end
+function add_ridge!{L}(o::SModel{L, L2Penalty}, a::Sweep, λf::Vector{Float64})
     for i in eachindex(o.β)
         @inbounds a.S[i, i] += λf[i]
     end
@@ -176,13 +176,13 @@ struct LinRegCholesky{O <: Obs} <: OneIterAlgorithm
 end
 LinRegCholesky(obs::Obs) = (A = make_A(obs); LinRegCholesky(obs, make_A(obs), zeros(A)))
 
-function learn!(o::Model, a::LinRegCholesky, item::Void)
+function learn!(o::SModel, a::LinRegCholesky, item::Void)
     copy!(a.S, a.A)
     cholfact!(Symmetric(a.S))
     o.β[:] = UpperTriangular(@view(a.S[1:end-1, 1:end-1])) \ @view(a.S[1:end-1, end])
 end
-function add_ridge!{L}(o::Model{L, NoPenalty}, a::LinRegCholesky, λf::Vector{Float64}) end
-function add_ridge!{L}(o::Model{L, L2Penalty}, a::LinRegCholesky, λf::Vector{Float64})
+function add_ridge!{L}(o::SModel{L, NoPenalty}, a::LinRegCholesky, λf::Vector{Float64}) end
+function add_ridge!{L}(o::SModel{L, L2Penalty}, a::LinRegCholesky, λf::Vector{Float64})
     for i in eachindex(o.β)
         @inbounds a.S[i, i] += λf[i]
     end

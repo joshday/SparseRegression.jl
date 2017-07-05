@@ -17,7 +17,7 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    Model, Obs, Path,
+    SModel, Obs, Path,
     # algorithms
     ProxGrad, GradientDescent, Fista, Sweep, LinRegCholesky,
     # aliases

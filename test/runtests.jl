@@ -16,8 +16,8 @@ info("Show Obs")
 show(Obs(x, y))
 println()
 
-info("Show Model")
-show(Model(5))
+info("Show SModel")
+show(SModel(5))
 
 
 #------------------------------------------------------------# Tests Here
@@ -29,7 +29,7 @@ data(::MarginLoss, n, p) = DataGenerator.logregdata(n, p)
 function _test(l::Loss, p::Penalty, alg)
     x, y, β = data(l, 100, 5)
     obs = Obs(x, y)
-    o = @inferred Model(obs, l, p)
+    o = @inferred SModel(obs, l, p)
     a = @inferred alg(obs)
     @inferred learn!(o, a)
     @test coef(o) == o.β
@@ -37,7 +37,7 @@ function _test(l::Loss, p::Penalty, alg)
 
     w = rand(100)
     obs = Obs(x, y, w)
-    o = @inferred Model(obs, l, p)
+    o = @inferred SModel(obs, l, p)
     a = @inferred alg(obs)
     learn!(o, a)
     coef(o)
@@ -76,33 +76,33 @@ end
     @test size(o, 2) == p
     @test nobs(o) == size(o, 1)
 end
-@testset "Model" begin
+@testset "SModel" begin
     n, p = 100, 5
     x, y, β = DataGenerator.linregdata(n, p)
     o = Obs(x, y)
     @testset "Constructor type stability" begin
-        @inferred Model(o)
+        @inferred SModel(o)
 
-        @inferred Model(o, L2DistLoss())
-        @inferred Model(o, L2Penalty())
-        @inferred Model(o, rand(5))
+        @inferred SModel(o, L2DistLoss())
+        @inferred SModel(o, L2Penalty())
+        @inferred SModel(o, rand(5))
 
-        @inferred Model(o, L2DistLoss(), L2Penalty())
-        @inferred Model(o, L2DistLoss(), rand(5))
-        @inferred Model(o, L2Penalty(), L2DistLoss())
-        @inferred Model(o, L2Penalty(), rand(5))
-        @inferred Model(o, rand(5), L2DistLoss())
-        @inferred Model(o, rand(5), L2Penalty())
+        @inferred SModel(o, L2DistLoss(), L2Penalty())
+        @inferred SModel(o, L2DistLoss(), rand(5))
+        @inferred SModel(o, L2Penalty(), L2DistLoss())
+        @inferred SModel(o, L2Penalty(), rand(5))
+        @inferred SModel(o, rand(5), L2DistLoss())
+        @inferred SModel(o, rand(5), L2Penalty())
 
-        @inferred Model(o, L2DistLoss(), L2Penalty(), rand(5))
-        @inferred Model(o, L2DistLoss(), rand(5), L2Penalty())
-        @inferred Model(o, L2Penalty(), L2DistLoss(), rand(5))
-        @inferred Model(o, L2Penalty(), rand(5), L2DistLoss())
-        @inferred Model(o, rand(5), L2DistLoss(), L2Penalty())
-        @inferred Model(o, rand(5), L2Penalty(), L2DistLoss())
+        @inferred SModel(o, L2DistLoss(), L2Penalty(), rand(5))
+        @inferred SModel(o, L2DistLoss(), rand(5), L2Penalty())
+        @inferred SModel(o, L2Penalty(), L2DistLoss(), rand(5))
+        @inferred SModel(o, L2Penalty(), rand(5), L2DistLoss())
+        @inferred SModel(o, rand(5), L2DistLoss(), L2Penalty())
+        @inferred SModel(o, rand(5), L2Penalty(), L2DistLoss())
     end
     @testset "predict" begin
-        o = Model(5)
+        o = SModel(5)
         @test predict(o, randn(5)) == 0.0
         @test predict(o, randn(10, 5)) == zeros(10)
     end
