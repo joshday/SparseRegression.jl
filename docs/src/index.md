@@ -16,6 +16,7 @@ SModel
 ## `Obs`
 
 ```@example
+using SparseRegression
 s = SModel(5)
 ```
 
