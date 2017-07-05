@@ -15,6 +15,6 @@ script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - julia -e 'Pkg.clone(pwd()); Pkg.build("SparseRegression"); Pkg.test("SparseRegression"; coverage=true)'
 after_success:
-  - julia -e 'Pkg.add("Documenter"); Pkg.checkout("Documenter")'
+  - julia -e 'Pkg.add("Documenter")'
   - julia -e 'cd(Pkg.dir("SparseRegression")); include(joinpath("docs", "make.jl"))'
   - julia -e 'cd(Pkg.dir("SparseRegression")); Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'

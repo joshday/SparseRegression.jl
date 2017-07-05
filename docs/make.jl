@@ -1,9 +1,14 @@
 using Documenter, SparseRegression
 
-makedocs()
+makedocs(
+    format = :html,
+    sitename = "SparseRegression",
+    pages = ["index.md"]
+)
 
 deploydocs(
     repo = "github.com/joshday/SparseRegression.jl.git",
     julia = "0.6",
-    deps = Deps.pip("pygments", "mkdocs", "python-markdown-math")
+    deps = nothing,
+    make = nothing
 )
