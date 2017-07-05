@@ -9,6 +9,7 @@ using LossFunctions
 using PenaltyFunctions
 using LearningStrategies
 using RecipesBase
+using OnlineStatsBase
 
 # Reexports
 for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
@@ -16,19 +17,17 @@ for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    SparseReg, SparseRegPath, Ones, Obs, ProxGrad, Fista, Sweep, GradientDescent,
-    # Model typealiases
-    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression, SVMLike, DWDLike, QuantileRegression,
+    Model, Obs, Path,
+    # algorithms
+    ProxGrad, GradientDescent, Fista, Sweep, LinRegCholesky,
+    # aliases
+    LinearRegression, L1Regression, LogisticRegression, PoissonRegression, HuberRegression,
+    SVMLike, QuantileRegression, DWDLike,
     # functions
     coef, predict, fitted, residuals
 
-#---------------------------------------------------------------------------------# types
-const AVec  = AbstractVector
-const AMat  = AbstractMatrix
-const AVecF = AbstractVector{Float64}
-const AMatF = AbstractMatrix{Float64}
-const VecF  = Vector{Float64}
-const MatF  = Matrix{Float64}
+
+abstract type Algorithm <: LearningStrategy end
 
 const LinearRegression      = LossFunctions.ScaledDistanceLoss{L2DistLoss,0.5}
 const L1Regression          = L1DistLoss
@@ -39,19 +38,11 @@ const SVMLike               = L1HingeLoss
 const QuantileRegression    = QuantileLoss
 const DWDLike               = DWDMarginLoss
 
-abstract type AlgorithmStrategy <: LearningStrategy end
-
-const ϵ = 1e-5
-
-#-------------------------------------------------------------------------------# includes
 include("obs.jl")
-include("printing.jl")
-include("sparsereg.jl")
-include("algorithms/gradientdescent.jl")
-include("algorithms/proxgrad.jl")
-include("algorithms/fista.jl")
-include("algorithms/sweep.jl")
+include("model.jl")
+include("algorithms.jl")
 
 
 
-end #module
+
+end

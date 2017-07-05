@@ -1,5 +1,5 @@
-module SparseRegressionTests
-using SparseRegression, PenaltyFunctions, Base.Test
+module SparseRegNextTest
+using SparseRegNext, PenaltyFunctions, Base.Test
 include("datagenerator.jl")
 
 
@@ -9,29 +9,37 @@ penalties = [NoPenalty(), L1Penalty(), L2Penalty(), ElasticNetPenalty(.5), LogPe
           SCADPenalty(), MCPPenalty()]
 
 #------------------------------------------------------------# Show methods
-info("Show Methods")
-o = Obs(randn(100,5), randn(100))
-show(o)
+n, p = 100, 5
+x, y, β = DataGenerator.linregdata(n, p)
+
+info("Show Obs")
+show(Obs(x, y))
 println()
-show(SparseReg(o))
-show(SparseRegPath(SparseReg(o), 0:.01:.1))
+
+info("Show Model")
+show(Model(5))
+
 
 #------------------------------------------------------------# Tests Here
-println("\n\n\n")
-info("Tests Start Here")
+println("\n\n")
+info("Begin Tests")
 data(::Loss, n, p) = DataGenerator.linregdata(n, p)
 data(::MarginLoss, n, p) = DataGenerator.logregdata(n, p)
 
-function _test(l::Loss, p::Penalty, a::LearningStrategy)
-    x, y, β = data(l, 1000, 5)
-    o = @inferred SparseReg(Obs(x, y), l, p)
-    learn!(o, a, MaxIter(4))
-    coef(o)
-    predict(o, x)
+function _test(l::Loss, p::Penalty, alg)
+    x, y, β = data(l, 100, 5)
+    obs = Obs(x, y)
+    o = @inferred Model(obs, l, p)
+    a = @inferred alg(obs)
+    @inferred learn!(o, a)
+    @test coef(o) == o.β
+    @test length(predict(o, x)) == length(y)
 
-    w = rand(1000)
-    o = @inferred SparseReg(Obs(x, y, w), l, p)
-    learn!(o, a, MaxIter(10))
+    w = rand(100)
+    obs = Obs(x, y, w)
+    o = @inferred Model(obs, l, p)
+    a = @inferred alg(obs)
+    learn!(o, a)
     coef(o)
     predict(o, x)
 end
@@ -39,74 +47,64 @@ end
 @testset "Sanity Checks" begin
     @testset "ProxGrad/Fista Sanity Check" begin
         for l in losses, p in penalties
-            isa(p, PenaltyFunctions.ConvexElementPenalty) && _test(l, p, ProxGrad())
-            isa(p, PenaltyFunctions.ConvexElementPenalty) && _test(l, p, Fista())
+            if isa(p, PenaltyFunctions.ConvexElementPenalty)
+                _test(l, p, ProxGrad)
+                _test(l, p, Fista)
+            end
         end
     end
-    @testset "Sweep Sanity Check" begin
+    @testset "Sweep/LinRegCholesky Sanity Check" begin
         for l in [L2DistLoss(), LinearRegression()], p in [NoPenalty(), L2Penalty()]
-            _test(l, p, Sweep())
+            _test(l, p, Sweep)
+            _test(l, p, LinRegCholesky)
         end
     end
     @testset "GradientDescent Sanity Check" begin
         for l in losses, p in penalties
-            _test(l, p, GradientDescent())
+            _test(l, p, GradientDescent)
         end
     end
 end
 
-@testset "Ones" begin
-    o = Ones(10)
-    @test length(o) == 10
-    for oi in o
-        @test oi == 1.0
-    end
-    @test o[1:4] == ones(4)
-end
+
 @testset "Obs" begin
-    x, y, β = DataGenerator.linregdata(100, 5)
+    n, p = 1000, 5
+    x, y, β = DataGenerator.linregdata(n, p)
     o = Obs(x, y)
-    @test size(o) == (100, 5)
-    @test size(o, 1) == 100
-    @test size(o, 2) == 5
+    @test size(o) == (n, p)
+    @test size(o, 1) == n
+    @test size(o, 2) == p
     @test nobs(o) == size(o, 1)
 end
-@testset "SparseReg" begin
-    x, y, β = DataGenerator.linregdata(100, 5)
+@testset "Model" begin
+    n, p = 100, 5
+    x, y, β = DataGenerator.linregdata(n, p)
     o = Obs(x, y)
-    @testset "Constructor inference" begin
-        @inferred SparseReg(o)
+    @testset "Constructor type stability" begin
+        @inferred Model(o)
 
-        @inferred SparseReg(o, L2DistLoss())
-        @inferred SparseReg(o, L2Penalty())
-        @inferred SparseReg(o, rand(5))
+        @inferred Model(o, L2DistLoss())
+        @inferred Model(o, L2Penalty())
+        @inferred Model(o, rand(5))
 
-        @inferred SparseReg(o, L2DistLoss(), L2Penalty())
-        @inferred SparseReg(o, L2DistLoss(), rand(5))
-        @inferred SparseReg(o, L2Penalty(), L2DistLoss())
-        @inferred SparseReg(o, L2Penalty(), rand(5))
-        @inferred SparseReg(o, rand(5), L2DistLoss())
-        @inferred SparseReg(o, rand(5), L2Penalty())
+        @inferred Model(o, L2DistLoss(), L2Penalty())
+        @inferred Model(o, L2DistLoss(), rand(5))
+        @inferred Model(o, L2Penalty(), L2DistLoss())
+        @inferred Model(o, L2Penalty(), rand(5))
+        @inferred Model(o, rand(5), L2DistLoss())
+        @inferred Model(o, rand(5), L2Penalty())
 
-        @inferred SparseReg(o, L2DistLoss(), L2Penalty(), rand(5))
-        @inferred SparseReg(o, L2DistLoss(), rand(5), L2Penalty())
-        @inferred SparseReg(o, L2Penalty(), L2DistLoss(), rand(5))
-        @inferred SparseReg(o, L2Penalty(), rand(5), L2DistLoss())
-        @inferred SparseReg(o, rand(5), L2DistLoss(), L2Penalty())
-        @inferred SparseReg(o, rand(5), L2Penalty(), L2DistLoss())
+        @inferred Model(o, L2DistLoss(), L2Penalty(), rand(5))
+        @inferred Model(o, L2DistLoss(), rand(5), L2Penalty())
+        @inferred Model(o, L2Penalty(), L2DistLoss(), rand(5))
+        @inferred Model(o, L2Penalty(), rand(5), L2DistLoss())
+        @inferred Model(o, rand(5), L2DistLoss(), L2Penalty())
+        @inferred Model(o, rand(5), L2Penalty(), L2DistLoss())
     end
     @testset "predict" begin
-        s = SparseReg(o, L2DistLoss())
-        @test predict(s) == predict(s, x)
-        xi = rand(5)
-        @test SparseRegression.xβ(s, xi) == predict(s, xi)
-        s = SparseReg(o, LogitMarginLoss())
-        @test predict(s) == predict(s, x)
-        @test predict(s) == fitted(s)
-    end
-    @testset "SparseRegPath" begin
-        s = SparseReg(Obs(x, y), ones(5))
-        path = SparseRegPath(s, 0:.01:.1)
+        o = Model(5)
+        @test predict(o, randn(5)) == 0.0
+        @test predict(o, randn(10, 5)) == zeros(10)
     end
 end
 
