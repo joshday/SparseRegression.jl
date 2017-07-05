@@ -6,3 +6,4 @@ LossFunctions
 PenaltyFunctions
 SweepOperator
 RecipesBase
+OnlineStatsBase
