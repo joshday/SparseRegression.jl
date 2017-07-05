@@ -1,5 +1,5 @@
-module SparseRegNextTest
-using SparseRegNext, PenaltyFunctions, Base.Test
+module SparseRegressionTest
+using SparseRegression, PenaltyFunctions, Base.Test
 include("datagenerator.jl")
 
 
