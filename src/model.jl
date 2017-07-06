@@ -23,10 +23,10 @@ SModel(obs::Obs, args...)        = SModel(size(obs, 2), args...)
 
 function Base.show(io::IO, o::SModel)
     println(io, typeof(o))
-    println(io, "  > β        :", o.β)
-    println(io, "  > λ factor :", o.λfactor)
-    println(io, "  > Loss     :", o.loss)
-    print(io,   "  > Penalty  :", o.penalty)
+    println(io, "  > β        : ", o.β)
+    println(io, "  > λ factor : ", o.λfactor)
+    println(io, "  > Loss     : ", o.loss)
+    print(io,   "  > Penalty  : ", o.penalty)
 end
 
 coef(o::SModel) = o.β
