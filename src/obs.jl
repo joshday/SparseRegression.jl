@@ -1,4 +1,3 @@
-#----------------------------------------------------------------------#  Obs
 """
     Obs(x, y)
     Obs(x, y, w)
@@ -11,28 +10,28 @@ struct Obs{W, T <: Number, X <: AbstractArray{T}, Y <: AbstractArray{T}}
     x::X    # predictors
     y::Y    # response
 end
-
+#--------------------------------------------------------------------# Constructor without weights
 function Obs(x::AbstractArray, y::AbstractArray)
     n1 = size(x, 1)
     n2 = size(y, 1)
     n1 == n2 || throw(DimensionMismatch("number of rows do not match: $n1, $n2"))
     Obs{Void, eltype(x), typeof(x), typeof(y)}(nothing, x, y)
 end
-
+#-----------------------------------------------------------------------# Constructor with weights
 function Obs(x::AbstractArray, y::AbstractArray, w::AbstractArray)
     n1, n2, n3 = size(x, 1), size(y, 1), size(w, 1)
     n1 == n2 == n3 || throw(DimensionMismatch("number of rows do not match: $n1, $n2, $n3"))
     all(x -> x>=0, w) || throw(ArgumentError("weight vector must be nonnegative"))
     Obs{typeof(w), eltype(x), typeof(x), typeof(y)}(w, x, y)
 end
-
+#-----------------------------------------------------------------------# show
 function Base.show(io::IO, o::Obs)
     println(io, typeof(o))
     println(io, "  > x: ", summary(o.x))
     println(io, "  > y: ", summary(o.y))
     print(io,   "  > w: ", summary(o.w))
 end
-
+#-----------------------------------------------------------------------# methods
 nobs(o::Obs) = size(o, 1)
 Base.size(o::Obs) = size(o.x)
 Base.size(o::Obs, i) = size(o.x, i)
@@ -49,6 +48,8 @@ function gradient!(nvec, pvec, β::Vector, L::Loss, O::Obs)
     multiply_by_weights!(nvec, O.w)   # nvec *.= w
     At_mul_B!(pvec, O.x, nvec)        # pvec ← x'nvec
 end
+
+# normalize (divide by n) and multiply weights
 function multiply_by_weights!(nvec, w::Void)
     wt = inv(length(nvec))
     for i in eachindex(nvec)

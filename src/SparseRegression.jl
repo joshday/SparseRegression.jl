@@ -1,15 +1,9 @@
 module SparseRegression
 
-import SweepOperator
-importall LearnBase
-importall StatsBase
-importall LearningStrategies
-using LearnBase
-using LossFunctions
-using PenaltyFunctions
-using LearningStrategies
-using RecipesBase
-using OnlineStatsBase
+import SweepOperator: sweep!
+importall LearnBase, StatsBase, LearningStrategies
+using LossFunctions, PenaltyFunctions, RecipesBase, OnlineStatsBase
+
 
 # Reexports
 for pkg in [:LearnBase, :LossFunctions, :PenaltyFunctions, :LearningStrategies]

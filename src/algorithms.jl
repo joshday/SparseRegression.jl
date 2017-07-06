@@ -13,18 +13,19 @@ function learn!(model, meta::MetaLearner, data)
     post_hook(meta, model)
 end
 
+where:
+    - data is Void.
+    - The actual data (Obs) are held by the algorithm and are part of the MetaLearner
+
 
 An Algorithm should only implement:
 
 - pre_hook(alg, model)
     - Only if the algorithm needs some setup (copying data into a buffer, etc.)
 
-- learn!(model, alg, item::Void)
+- update!(model, alg, item::Void)
     - For example, a single gradient step.  The algorithm contain Obs, so the
       `item` is nothing.
-
-
-
 ==============================================================================#
 
 #-----------------------------------------------------------------------# ProxGrad
@@ -42,7 +43,7 @@ function ProxGrad(obs::Obs, step::Float64 = 1.0)
     n, p = size(obs)
     ProxGrad(obs, step, zeros(n), zeros(p))
 end
-function learn!(o::SModel, a::ProxGrad, item::Void)
+function update!(o::SModel, a::ProxGrad, item::Void)
     gradient!(a.derivs, a.∇, o.β, o.loss, a.obs)
     s = a.step
     for j in eachindex(o.β)
@@ -70,7 +71,7 @@ function Fista(obs::Obs, step::Float64 = 1.0)
     Fista(obs, step, zeros(n), zeros(p), zeros(p), zeros(p), 0)
 end
 pre_hook(a::Fista, o::SModel) = (a.t = 0)
-function learn!(o::SModel, a::Fista, item::Void)
+function update!(o::SModel, a::Fista, item::Void)
     copy!(a.β2, a.β1)
     copy!(a.β1, o.β)
     a.t += 1
@@ -103,7 +104,7 @@ function GradientDescent(obs::Obs, step::Float64 = 1.0)
     n, p = size(obs)
     GradientDescent(obs, step, zeros(n), zeros(p))
 end
-function learn!(o::SModel, a::GradientDescent, item::Void)
+function update!(o::SModel, a::GradientDescent, item::Void)
     gradient!(a.derivs, a.∇, o.β, o.loss, a.obs)
     s = a.step
     for j in eachindex(o.β)
@@ -146,11 +147,11 @@ function make_A(obs::Obs{Void})
     a[end, end] = dot(obs.y, obs.y) / n                             # y'y
     a
 end
-function learn!(o::SModel, a::Sweep, item::Void)
+function update!(o::SModel, a::Sweep, item::Void)
     n, p = size(a.obs)
     copy!(a.S, a.A)
     add_ridge!(o, a, o.λfactor)
-    SweepOperator.sweep!(a.S, 1:p)
+    sweep!(a.S, 1:p)
     for j in eachindex(o.β)
         @inbounds o.β[j] = a.S[j, end]
     end
@@ -176,7 +177,7 @@ struct LinRegCholesky{O <: Obs} <: OneIterAlgorithm
 end
 LinRegCholesky(obs::Obs) = (A = make_A(obs); LinRegCholesky(obs, make_A(obs), zeros(A)))
 
-function learn!(o::SModel, a::LinRegCholesky, item::Void)
+function update!(o::SModel, a::LinRegCholesky, item::Void)
     copy!(a.S, a.A)
     cholfact!(Symmetric(a.S))
     o.β[:] = UpperTriangular(@view(a.S[1:end-1, 1:end-1])) \ @view(a.S[1:end-1, end])
