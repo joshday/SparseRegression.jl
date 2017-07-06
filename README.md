@@ -5,50 +5,23 @@
 
 # SparseRegression
 
-This package relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.   
+This package relies on primitives defined in the [JuliaML](https://github.com/JuliaML) ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.  
 
+<img width=400 src="https://user-images.githubusercontent.com/8075494/27926282-d99e2792-6255-11e7-91ec-a4421a8bfd75.png">
 
-___
-Install on Julia 0.6 with
-```julia
-Pkg.clone("https://github.com/joshday/SparseRegression.jl")
-```
+The three core JuliaML packages that SparseRegression brings together are:
 
+- [LossFunctions](https://github.com/JuliaML/LossFunctions.jl)
+  - "grammar of losses": <img width=15 src="https://user-images.githubusercontent.com/8075494/27926340-148c700c-6256-11e7-8a6c-f6aa7ae796b7.png">
+- [PenaltyFunctions](https://github.com/JuliaML/PenaltyFunctions.jl)
+  - "grammar of regularization": <img width=12 src = "https://user-images.githubusercontent.com/8075494/27926360-2855af7c-6256-11e7-90c1-0f924d5131bf.png">
+- [LearningStrategies](https://github.com/JuliaML/LearningStrategies.jl)
+  - "grammar of iterative learning algorithms"
 
----
-
-# Readme Contents
-1. [What Can SparseRegression Do?](#what-can-sparseregression-do)
-1. [SModel](#smodel)
-1. [Algorithms](#algorithms)
-
----
-
-
-# What Can SparseRegression Do?
-
-SparseRegression aims to solve statistical learning problems of the form:
-
-<img width=300 src="https://cloud.githubusercontent.com/assets/8075494/25072239/5d85db30-2297-11e7-817e-e7bebaf056cd.png">
-
-That is, we want to minimize a loss, subject to element-wise regularization of the coefficients.
-
-- With few exceptions, SparseRegression can handle:
+With few exceptions, SparseRegression can handle:
   - any Loss from [LossFunctions.jl](https://github.com/JuliaML/LossFunctions.jl#available-losses)
   - any ElementPenalty from [PenaltyFunctions.jl](https://github.com/JuliaML/PenaltyFunctions.jl#available-penalties)
 
-
-# `SModel`
-- The main struct exported by SparseRegression is `SModel`:
-
-```julia
-struct SModel{L <: Loss, P <: Penalty}
-    β::Vector{Float64}
-    λfactor::Vector{Float64}
-    loss::L
-    penalty::P
-end
-```
 
 # Observations
 - Observations are wrapped in a lightweight `Obs` type
@@ -71,8 +44,28 @@ SparseRegression.Obs{Array{Float64,1},Float64,Array{Float64,2},Array{Float64,1}}
 ```
 - This allows algorithms to dispatch on whether or not observations are weighted.
 
+# `SModel`
+The main struct exported by SparseRegression is `SModel`:
 
-### Toy Example
+```julia
+struct SModel{L <: Loss, P <: Penalty}
+    β::Vector{Float64}
+    λfactor::Vector{Float64}
+    loss::L
+    penalty::P
+end
+```
+An `SModel` is constructed with the number of predictors (or `Obs`), as well as a loss, penalty, and λfactor in any order (and it's type stable).
+```julia
+SModel(5)  # default: LinearRegression, L2Penalty(), fill(.1, 5)
+SModel(5, LogisticRegression(), L1Penalty())
+SModel(5, L2Penalty(), L1HingeLoss())
+SModel(obs, NoPenalty(), QuantileRegression(.7))
+```
+
+After creating an SModel, it must then be learned with an `Algorithm` and any other number of learning strategies.
+
+# Example
 ```julia
 using SparseRegression
 
@@ -91,6 +84,8 @@ learn!(s, ProxGrad(obs), MaxIter(50), Converged(coef))
 
 
 # Algorithms
+
+An `Algorithm` contains `Obs`, parameters for the algorithm, and storage buffers.  Some algorithms only work with specific loss/penalty combinations.
 
 ### `ProxGrad(obs, s)`
 Proximal Gradient Method with step size `s`.  Handles any loss and convex penalty.
