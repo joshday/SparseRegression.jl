@@ -42,7 +42,7 @@ Base.size(o::Obs, i) = size(o.x, i)
 # To calculate a gradient, we need two storage buffers (nvec, pvec)
 #  - length n: stores derivatives with respect to x * β
 #  - length p: stores x' * derivatives
-function gradient!(nvec, pvec, β::Vector, L::Loss, O::Obs)
+function gradient!(nvec::Vector, pvec::Vector, β::Vector, L::Loss, O::Obs)
     A_mul_B!(nvec, O.x, β)            # nvec ← x * β
     deriv!(nvec, L, O.y, nvec)        # nvec ← deriv(L, y, x * β)
     multiply_by_weights!(nvec, O.w)   # nvec *.= w
