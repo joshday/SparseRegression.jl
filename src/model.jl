@@ -1,5 +1,18 @@
 """
-This is the `SModel` docstring
+    SModel(p::Int, args...)
+
+Create a SparseRegression model of `p` coefficients.  Additional arguments can be given in any
+order (and is still type stable):
+
+| argument  | type              | default             |
+|-----------|-------------------|---------------------|
+| `λfactor` | `Vector{Float64}` | `fill(.1, p)`       |
+| `loss`    | `Loss`            | `.5 * L2DistLoss()` |
+| `penalty` | `Penalty`         | `L2Penalty()`       |
+
+# Example
+
+    SModel(10, L1Penalty(), vcat(0.0, ones(9)), LogitMarginLoss())
 """
 struct SModel{L <: Loss, P <: Penalty}
     β::Vector{Float64}
@@ -8,8 +21,8 @@ struct SModel{L <: Loss, P <: Penalty}
     penalty::P
 end
 
-# Some hacks for type-stable arbitrary argument order
-d(p::Integer) = (fill(.1, p), LinearRegression(), L2Penalty())
+# hacks for type-stable arbitrary argument order
+d(p::Integer) = (fill(.1, p), .5 * L2DistLoss(), L2Penalty())
 a(argu::Vector{Float64}, t::Tuple)  = (argu, t[2], t[3])
 a(argu::Loss, t::Tuple)             = (t[1], argu, t[3])
 a(argu::Penalty, t::Tuple)          = (t[1], t[2], argu)
@@ -23,8 +36,8 @@ SModel(obs::Obs, args...)        = SModel(size(obs, 2), args...)
 
 function Base.show(io::IO, o::SModel)
     println(io, typeof(o))
-    println(io, "  > β        : ", o.β)
-    println(io, "  > λ factor : ", o.λfactor)
+    println(io, "  > β        : ", o.β')
+    println(io, "  > λ factor : ", o.λfactor')
     println(io, "  > Loss     : ", o.loss)
     print(io,   "  > Penalty  : ", o.penalty)
 end
