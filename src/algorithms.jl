@@ -1,26 +1,31 @@
-#-----------------------------------------------------------------------# ProxGrad
-"""
-    ProxGrad(obs, step = 1.0)
-
-Proximal Gradient Method.  Works for any loss and penalty with a `prox` method.
-"""
-struct ProxGrad{O<:Obs} <: Algorithm
-    obs::O
-    step::Float64
-    buffer::GradientBuffer
+struct ProxGrad <: GradientAlgorithm
+    nvec::Float64
+    pvec::Float64
 end
-ProxGrad(o::Obs, step::Float64 = 1.0) = ProxGrad(o, step, GradientBuffer(o))
-Base.show(io::IO, a::ProxGrad) = print(io, "ProxGrad")
 
-gradient!(a::ProxGrad, m::SModel) = (gradient!(a.buffer, m, a.obs); return a.buffer.pvec)
-
-function update!(o::SModel, a::ProxGrad, obs)
-    ∇ = gradient!(a, o)
-    s = a.step
-    for j in eachindex(o.β)
-        o.β[j] = prox(o.penalty, o.β[j] - s * ∇[j], s * o.λfactor[j])
-    end
-end
+# #-----------------------------------------------------------------------# ProxGrad
+# """
+#     ProxGrad(obs, step = 1.0)
+#
+# Proximal Gradient Method.  Works for any loss and penalty with a `prox` method.
+# """
+# struct ProxGrad{O<:Obs} <: Algorithm
+#     obs::O
+#     step::Float64
+#     buffer::GradientBuffer
+# end
+# ProxGrad(o::Obs, step::Float64 = 1.0) = ProxGrad(o, step, GradientBuffer(o))
+# Base.show(io::IO, a::ProxGrad) = print(io, "ProxGrad")
+#
+# gradient!(a::ProxGrad, m::SModel) = (gradient!(a.buffer, m, a.obs); return a.buffer.pvec)
+#
+# function update!(o::SModel, a::ProxGrad, obs)
+#     ∇ = gradient!(a, o)
+#     s = a.step
+#     for j in eachindex(o.β)
+#         o.β[j] = prox(o.penalty, o.β[j] - s * ∇[j], s * o.λfactor[j])
+#     end
+# end
 
 
 # """

@@ -16,15 +16,11 @@ abstract type Algorithm <: LearningStrategy end
 abstract type GradientAlgorithm <: Algorithm end
 abstract type OneRunAlgorithm <: Algorithm end
 
-abstract type ObsPlacement end
-struct Rows <: ObsPlacement end
-struct Cols <: ObsPlacement end
-
-
 include("smodel.jl")
+include("algorithms.jl")
 
+#-----------------------------------------------------------------------# Algorithms
 
-struct ProxGrad <: Algorithm end
 #
 # #-----------------------------------------------------------------------# Obs
 # struct Obs{W, X <: AbstractMatrix, Y <: AbstractArray, T <: Dimension}
