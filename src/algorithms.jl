@@ -10,6 +10,7 @@ struct ProxGrad{O<:Obs} <: Algorithm
     buffer::GradientBuffer
 end
 ProxGrad(o::Obs, step::Float64 = 1.0) = ProxGrad(o, step, GradientBuffer(o))
+Base.show(io::IO, a::ProxGrad) = print(io, "ProxGrad")
 
 gradient!(a::ProxGrad, m::SModel) = (gradient!(a.buffer, m, a.obs); return a.buffer.pvec)
 

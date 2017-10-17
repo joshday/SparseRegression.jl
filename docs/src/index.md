@@ -6,9 +6,9 @@ SparseRegression relies on primitives defined in the [JuliaML](https://github.co
 The objective functions that SparseRegression can solve are of the form:
 
 ```math
-\frac{1}{n}\sum_{i=1}^n f(y_i, x_i^T\beta) + \sum_{j=1}^p \lambda_j J(\beta_j),
+\frac{1}{n}\sum_{i=1}^n w_i f(y_i, x_i^T\beta) + \sum_{j=1}^p \lambda_j J(\beta_j),
 ```
-where $f$ is a loss function and $J$ is a penalty or regularization function.
+where $f$ is a loss function, $J$ is a penalty or regularization function, the $w_i$'s are nonnegative observation weights and the $\lambda_j$'s are nonnegative element-wise regularization parameters.
 
 The three core JuliaML packages that SparseRegression brings together are:
 
