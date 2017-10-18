@@ -14,7 +14,8 @@ using Reexport, RecipesBase
 #-----------------------------------------------------------------------# Types
 abstract type Algorithm <: LearningStrategy end
 abstract type GradientAlgorithm <: Algorithm end
-abstract type OneRunAlgorithm <: Algorithm end
+abstract type OneIterAlgorithm <: Algorithm end
+finished(a::OneIterAlgorithm, model, i) = true
 
 include("smodel.jl")
 include("algorithms.jl")

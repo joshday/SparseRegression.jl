@@ -1,55 +1,40 @@
-struct ProxGrad <: GradientAlgorithm
-    nvec::Float64
-    pvec::Float64
+#-----------------------------------------------------------------------# GradientAlgorithm
+function gradient!(a::GradientAlgorithm, o::SModel)
+    A_mul_B!(a.nvec, o.x, o.β)          # nvec ← x * β
+    deriv!(a.nvec, o.loss, o.y, a.nvec) # nvec ← deriv(L, y, x * β)
+    multiply_by_weights!(a.nvec, o.w)   # nvec .*= w ./ n
+    At_mul_B!(a.pvec, o.x, a.nvec)      # pvec ← x'nvec
+end
+multiply_by_weights!(nvec, w::Void) = scale!(nvec, 1 / length(nvec))
+function multiply_by_weights!(nvec, w)
+    wt = inv(length(nvec))
+    for i in eachindex(nvec)
+        @inbounds nvec[i] *= w[i] * wt
+    end
 end
 
-# #-----------------------------------------------------------------------# ProxGrad
-# """
-#     ProxGrad(obs, step = 1.0)
-#
-# Proximal Gradient Method.  Works for any loss and penalty with a `prox` method.
-# """
-# struct ProxGrad{O<:Obs} <: Algorithm
-#     obs::O
-#     step::Float64
-#     buffer::GradientBuffer
-# end
-# ProxGrad(o::Obs, step::Float64 = 1.0) = ProxGrad(o, step, GradientBuffer(o))
-# Base.show(io::IO, a::ProxGrad) = print(io, "ProxGrad")
-#
-# gradient!(a::ProxGrad, m::SModel) = (gradient!(a.buffer, m, a.obs); return a.buffer.pvec)
-#
-# function update!(o::SModel, a::ProxGrad, obs)
-#     ∇ = gradient!(a, o)
-#     s = a.step
-#     for j in eachindex(o.β)
-#         o.β[j] = prox(o.penalty, o.β[j] - s * ∇[j], s * o.λfactor[j])
-#     end
-# end
+#-----------------------------------------------------------------------# ProxGrad
+"""
+    ProxGrad(model, step = 1.0)
 
+Proximal gradient method with step size `step`.
+"""
+struct ProxGrad <: GradientAlgorithm
+    nvec::Vector{Float64}
+    pvec::Vector{Float64}
+    step::Float64
+end
+ProxGrad(o::SModel, s::Float64 = 1.0) = ProxGrad(zeros(size(o.x, 1)), zeros(size(o.x, 2)), s)
+Base.show(io::IO, a::ProxGrad) = print(io, "ProxGrad(step = $(a.step))")
+function update!(o::SModel, a::ProxGrad)
+    gradient!(a, o)
+    ∇ = a.pvec
+    s = a.step
+    for j in eachindex(o.β)
+        o.β[j] = prox(o.penalty, o.β[j] - s * ∇[j], s * o.λ[j])
+    end
+end
 
-# """
-#     ProxGrad(obs, step)
-# Proximal Gradient algorithm.  Works for any loss and convex penalty.
-# """
-# struct ProxGrad{O <: Obs} <: Algorithm
-#     obs::O
-#     step::Float64
-#     derivs::Vector{Float64}
-#     ∇::Vector{Float64}
-# end
-# function ProxGrad(obs::Obs, step::Float64 = 1.0)
-#     n, p = size(obs)
-#     ProxGrad(obs, step, zeros(n), zeros(p))
-# end
-# function update!(o::SModel, a::ProxGrad, item::Void)
-#     gradient!(a.derivs, a.∇, o.β, o.loss, a.obs)
-#     s = a.step
-#     for j in eachindex(o.β)
-#         @inbounds o.β[j] = prox(o.penalty, o.β[j] - s * a.∇[j], s * o.λfactor[j])
-#     end
-#     o
-# end
 #
 # #-----------------------------------------------------------------------# Fista
 # """
@@ -113,54 +98,51 @@ end
 # end
 #
 #
-# # For algorithms that only need a single iteration to solve
-# abstract type OneIterAlgorithm <: Algorithm end
-# finished(a::OneIterAlgorithm, o::SModel, i::Void) = true
-# #-----------------------------------------------------------------------# Sweep
-# """
-#     Sweep(obs)
-# Linear/ridge regression via sweep operator.  Works for LinearRegression/L2DistLoss
-# with NoPenalty or L2Penalty.
-# """
-# struct Sweep{O <: Obs} <: OneIterAlgorithm
-#     obs::O
-#     A::Matrix{Float64}  # [x y]'[x y]
-#     S::Matrix{Float64}  # sweep!(A, 1:p)
-# end
-# Sweep(obs::Obs) = (A = make_A(obs); Sweep(obs, make_A(obs), zeros(A)))
-#
-# function make_A(obs::Obs)
-#     n, p = size(obs.x)
-#     a = zeros(p + 1, p + 1)
-#     b = zeros(p + 1, p + 1)
-#     BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(obs.w)) * obs.x, 0.0, view(a, 1:p, 1:p)) # x'wx
-#     BLAS.gemv!('T', 1 / n, Diagonal(obs.w) * obs.x, obs.y, 0.0, @view(a[1:p, end]))     # x'wy
-#     a[end, end] = dot(obs.y, Diagonal(obs.w) * obs.y) / n                               # y'wy
-#     a
-# end
-# function make_A(obs::Obs{Void})
-#     n, p = size(obs.x)
-#     a = zeros(p + 1, p + 1)
-#     BLAS.syrk!('U', 'T', 1 / n, obs.x, 0.0, view(a, 1:p, 1:p))      # x'x
-#     BLAS.gemv!('T', 1 / n, obs.x, obs.y, 0.0, @view(a[1:p, end]))   # x'y
-#     a[end, end] = dot(obs.y, obs.y) / n                             # y'y
-#     a
-# end
-# function update!(o::SModel, a::Sweep, item::Void)
-#     n, p = size(a.obs)
-#     copy!(a.S, a.A)
-#     add_ridge!(o, a, o.λfactor)
-#     sweep!(a.S, 1:p)
-#     for j in eachindex(o.β)
-#         @inbounds o.β[j] = a.S[j, end]
-#     end
-# end
-# function add_ridge!{L}(o::SModel{L, NoPenalty}, a::Sweep, λf::Vector{Float64}) end
-# function add_ridge!{L}(o::SModel{L, L2Penalty}, a::Sweep, λf::Vector{Float64})
-#     for i in eachindex(o.β)
-#         @inbounds a.S[i, i] += λf[i]
-#     end
-# end
+
+#-----------------------------------------------------------------------# Sweep
+"""
+    Sweep(obs)
+Linear/ridge regression via sweep operator.  Works for LinearRegression/L2DistLoss
+with NoPenalty or L2Penalty.
+"""
+struct Sweep <: OneIterAlgorithm
+    A::Matrix{Float64}  # [x y]'[x y]
+    S::Matrix{Float64}  # sweep!(A, 1:p)
+end
+Sweep(o::SModel) = (A = make_A(o); Sweep(A, similar(A)))
+
+function make_A(o::SModel{L,P,X,Y,W}) where {L,P,X,Y,W<:AbstractWeights}
+    n, p = size(o.x)
+    a = zeros(p + 1, p + 1)
+    # b = zeros(p + 1, p + 1)
+    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(o.w)) * o.x, 0.0, view(a, 1:p, 1:p)) # x'wx
+    BLAS.gemv!('T', 1 / n, Diagonal(o.w) * o.x, o.y, 0.0, @view(a[1:p, end]))       # x'wy
+    a[end, end] = dot(o.y, Diagonal(o.w) * o.y) / n                                 # y'wy
+    a
+end
+function make_A(o::SModel{L,P,X,Y,Void}) where {L,P,X,Y}
+    n, p = size(o.x)
+    a = zeros(p + 1, p + 1)
+    BLAS.syrk!('U', 'T', 1 / n, o.x, 0.0, view(a, 1:p, 1:p))    # x'x
+    BLAS.gemv!('T', 1 / n, o.x, o.y, 0.0, @view(a[1:p, end]))   # x'y
+    a[end, end] = dot(o.y, o.y) / n                             # y'y
+    a
+end
+function update!(o::SModel, a::Sweep)
+    n, p = size(o.x)
+    copy!(a.S, a.A)
+    add_ridge!(o, a)
+    sweep!(a.S, 1:p)
+    for j in eachindex(o.β)
+        @inbounds o.β[j] = a.S[j, end]
+    end
+end
+function add_ridge!(o::SModel{L, NoPenalty}, a::Sweep) where {L} end
+function add_ridge!(o::SModel{L, L2Penalty}, a::Sweep) where {L}
+    for i in eachindex(o.β)
+        @inbounds a.S[i, i] += o.λ[i]
+    end
+end
 #
 #
 # #-----------------------------------------------------------------------# LinRegCholesky

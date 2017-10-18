@@ -54,7 +54,7 @@ end
 #-----------------------------------------------------------------------# show
 const ticks = ['▁','▂','▃','▄','▅','▆','▇','█']
 function Base.show(io::IO, o::SModel)
-    println(io, "█ SModel: problem size $(size(o.x))")
+    println(io, "█ SModel")
     println(io, "  > β        : ", o.β')
     println(io, "  > λ factor : ", o.λ')
     println(io, "  > Loss     : ", o.loss)
@@ -66,26 +66,3 @@ function Base.show(io::IO, o::SModel)
 end
 
 coef(o::SModel) = o.β
-
-
-# assumes o.algorithm has fields nvec, pvec
-function gradient!(o::SModel{A}) where {A <: GradientAlgorithm}
-    A_mul_B!(o.algorithm.nvec, o.x, o.β)                # nvec ← x * β
-    deriv!(o.algorithm.nvec, o.loss, o.y, o.nvec)       # nvec ← deriv(L, y, x * β)
-    multiply_by_weights!(o.algorithm.nvec, o.w)         # nvec .*= w ./ n
-    At_mul_B!(o.algorithm.pvec, o.x, o.algorithm.nvec)  # pvec ← x'nvec
-end
-
-# function gradient!(nvec::Vector, pvec::Vector, β::Vector, L::Loss, O::Obs)
-#     A_mul_B!(nvec, O.x, β)            # nvec ← x * β
-#     deriv!(nvec, L, O.y, nvec)        # nvec ← deriv(L, y, x * β)
-#     multiply_by_weights!(nvec, O.w)
-#     At_mul_B!(pvec, O.x, nvec)        # pvec ← x'nvec
-# end
-# multiply_by_weights!(nvec, w::Void) = scale!(nvec, 1 / length(nvec))
-# function multiply_by_weights!(nvec, w)
-#     wt = inv(length(nvec))
-#     for i in eachindex(nvec)
-#         @inbounds nvec[i] *= w[i] * wt
-#     end
-# end
