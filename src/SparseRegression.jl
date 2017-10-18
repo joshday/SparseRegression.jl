@@ -3,14 +3,16 @@ module SparseRegression
 import SweepOperator: sweep!
 import LearnBase: learn!, ObsDim, value, predict
 import LearningStrategies: strategy, setup!, update!, finished, cleanup!
-import StatsBase: coef, AbstractWeights
+import StatsBase: coef, AbstractWeights, Weights
 
 
 using Reexport, RecipesBase
 @reexport using LossFunctions, PenaltyFunctions, LearningStrategies
 
 export
-    SModel, ProxGrad, Fista, GradientDescent, Sweep, LinRegCholesky
+    SModel, ProxGrad, Fista, GradientDescent, Sweep, LinRegCholesky,
+    Weights,
+    coef, predict
 
 #-----------------------------------------------------------------------# Types
 abstract type Algorithm <: LearningStrategy end

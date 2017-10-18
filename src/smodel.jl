@@ -65,4 +65,8 @@ function Base.show(io::IO, o::SModel)
     print(io,   "    - w : ", summary(o.w))
 end
 
+
+#-----------------------------------------------------------------------# Methods
 coef(o::SModel) = o.β
+predict(o::SModel, x::AbstractMatrix) = x * o.β
+predict(o::SModel, x::AbstractVector) = x'o.β

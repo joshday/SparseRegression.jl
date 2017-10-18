@@ -7,9 +7,8 @@ makedocs(
     clean = true,
     pages = [
         "index.md",
-        "smodel.md",
-        "algorithms.md",
-        "observations.md"
+        "usage.md",
+        "algorithms.md"
     ]
 )
 
