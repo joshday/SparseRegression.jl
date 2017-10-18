@@ -5,9 +5,12 @@ import LearnBase: learn!, ObsDim, value, predict
 import LearningStrategies: strategy, setup!, update!, finished, cleanup!
 import StatsBase: coef, AbstractWeights, Weights
 
+using LossFunctions, PenaltyFunctions, LearningStrategies, RecipesBase
 
-using Reexport, RecipesBase
-@reexport using LossFunctions, PenaltyFunctions, LearningStrategies
+# Reexports
+for pkg in [:LossFunctions, :PenaltyFunctions, :LearningStrategies]
+    eval(Expr(:toplevel, Expr(:export, setdiff(names(eval(pkg)), [pkg])...)))
+end
 
 export
     SModel, ProxGrad, Fista, GradientDescent, Sweep, LinRegCholesky,
