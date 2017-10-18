@@ -115,16 +115,16 @@ function make_A(o::SModel{L,P,X,Y,W}) where {L,P,X,Y,W<:AbstractWeights}
     n, p = size(o.x)
     a = zeros(p + 1, p + 1)
     # b = zeros(p + 1, p + 1)
-    BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(o.w)) * o.x, 0.0, view(a, 1:p, 1:p)) # x'wx
-    BLAS.gemv!('T', 1 / n, Diagonal(o.w) * o.x, o.y, 0.0, @view(a[1:p, end]))       # x'wy
-    a[end, end] = dot(o.y, Diagonal(o.w) * o.y) / n                                 # y'wy
+    @views BLAS.syrk!('U', 'T', 1 / n, Diagonal(sqrt.(o.w)) * o.x, 0.0, a[1:p, 1:p]) # x'wx
+    @views BLAS.gemv!('T', 1 / n, Diagonal(o.w) * o.x, o.y, 0.0, a[1:p, end])        # x'wy
+    a[end, end] = dot(o.y, Diagonal(o.w) * o.y) / n                                  # y'wy
     a
 end
 function make_A(o::SModel{L,P,X,Y,Void}) where {L,P,X,Y}
     n, p = size(o.x)
     a = zeros(p + 1, p + 1)
-    BLAS.syrk!('U', 'T', 1 / n, o.x, 0.0, view(a, 1:p, 1:p))    # x'x
-    BLAS.gemv!('T', 1 / n, o.x, o.y, 0.0, @view(a[1:p, end]))   # x'y
+    @views BLAS.syrk!('U', 'T', 1 / n, o.x, 0.0, a[1:p, 1:p])    # x'x
+    @views BLAS.gemv!('T', 1 / n, o.x, o.y, 0.0, a[1:p, end])   # x'y
     a[end, end] = dot(o.y, o.y) / n                             # y'y
     a
 end
@@ -137,35 +137,29 @@ function update!(o::SModel, a::Sweep)
         @inbounds o.β[j] = a.S[j, end]
     end
 end
-function add_ridge!(o::SModel{L, NoPenalty}, a::Sweep) where {L} end
-function add_ridge!(o::SModel{L, L2Penalty}, a::Sweep) where {L}
+function add_ridge!(o::SModel{L, NoPenalty}, a::Algorithm) where {L} end
+function add_ridge!(o::SModel{L, L2Penalty}, a::Algorithm) where {L}
     for i in eachindex(o.β)
         @inbounds a.S[i, i] += o.λ[i]
     end
 end
-#
-#
-# #-----------------------------------------------------------------------# LinRegCholesky
-# """
-#     LinRegCholesky(obs)
-# Linear/ridge regression via cholesky decomposition.  Works for LinearRegression/L2DistLoss
-# with NoPenalty or L2Penalty.
-# """
-# struct LinRegCholesky{O <: Obs} <: OneIterAlgorithm
-#     obs::O
-#     A::Matrix{Float64}
-#     S::Matrix{Float64}
-# end
-# LinRegCholesky(obs::Obs) = (A = make_A(obs); LinRegCholesky(obs, make_A(obs), zeros(A)))
-#
-# function update!(o::SModel, a::LinRegCholesky, item::Void)
-#     copy!(a.S, a.A)
-#     cholfact!(Symmetric(a.S))
-#     o.β[:] = UpperTriangular(@view(a.S[1:end-1, 1:end-1])) \ @view(a.S[1:end-1, end])
-# end
-# function add_ridge!{L}(o::SModel{L, NoPenalty}, a::LinRegCholesky, λf::Vector{Float64}) end
-# function add_ridge!{L}(o::SModel{L, L2Penalty}, a::LinRegCholesky, λf::Vector{Float64})
-#     for i in eachindex(o.β)
-#         @inbounds a.S[i, i] += λf[i]
-#     end
-# end
+
+
+#-----------------------------------------------------------------------# LinRegCholesky
+"""
+    LinRegCholesky(obs)
+Linear/ridge regression via cholesky decomposition.  Works for LinearRegression/L2DistLoss
+with NoPenalty or L2Penalty.
+"""
+struct LinRegCholesky<: OneIterAlgorithm
+    A::Matrix{Float64}
+    S::Matrix{Float64}
+end
+LinRegCholesky(o::SModel) = (A = make_A(o); LinRegCholesky(A, similar(A)))
+
+function update!(o::SModel, a::LinRegCholesky)
+    copy!(a.S, a.A)
+    add_ridge!(o, a)
+    cholfact!(Symmetric(a.S))
+    @views o.β[:] = UpperTriangular(a.S[1:end-1, 1:end-1]) \ a.S[1:end-1, end]
+end
