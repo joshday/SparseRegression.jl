@@ -1,10 +1,30 @@
 #-----------------------------------------------------------------------# SModel
+"""
+    SModel(x, y, args...)
+
+Create a SparseRegression model with predictor matrix `x` and response vector `y`.  Additional arguments can be given in any order.
+
+# Arguments
+
+- `loss::Loss = .5 * L2DistLoss()`
+- `penalty::Penalty = L2Penalty()`
+- `λ::Vector{Float64} = fill(size(x, 2), .1)`
+- `w::Union{Void, AbstractWeights} = nothing`
+
+# Example
+
+    x = randn(1000, 5)
+    y = x * linspace(-1, 1, 5) + randn(1000)
+    s = SModel(x, y)
+    learn!(s)
+    s
+"""
 struct SModel{ # L P X Y W
         L <: Loss, P <: Penalty, X <: AbstractMatrix, Y <: AbstractVector,
         W <: Union{Void, AbstractWeights}}
     x::X
     y::Y
-    w::W
+    w::W 
     β::Vector{Float64}
     λ::Vector{Float64}
     loss::L
