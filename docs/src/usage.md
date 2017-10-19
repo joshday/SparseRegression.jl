@@ -19,15 +19,6 @@ can provide more control over the learning process by providing your own Learnin
 
 SparseRegression implements several `Algorithm <: LearningStrategy` types to do the heavy lifting.  An `Algorithm` must be constructed with an `SModel` to ensure storage buffers are the correct size.
 
-### Algorithms
-
-```@docs
-ProxGrad
-Fista
-GradientDescent
-Sweep
-LinRegCholesky
-```
 
 ```julia
 using SparseRegression

@@ -10,12 +10,13 @@ The objective function that SparseRegression can solve takes the form:
 \frac{1}{n}\sum_{i=1}^n w_i f(y_i, x_i^T\beta) + \sum_{j=1}^p \lambda_j J(\beta_j),
 ```
 
-where $f$ is a loss function, $J$ is a penalty or regularization function, the $w_i$'s are nonnegative observation weights and the $\lambda_j$'s are nonnegative element-wise regularization parameters.  Many models fit within this form:
+where $f$ is a loss function, $J$ is a penalty or regularization function, the $w_i$'s are nonnegative observation weights and the $\lambda_j$'s are nonnegative element-wise regularization parameters.  Many models take this form:
 
 | Model            | $f(y_i, x_i^T\beta)$   | $g(\beta_j)$  |
 |------------------|------------------------|---------------|
 | Lasso Regression | $(y_i - x_i^T\beta)^2$ | $\|\beta_j\|$ |
 | Ridge Regression | $(y_i - x_i^T\beta)^2$ | $\beta_j^2$   |
+| SVM        | $max(0, 1 - y_i x_i^T\beta)$ | $\beta_j^2$   |
 
 ## [JuliaML](https://github.com/JuliaML)
 
