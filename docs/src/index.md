@@ -3,14 +3,21 @@
 **SparseRegression** is a Julia package which combines [JuliaML](https://github.com/JuliaML) primitives to implement high-performance algorithms for fitting linear models.
 
 ## Objective Function
+
 The objective function that SparseRegression can solve takes the form:
 
 ```math
 \frac{1}{n}\sum_{i=1}^n w_i f(y_i, x_i^T\beta) + \sum_{j=1}^p \lambda_j J(\beta_j),
 ```
-where $f$ is a loss function, $J$ is a penalty or regularization function, the $w_i$'s are nonnegative observation weights and the $\lambda_j$'s are nonnegative element-wise regularization parameters.
+where $f$ is a loss function, $J$ is a penalty or regularization function, the $w_i$'s are nonnegative observation weights and the $\lambda_j$'s are nonnegative element-wise regularization parameters.  Many models fit within this form:
 
-## JuliaML
+| Model            | $f(y_i, x_i^T\beta)$   | $g(\beta_j)$  |
+|------------------|------------------------|---------------|
+| Lasso Regression | $(y_i - x_i^T\beta)^2$ | $\|\beta_j\|$ |
+| Ridge Regression | $(y_i - x_i^T\beta)^2$ | $\beta_j^2$   |
+
+## [JuliaML](https://github.com/JuliaML)
+
 The three core JuliaML packages that SparseRegression brings together are:
 
 - [LossFunctions](https://github.com/JuliaML/LossFunctions.jl)
