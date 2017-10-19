@@ -13,7 +13,6 @@ notifications:
   email: false
 script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - julia -e 'Pkg.checkout("LearningStrategies")'
   - julia -e 'Pkg.clone(pwd()); Pkg.build("SparseRegression"); Pkg.test("SparseRegression"; coverage=true)'
 after_success:
   - julia -e 'Pkg.add("Documenter")'
