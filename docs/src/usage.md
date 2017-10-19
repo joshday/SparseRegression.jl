@@ -30,7 +30,7 @@ y = x * linspace(-1, 1, 10) + randn(1000)
 # Create an SModel
 s = SModel(x, y)
 
-# All of the following are valid learning strategies
+# All of the following are valid ways to calculate a solution
 learn!(s)
 learn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))
 learn!(s, Sweep(s))
