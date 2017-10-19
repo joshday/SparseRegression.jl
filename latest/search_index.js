@@ -2,50 +2,122 @@ var documenterSearchIndex = {"docs": [
 
 {
     "location": "index.html#",
-    "page": "SparseRegression.jl",
-    "title": "SparseRegression.jl",
+    "page": "Introduction",
+    "title": "Introduction",
     "category": "page",
     "text": ""
 },
 
 {
-    "location": "index.html#SparseRegression.jl-1",
-    "page": "SparseRegression.jl",
-    "title": "SparseRegression.jl",
+    "location": "index.html#Introduction-1",
+    "page": "Introduction",
+    "title": "Introduction",
     "category": "section",
-    "text": "SparseRegression relies on primitives defined in the JuliaML ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.  "
+    "text": "SparseRegression is a Julia package which combines JuliaML primitives to implement high-performance algorithms for fitting linear models."
 },
 
 {
-    "location": "index.html#Objective-1",
-    "page": "SparseRegression.jl",
-    "title": "Objective",
+    "location": "index.html#Objective-Function-1",
+    "page": "Introduction",
+    "title": "Objective Function",
     "category": "section",
-    "text": "The objective functions that SparseRegression can solve are of the form:frac1nsum_i=1^n f(y_i x_i^Tbeta) + sum_j=1^p lambda_j J(beta_j)where f is a loss function and J is a penalty or regularization function.The three core JuliaML packages that SparseRegression brings together are:LossFunctions\n\"grammar of losses\"\nPenaltyFunctions\n\"grammar of regularization\"\nLearningStrategies\n\"grammar of iterative learning\"With few exceptions, SparseRegression can handle:any Loss from LossFunctions.jl\nany ElementPenalty from PenaltyFunctions.jl"
+    "text": "The objective function that SparseRegression can solve takes the form:frac1nsum_i=1^n w_i f(y_i x_i^Tbeta) + sum_j=1^p lambda_j J(beta_j)where f is a loss function, J is a penalty or regularization function, the w_i's are nonnegative observation weights and the lambda_j's are nonnegative element-wise regularization parameters.  Many models fit within this form:Model f(y_i x_i^Tbeta) g(beta_j)\nLasso Regression (y_i - x_i^Tbeta)^2 beta_j\nRidge Regression (y_i - x_i^Tbeta)^2 beta_j^2"
 },
 
 {
-    "location": "smodel.html#",
-    "page": "SModel",
-    "title": "SModel",
+    "location": "index.html#[JuliaML](https://github.com/JuliaML)-1",
+    "page": "Introduction",
+    "title": "JuliaML",
+    "category": "section",
+    "text": "The three core JuliaML packages that SparseRegression brings together are:LossFunctions\nPenaltyFunctions\nLearningStrategies"
+},
+
+{
+    "location": "usage.html#",
+    "page": "Usage",
+    "title": "Usage",
     "category": "page",
     "text": ""
 },
 
 {
-    "location": "smodel.html#SModel-1",
-    "page": "SModel",
-    "title": "SModel",
+    "location": "usage.html#Usage-1",
+    "page": "Usage",
+    "title": "Usage",
     "category": "section",
-    "text": "The main struct exported by SparseRegression is SModel:struct SModel{L <: Loss, P <: Penalty}\n    β::Vector{Float64}\n    λfactor::Vector{Float64}\n    loss::L\n    penalty::P\nendAn SModel is constructed with the number of predictors (or Obs), as well as a loss, penalty, and λfactor in any order (and it's type stable).SModel(5)  # default: LinearRegression, L2Penalty(), fill(.1, 5)\nSModel(5, LogisticRegression(), L1Penalty())\nSModel(5, L2Penalty(), L1HingeLoss())\nSModel(obs, NoPenalty(), QuantileRegression(.7))After creating an SModel, it must then be learned with an Algorithm and any other number of learning strategies."
+    "text": ""
 },
 
 {
-    "location": "smodel.html#Example-1",
-    "page": "SModel",
-    "title": "Example",
+    "location": "usage.html#SparseRegression.SModel",
+    "page": "Usage",
+    "title": "SparseRegression.SModel",
+    "category": "Type",
+    "text": "SModel(x, y, args...)\n\nCreate a SparseRegression model with predictor matrix x and response vector y.  Additional arguments can be given in any order.\n\nArguments\n\nloss::Loss = .5 * L2DistLoss()\npenalty::Penalty = L2Penalty()\nλ::Vector{Float64} = fill(size(x, 2), .1)\nw::Union{Void, AbstractWeights} = nothing\n\nExample\n\nx = randn(1000, 5)\ny = x * linspace(-1, 1, 5) + randn(1000)\ns = SModel(x, y)\nlearn!(s)\ns\n\n\n\n"
+},
+
+{
+    "location": "usage.html#SModel-1",
+    "page": "Usage",
+    "title": "SModel",
     "category": "section",
-    "text": "using SparseRegression\n\nx, y = randn(1000, 10), randn(1000)\n\nobs = Obs(x, y)\n\ns = SModel(obs)\n\n# Learn the model using Proximal Gradient Method\n# - maximum of 50 iterations\n# - convergence criteria: norm(β - βold) < 1e-6\nlearn!(s, ProxGrad(obs), MaxIter(50), Converged(coef))"
+    "text": "The model type used by SparseRegression is SModel.  An SModel holds onto the sufficient information for generating a solution fo the SparseRegression objective.SModelnote: Note\nConstructing an SModel does not create a solution.  It must be learn!-ed."
+},
+
+{
+    "location": "usage.html#[LearningStrategies](https://github.com/JuliaML/LearningStrategies.jl)-1",
+    "page": "Usage",
+    "title": "LearningStrategies",
+    "category": "section",
+    "text": "An SModel can be learned with the default learning strategy with learn!(model).  You  can provide more control over the learning process by providing your own LearningStrategy.SparseRegression implements several Algorithm <: LearningStrategy types to do the heavy lifting.  An Algorithm must be constructed with an SModel to ensure storage buffers are the correct size."
+},
+
+{
+    "location": "usage.html#SparseRegression.ProxGrad",
+    "page": "Usage",
+    "title": "SparseRegression.ProxGrad",
+    "category": "Type",
+    "text": "ProxGrad(model, step = 1.0)\n\nProximal gradient method with step size step.  Works for any loss and any penalty with a prox method.\n\n\n\n"
+},
+
+{
+    "location": "usage.html#SparseRegression.Fista",
+    "page": "Usage",
+    "title": "SparseRegression.Fista",
+    "category": "Type",
+    "text": "Fista(model, step = 1.0)\n\nAccelerated proximal gradient method.  Works for any loss and any penalty with a prox method.\n\n\n\n"
+},
+
+{
+    "location": "usage.html#SparseRegression.GradientDescent",
+    "page": "Usage",
+    "title": "SparseRegression.GradientDescent",
+    "category": "Type",
+    "text": "GradientDescent(model, step = 1.0)\n\nGradient Descent.  Works for any loss and any penalty.\n\n\n\n"
+},
+
+{
+    "location": "usage.html#SparseRegression.Sweep",
+    "page": "Usage",
+    "title": "SparseRegression.Sweep",
+    "category": "Type",
+    "text": "Sweep(model)\n\nLinear/ridge regression via sweep operator.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.\n\n\n\n"
+},
+
+{
+    "location": "usage.html#SparseRegression.LinRegCholesky",
+    "page": "Usage",
+    "title": "SparseRegression.LinRegCholesky",
+    "category": "Type",
+    "text": "LinRegCholesky(model)\n\nLinear/ridge regression via cholesky decomposition.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.\n\n\n\n"
+},
+
+{
+    "location": "usage.html#Algorithms-1",
+    "page": "Usage",
+    "title": "Algorithms",
+    "category": "section",
+    "text": "ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholeskyusing SparseRegression\n\n# Make some fake data\nx = randn(1000, 10)\ny = x * linspace(-1, 1, 10) + randn(1000)\n\n# Create an SModel\ns = SModel(x, y)\n\n# All of the following are valid learning strategies\nlearn!(s)\nlearn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))\nlearn!(s, Sweep(s))\nlearn!(s, LinRegCholesky(s))"
 },
 
 {
@@ -61,63 +133,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "Algorithms",
     "category": "section",
-    "text": "An Algorithm contains Obs, parameters for the algorithm, and storage buffers.  Some algorithms only work with specific loss/penalty combinations."
-},
-
-{
-    "location": "algorithms.html#ProxGrad(obs,-s)-1",
-    "page": "Algorithms",
-    "title": "ProxGrad(obs, s)",
-    "category": "section",
-    "text": "Proximal Gradient Method with step size s.  Handles any loss and convex penalty."
-},
-
-{
-    "location": "algorithms.html#Fista(obs,-s)-1",
-    "page": "Algorithms",
-    "title": "Fista(obs, s)",
-    "category": "section",
-    "text": "Fast Iterative Shrinkage-Thresholding Algorithm (accelerated proximal gradient) with step size s.  Handles any loss and convex penalty."
-},
-
-{
-    "location": "algorithms.html#GradientDescent(obs,-s)-1",
-    "page": "Algorithms",
-    "title": "GradientDescent(obs, s)",
-    "category": "section",
-    "text": "Gradient Descent with step size s.  Handles any loss and penalty."
-},
-
-{
-    "location": "algorithms.html#Sweep(obs)-1",
-    "page": "Algorithms",
-    "title": "Sweep(obs)",
-    "category": "section",
-    "text": "Linear or Ridge regression via the sweep operator."
-},
-
-{
-    "location": "algorithms.html#LinRegCholesky(obs)-1",
-    "page": "Algorithms",
-    "title": "LinRegCholesky(obs)",
-    "category": "section",
-    "text": "Linear or Ridge regression via Cholesky decomposition"
-},
-
-{
-    "location": "observations.html#",
-    "page": "Observations",
-    "title": "Observations",
-    "category": "page",
-    "text": ""
-},
-
-{
-    "location": "observations.html#Observations-1",
-    "page": "Observations",
-    "title": "Observations",
-    "category": "section",
-    "text": "Observations are wrapped in a lightweight Obs typejulia> x, y = randn(1000, 10), randn(1000);\n\njulia> Obs(x,y)\nSparseRegression.Obs{Void,Float64,Array{Float64,2},Array{Float64,1}}\n  > x: 1000×10 Array{Float64,2}\n  > y: 1000-element Array{Float64,1}\n  > w: VoidOptionally, the observations can be given a weight vectorjulia> Obs(x, y, rand(1000))\nSparseRegression.Obs{Array{Float64,1},Float64,Array{Float64,2},Array{Float64,1}}\n  > x: 1000×10 Array{Float64,2}\n  > y: 1000-element Array{Float64,1}\n  > w: 1000-element Array{Float64,1}This allows algorithms to dispatch on whether or not observations are weighted."
+    "text": "The first argument of an Algorithm's constructor is an SModel.  Algorithm subtypes hold storage buffers and this ensures the buffers are the correct size.ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholesky"
 },
 
 ]}
