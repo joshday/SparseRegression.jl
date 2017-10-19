@@ -3,7 +3,7 @@
 y = x * linspace(-1, 1, 5) + randn(1000)
 s = SModel(x, y)
 learn!(s)
-s</code></pre></div><a class="source-link" target="_blank" href="https://github.com/joshday/SparseRegression.jl/blob/221c553d605b212cc5977ac8d4cf1d07224504be/src/smodel.jl#L2-L21">source</a></section><div class="admonition note"><div class="admonition-title">Note</div><div class="admonition-text"><p>Constructing an <code>SModel</code> does not create a solution.  It must be <code>learn!</code>-ed.</p></div></div><h2><a class="nav-anchor" id="[LearningStrategies](https://github.com/JuliaML/LearningStrategies.jl)-1" href="#[LearningStrategies](https://github.com/JuliaML/LearningStrategies.jl)-1"><a href="https://github.com/JuliaML/LearningStrategies.jl">LearningStrategies</a></a></h2><p>An <code>SModel</code> can be learned with the default learning strategy with <code>learn!(model)</code>.  You  can provide more control over the learning process by providing your own LearningStrategy.</p><p>SparseRegression implements several <code>Algorithm &lt;: LearningStrategy</code> types to do the heavy lifting.  An <code>Algorithm</code> must be constructed with an <code>SModel</code> to ensure storage buffers are the correct size.</p><pre><code class="language-julia">using SparseRegression
+s</code></pre></div><a class="source-link" target="_blank" href="https://github.com/joshday/SparseRegression.jl/blob/dd21add12691d71d236c1347197a5656f44200f3/src/smodel.jl#L2-L21">source</a></section><div class="admonition note"><div class="admonition-title">Note</div><div class="admonition-text"><p>Constructing an <code>SModel</code> does not create a solution.  It must be <code>learn!</code>-ed.</p></div></div><h2><a class="nav-anchor" id="[LearningStrategies](https://github.com/JuliaML/LearningStrategies.jl)-1" href="#[LearningStrategies](https://github.com/JuliaML/LearningStrategies.jl)-1"><a href="https://github.com/JuliaML/LearningStrategies.jl">LearningStrategies</a></a></h2><p>An <code>SModel</code> can be learned with the default learning strategy with <code>learn!(model)</code>.  You  can provide more control over the learning process by providing your own LearningStrategy.</p><p>SparseRegression implements several <code>Algorithm &lt;: LearningStrategy</code> types to do the heavy lifting.  An <code>Algorithm</code> must be constructed with an <code>SModel</code> to ensure storage buffers are the correct size.</p><pre><code class="language-julia">using SparseRegression
 
 # Make some fake data
 x = randn(1000, 10)
@@ -12,7 +12,7 @@ y = x * linspace(-1, 1, 10) + randn(1000)
 # Create an SModel
 s = SModel(x, y)
 
-# All of the following are valid learning strategies
+# All of the following are valid ways to calculate a solution
 learn!(s)
 learn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))
 learn!(s, Sweep(s))

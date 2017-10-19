@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage",
     "title": "LearningStrategies",
     "category": "section",
-    "text": "An SModel can be learned with the default learning strategy with learn!(model).  You  can provide more control over the learning process by providing your own LearningStrategy.SparseRegression implements several Algorithm <: LearningStrategy types to do the heavy lifting.  An Algorithm must be constructed with an SModel to ensure storage buffers are the correct size.using SparseRegression\n\n# Make some fake data\nx = randn(1000, 10)\ny = x * linspace(-1, 1, 10) + randn(1000)\n\n# Create an SModel\ns = SModel(x, y)\n\n# All of the following are valid learning strategies\nlearn!(s)\nlearn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))\nlearn!(s, Sweep(s))\nlearn!(s, LinRegCholesky(s))"
+    "text": "An SModel can be learned with the default learning strategy with learn!(model).  You  can provide more control over the learning process by providing your own LearningStrategy.SparseRegression implements several Algorithm <: LearningStrategy types to do the heavy lifting.  An Algorithm must be constructed with an SModel to ensure storage buffers are the correct size.using SparseRegression\n\n# Make some fake data\nx = randn(1000, 10)\ny = x * linspace(-1, 1, 10) + randn(1000)\n\n# Create an SModel\ns = SModel(x, y)\n\n# All of the following are valid ways to calculate a solution\nlearn!(s)\nlearn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))\nlearn!(s, Sweep(s))\nlearn!(s, LinRegCholesky(s))"
 },
 
 {
@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "Algorithms",
     "category": "section",
-    "text": "The first argument of an Algorithm's constructor is an SModel.  Algorithm subtypes hold storage buffers and this ensures the buffers are the correct size.ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholesky"
+    "text": "The first argument of an Algorithm's constructor is an SModel.  This is to ensure  storage buffers are the correct size.ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholesky"
 },
 
 ]}
