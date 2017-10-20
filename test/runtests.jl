@@ -29,7 +29,7 @@ function _test(l::Loss, p::Penalty, alg)
 end
 
 @testset "Sanity Check" begin
-    for a in [ProxGrad, Fista, GradientDescent]
+    for a in [ProxGrad, Fista, AdaptiveProxGrad, GradientDescent]
         info(a)
         for l in [L2DistLoss(), .5*L2DistLoss(), HuberLoss(2.0), QuantileLoss(.7),
             LogitMarginLoss(), DWDMarginLoss(2.0), L2HingeLoss(), ExpLoss()]
