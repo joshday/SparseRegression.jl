@@ -81,11 +81,27 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "algorithms.html#Algorithms-1",
+    "page": "Algorithms",
+    "title": "Algorithms",
+    "category": "section",
+    "text": "The first argument of an Algorithm's constructor is an SModel.  This is to ensure storage buffers are the correct size."
+},
+
+{
     "location": "algorithms.html#SparseRegression.ProxGrad",
     "page": "Algorithms",
     "title": "SparseRegression.ProxGrad",
     "category": "Type",
     "text": "ProxGrad(model, step = 1.0)\n\nProximal gradient method with step size step.  Works for any loss and any penalty with a prox method.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), ProxGrad(s))\nlearn!(s, strat)\n\n\n\n"
+},
+
+{
+    "location": "algorithms.html#ProxGrad-1",
+    "page": "Algorithms",
+    "title": "ProxGrad",
+    "category": "section",
+    "text": "ProxGrad"
 },
 
 {
@@ -97,11 +113,27 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "algorithms.html#Fista-1",
+    "page": "Algorithms",
+    "title": "Fista",
+    "category": "section",
+    "text": "Fista"
+},
+
+{
     "location": "algorithms.html#SparseRegression.GradientDescent",
     "page": "Algorithms",
     "title": "SparseRegression.GradientDescent",
     "category": "Type",
     "text": "GradientDescent(model, step = 1.0)\n\nGradient Descent.  Works for any loss and any penalty.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), GradientDescent(s))\nlearn!(s, strat)\n\n\n\n"
+},
+
+{
+    "location": "algorithms.html#GradientDescent-1",
+    "page": "Algorithms",
+    "title": "GradientDescent",
+    "category": "section",
+    "text": "GradientDescent"
 },
 
 {
@@ -113,6 +145,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "algorithms.html#Sweep-1",
+    "page": "Algorithms",
+    "title": "Sweep",
+    "category": "section",
+    "text": "Sweep"
+},
+
+{
     "location": "algorithms.html#SparseRegression.LinRegCholesky",
     "page": "Algorithms",
     "title": "SparseRegression.LinRegCholesky",
@@ -121,11 +161,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "algorithms.html#Algorithms-1",
+    "location": "algorithms.html#LinRegCholesky-1",
     "page": "Algorithms",
-    "title": "Algorithms",
+    "title": "LinRegCholesky",
     "category": "section",
-    "text": "The first argument of an Algorithm's constructor is an SModel.  This is to ensure storage buffers are the correct size.ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholesky"
+    "text": "LinRegCholesky"
 },
 
 ]}
