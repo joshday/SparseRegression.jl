@@ -6,17 +6,14 @@ include("datagenerator.jl")
 
 #-----------------------------------------------------------------------# Sanity Check and show
 n, p = 1000, 5
-x, y, β = DataGenerator.linregdata(n, p)
+x, y, β = SparseRegression.fakedata(L2DistLoss(), n, p)
 show(SModel(x, y))
 println("\n")
-
-data(::Loss, n, p) = DataGenerator.linregdata(n, p)
-data(::MarginLoss, n, p) = DataGenerator.logregdata(n, p)
 
 name(o) = replace(string(typeof(o)), r"([a-zA-Z]*\.)", "")
 
 function _test(l::Loss, p::Penalty, alg)
-    x, y, β = data(l, 100, 5)
+    x, y, β = SparseRegression.fakedata(l, 100, 5)
     o = @inferred SModel(x, y, l, p)
     a = @inferred alg(o)
     @inferred learn!(o, strategy(a, MaxIter(3)))

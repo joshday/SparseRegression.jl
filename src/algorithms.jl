@@ -18,6 +18,13 @@ end
     ProxGrad(model, step = 1.0)
 
 Proximal gradient method with step size `step`.  Works for any loss and any penalty with a `prox` method.
+
+# Example
+    
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)
+    s = SModel(x, y, L2DistLoss())
+    strat = strategy(MaxIter(50), ProxGrad(s))
+    learn!(s, strat)
 """
 struct ProxGrad <: GradientAlgorithm
     nvec::Vector{Float64}
@@ -79,6 +86,13 @@ end
     GradientDescent(model, step = 1.0)
 
 Gradient Descent.  Works for any loss and any penalty.
+
+# Example
+    
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)
+    s = SModel(x, y, L2DistLoss())
+    strat = strategy(MaxIter(50), GradientDescent(s))
+    learn!(s, strat)
 """
 struct GradientDescent <: GradientAlgorithm
     step::Float64
@@ -106,7 +120,15 @@ end
     Sweep(model)
 
 Linear/ridge regression via sweep operator.  Works for (scaled) L2DistLoss
-with NoPenalty or L2Penalty.
+with NoPenalty or L2Penalty.  The `Sweep` algorithm has a closed form solution and is
+complete after one iteration.  It therefore doesn't need additional learning strategies
+such as `MaxIter`, `Converged`, etc.
+
+# Example
+    
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)
+    s = SModel(x, y, L2DistLoss())
+    learn!(s, Sweep(s))
 """
 struct Sweep <: OneIterAlgorithm
     A::Matrix{Float64}  # [x y]'[x y]
@@ -153,7 +175,15 @@ end
     LinRegCholesky(model)
 
 Linear/ridge regression via cholesky decomposition.  Works for (scaled) L2DistLoss
-with NoPenalty or L2Penalty.
+with NoPenalty or L2Penalty.  The `LinRegCholesky` algorithm has a closed form solution 
+and is complete after one iteration.  It therefore doesn't need additional learning
+strategies such as `MaxIter`, `Converged`, etc.
+
+# Example
+    
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)
+    s = SModel(x, y, L2DistLoss())
+    learn!(s, Sweep(s))
 """
 struct LinRegCholesky<: OneIterAlgorithm
     A::Matrix{Float64}
