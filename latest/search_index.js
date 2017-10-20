@@ -121,6 +121,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "algorithms.html#SparseRegression.AdaptiveProxGrad",
+    "page": "Algorithms",
+    "title": "SparseRegression.AdaptiveProxGrad",
+    "category": "Type",
+    "text": "AdaptiveProxGrad(s, divisor = 1.5)\n\nProximal gradient method with adaptive step sizes.  AdaptiveProxGrad uses element-wise  learning rates.  Every time the sign of a coefficient switches, the step size for that coefficient is divided by divisor.\n\n\n\n"
+},
+
+{
+    "location": "algorithms.html#AdaptiveProxGrad-1",
+    "page": "Algorithms",
+    "title": "AdaptiveProxGrad",
+    "category": "section",
+    "text": "AdaptiveProxGrad"
+},
+
+{
     "location": "algorithms.html#SparseRegression.GradientDescent",
     "page": "Algorithms",
     "title": "SparseRegression.GradientDescent",
