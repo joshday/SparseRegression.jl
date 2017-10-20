@@ -13,7 +13,7 @@ for pkg in [:LossFunctions, :PenaltyFunctions, :LearningStrategies]
 end
 
 export
-    SModel, ProxGrad, Fista, GradientDescent, Sweep, LinRegCholesky,
+    SModel, ProxGrad, Fista, AdaptiveProxGrad, GradientDescent, Sweep, LinRegCholesky,
     Weights,
     coef, predict
 

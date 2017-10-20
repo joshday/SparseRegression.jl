@@ -13,6 +13,41 @@ function multiply_by_weights!(nvec, w)
     end
 end
 
+stepsize(o::SModel) = .1
+# stepsize(o::SModel{LogitDistLoss}) = .25 * length(o.y) / norm(o.x)
+
+#-----------------------------------------------------------------------# Adaptive ProxGrad
+"""
+    AdaptiveProxGrad(s, divisor = 1.5)
+
+Proximal gradient method with adaptive step sizes.  AdaptiveProxGrad uses element-wise 
+learning rates.  Every time the sign of a coefficient switches, the step size for that
+coefficient is divided by `divisor`.
+"""
+struct AdaptiveProxGrad <: GradientAlgorithm
+    nvec::Vector{Float64}
+    pvec::Vector{Float64}
+    steps::Vector{Float64}
+    divisor::Float64
+end
+function AdaptiveProxGrad(o::SModel, divisor::Float64 = 1.5) 
+    n, p = size(o.x)
+    AdaptiveProxGrad(zeros(n), zeros(p), ones(p), divisor)
+end
+Base.show(io::IO, a::AdaptiveProxGrad) = print(io, "AdaptiveProxGrad")
+function update!(o::SModel, a::AdaptiveProxGrad)
+    gradient!(a, o)
+    ∇ = a.pvec
+    for j in eachindex(o.β)
+        s = a.steps[j]
+        sign_old = sign(o.β[j])
+        o.β[j] = prox(o.penalty, o.β[j] - s * ∇[j], s * o.λ[j])
+        if sign_old != sign(o.β[j])
+            a.steps[j] /= a.divisor
+        end
+    end
+end
+
 #-----------------------------------------------------------------------# ProxGrad
 """
     ProxGrad(model, step = 1.0)
@@ -31,7 +66,7 @@ struct ProxGrad <: GradientAlgorithm
     pvec::Vector{Float64}
     step::Float64
 end
-ProxGrad(o::SModel, s::Float64 = 1.0) = ProxGrad(zeros(size(o.x, 1)), zeros(size(o.x, 2)), s)
+ProxGrad(o::SModel, s::Float64 = stepsize(o)) = ProxGrad(zeros(size(o.x, 1)), zeros(size(o.x, 2)), s)
 Base.show(io::IO, a::ProxGrad) = print(io, "ProxGrad(step = $(a.step))")
 function update!(o::SModel, a::ProxGrad)
     gradient!(a, o)
@@ -57,7 +92,7 @@ mutable struct Fista <: GradientAlgorithm
     β2::Vector{Float64}
     t::Int
 end
-function Fista(o::SModel, step::Float64 = 1.0)
+function Fista(o::SModel, step::Float64 = stepsize(o))
     n, p = size(o.x)
     Fista(step, zeros(n), zeros(p), zeros(p), zeros(p), 0)
 end
@@ -99,7 +134,7 @@ struct GradientDescent <: GradientAlgorithm
     nvec::Vector{Float64}
     pvec::Vector{Float64}
 end
-function GradientDescent(o::SModel, step::Float64 = 1.0)
+function GradientDescent(o::SModel, step::Float64 = stepsize(o))
     n, p = size(o.x)
     GradientDescent(step, zeros(n), zeros(p))
 end

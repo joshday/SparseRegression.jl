@@ -15,6 +15,12 @@ ProxGrad
 Fista
 ```
 
+## AdaptiveProxGrad
+
+```@docs
+AdaptiveProxGrad
+```
+
 ## GradientDescent
 
 ```@docs
