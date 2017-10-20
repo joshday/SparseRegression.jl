@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage",
     "title": "Usage",
     "category": "section",
-    "text": ""
+    "text": "Create a model\nFit the model"
 },
 
 {
@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage",
     "title": "SModel",
     "category": "section",
-    "text": "The model type used by SparseRegression is SModel.  An SModel holds onto the sufficient information for generating a solution fo the SparseRegression objective.SModelnote: Note\nConstructing an SModel does not create a solution.  It must be learn!-ed."
+    "text": "The model type used by SparseRegression is SModel.  An SModel holds onto the sufficient information for generating a solution fo the SparseRegression objective.note: Note\nConstructing an SModel does not create a fitted model.  It must be learn!-ed.SModel"
 },
 
 {
@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage",
     "title": "LearningStrategies",
     "category": "section",
-    "text": "An SModel can be learned with the default learning strategy with learn!(model).  You  can provide more control over the learning process by providing your own LearningStrategy.SparseRegression implements several Algorithm <: LearningStrategy types to do the heavy lifting.  An Algorithm must be constructed with an SModel to ensure storage buffers are the correct size.using SparseRegression\n\n# Make some fake data\nx = randn(1000, 10)\ny = x * linspace(-1, 1, 10) + randn(1000)\n\n# Create an SModel\ns = SModel(x, y)\n\n# All of the following are valid ways to calculate a solution\nlearn!(s)\nlearn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))\nlearn!(s, Sweep(s))\nlearn!(s, LinRegCholesky(s))"
+    "text": "An SModel can be learned with the default learning strategy with learn!(model).  You can provide more control over the learning process by providing your own LearningStrategy.SparseRegression implements several Algorithm <: LearningStrategy types to do SModel fitting.  An Algorithm must be constructed with an SModel to ensure storage buffers are the correct size.using SparseRegression\n\n# Make some fake data\nx = randn(1000, 10)\ny = x * linspace(-1, 1, 10) + randn(1000)\n\n# Create an SModel\ns = SModel(x, y)\n\n# All of the following are valid ways to calculate a solution\nlearn!(s)\nlearn!(s, strategy(ProxGrad(s), MaxIter(25), TimeLimit(.5)))\nlearn!(s, Sweep(s))\nlearn!(s, LinRegCholesky(s))"
 },
 
 {
@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "SparseRegression.ProxGrad",
     "category": "Type",
-    "text": "ProxGrad(model, step = 1.0)\n\nProximal gradient method with step size step.  Works for any loss and any penalty with a prox method.\n\n\n\n"
+    "text": "ProxGrad(model, step = 1.0)\n\nProximal gradient method with step size step.  Works for any loss and any penalty with a prox method.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), ProxGrad(s))\nlearn!(s, strat)\n\n\n\n"
 },
 
 {
@@ -101,7 +101,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "SparseRegression.GradientDescent",
     "category": "Type",
-    "text": "GradientDescent(model, step = 1.0)\n\nGradient Descent.  Works for any loss and any penalty.\n\n\n\n"
+    "text": "GradientDescent(model, step = 1.0)\n\nGradient Descent.  Works for any loss and any penalty.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), GradientDescent(s))\nlearn!(s, strat)\n\n\n\n"
 },
 
 {
@@ -109,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "SparseRegression.Sweep",
     "category": "Type",
-    "text": "Sweep(model)\n\nLinear/ridge regression via sweep operator.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.\n\n\n\n"
+    "text": "Sweep(model)\n\nLinear/ridge regression via sweep operator.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.  The Sweep algorithm has a closed form solution and is complete after one iteration.  It therefore doesn't need additional learning strategies such as MaxIter, Converged, etc.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nlearn!(s, Sweep(s))\n\n\n\n"
 },
 
 {
@@ -117,7 +117,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "SparseRegression.LinRegCholesky",
     "category": "Type",
-    "text": "LinRegCholesky(model)\n\nLinear/ridge regression via cholesky decomposition.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.\n\n\n\n"
+    "text": "LinRegCholesky(model)\n\nLinear/ridge regression via cholesky decomposition.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.  The LinRegCholesky algorithm has a closed form solution  and is complete after one iteration.  It therefore doesn't need additional learning strategies such as MaxIter, Converged, etc.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nlearn!(s, Sweep(s))\n\n\n\n"
 },
 
 {
@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "Algorithms",
     "category": "section",
-    "text": "The first argument of an Algorithm's constructor is an SModel.  This is to ensure  storage buffers are the correct size.ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholesky"
+    "text": "The first argument of an Algorithm's constructor is an SModel.  This is to ensure storage buffers are the correct size.ProxGrad\nFista\nGradientDescent\nSweep\nLinRegCholesky"
 },
 
 ]}
