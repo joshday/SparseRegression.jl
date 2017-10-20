@@ -33,7 +33,7 @@ function learn!(o::SModel; verbose::Bool = true)
     s
 end
 
-strategy(o::SModel) = strategy(ProxGrad(o), MaxIter(), Converged(coef))
+strategy(o::SModel) = strategy(AdaptiveProxGrad(o), MaxIter(), Converged(coef))
 
 const ScaledL2 = Union{L2DistLoss, LossFunctions.ScaledDistanceLoss{L2DistLoss}}
 strategy(o::SModel{<:ScaledL2, <:Union{NoPenalty, L2Penalty}}) = Sweep(o)
