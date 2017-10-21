@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "Objective Function",
     "category": "section",
-    "text": "The objective function that SparseRegression can solve takes the form:frac1nsum_i=1^n w_i f(y_i x_i^Tbeta) + sum_j=1^p lambda_j J(beta_j)where f is a loss function, J is a penalty or regularization function, the w_i's are nonnegative observation weights and the lambda_j's are nonnegative element-wise regularization parameters.  Many models take this form:Model f(y_i x_i^Tbeta) g(beta_j)\nLasso Regression (y_i - x_i^Tbeta)^2 beta_j\nRidge Regression (y_i - x_i^Tbeta)^2 beta_j^2\nSVM max(0 1 - y_i x_i^Tbeta) beta_j^2"
+    "text": "The objective function that SparseRegression can solve takes the form:frac1nsum_i=1^n w_i f(y_i x_i^Tbeta) + sum_j=1^p lambda_j J(beta_j)where f is a loss function, J is a penalty or regularization function, the w_i's are nonnegative observation weights and the lambda_j's are nonnegative element-wise regularization parameters.  Many models take this form:Model f(y_i x_i^Tbeta) g(beta_j)\nLasso Regression frac12(y_i - x_i^Tbeta)^2 beta_j\nRidge Regression frac12(y_i - x_i^Tbeta)^2 beta_j^2\nSVM max(0 1 - y_i x_i^Tbeta) beta_j^2"
 },
 
 {
@@ -125,7 +125,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "SparseRegression.AdaptiveProxGrad",
     "category": "Type",
-    "text": "AdaptiveProxGrad(s, divisor = 1.5)\n\nProximal gradient method with adaptive step sizes.  AdaptiveProxGrad uses element-wise  learning rates.  Every time the sign of a coefficient switches, the step size for that coefficient is divided by divisor.\n\n\n\n"
+    "text": "AdaptiveProxGrad(s, divisor = 1.5, init = 1.0)\n\nProximal gradient method with adaptive step sizes.  AdaptiveProxGrad uses element-wise  learning rates.  Every time the sign of a coefficient switches, the step size for that coefficient is divided by divisor.\n\n\n\n"
 },
 
 {
@@ -182,6 +182,22 @@ var documenterSearchIndex = {"docs": [
     "title": "LinRegCholesky",
     "category": "section",
     "text": "LinRegCholesky"
+},
+
+{
+    "location": "algorithms.html#SparseRegression.LineSearch",
+    "page": "Algorithms",
+    "title": "SparseRegression.LineSearch",
+    "category": "Type",
+    "text": "LineSearch(algorithm)\n\nUse a line search in the update! of algorithm.  Currently, ProxGrad, Fista, and GradientDescent are supported.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), LineSearch(ProxGrad(s)))\nlearn!(s, strat)\n\n\n\n"
+},
+
+{
+    "location": "algorithms.html#LineSearch-1",
+    "page": "Algorithms",
+    "title": "LineSearch",
+    "category": "section",
+    "text": "LineSearch"
 },
 
 ]}
