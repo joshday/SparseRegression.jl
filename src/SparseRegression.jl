@@ -14,8 +14,8 @@ end
 
 export
     SModel, ProxGrad, Fista, AdaptiveProxGrad, GradientDescent, Sweep, LinRegCholesky,
-    Weights,
-    coef, predict
+    Weights, LineSearch,
+    coef, predict, value
 
 #-----------------------------------------------------------------------# Types
 abstract type Algorithm <: LearningStrategy end

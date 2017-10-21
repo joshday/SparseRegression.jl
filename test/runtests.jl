@@ -61,6 +61,21 @@ end
     end
 end
 
+@testset "LineSearch" begin
+    n, p = 1000, 10
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), n, p)
+    s = SModel(x, y, L1Penalty())
+    strat = strategy(MaxIter(5), LineSearch(GradientDescent(s)))
+    learn!(s, strat)
+    @test issorted(coef(s))
+    strat = strategy(MaxIter(5), LineSearch(ProxGrad(s)))
+    learn!(s, strat)
+    @test issorted(coef(s))
+    strat = strategy(MaxIter(5), LineSearch(Fista(s)))
+    learn!(s, strat)
+    @test issorted(coef(s))
+end
+
 
 
 @testset "SModel" begin

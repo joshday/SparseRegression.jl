@@ -14,8 +14,8 @@ where $f$ is a loss function, $J$ is a penalty or regularization function, the $
 
 | Model            | $f(y_i, x_i^T\beta)$   | $g(\beta_j)$  |
 |------------------|------------------------|---------------|
-| Lasso Regression | $(y_i - x_i^T\beta)^2$ | $\|\beta_j\|$ |
-| Ridge Regression | $(y_i - x_i^T\beta)^2$ | $\beta_j^2$   |
+| Lasso Regression | $\frac{1}{2}(y_i - x_i^T\beta)^2$ | $\|\beta_j\|$ |
+| Ridge Regression | $\frac{1}{2}(y_i - x_i^T\beta)^2$ | $\beta_j^2$   |
 | SVM        | $max(0, 1 - y_i x_i^T\beta)$ | $\beta_j^2$   |
 
 ## [JuliaML](https://github.com/JuliaML)

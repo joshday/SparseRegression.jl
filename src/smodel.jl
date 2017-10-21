@@ -90,3 +90,10 @@ end
 coef(o::SModel) = o.β
 predict(o::SModel, x::AbstractMatrix) = x * o.β
 predict(o::SModel, x::AbstractVector) = x'o.β
+
+function value(o::SModel, x = o.x, y = o.y) 
+    value(o.loss, y, predict(o, x), AvgMode.Mean()) + value(o.penalty, o.β)
+end
+
+
+weights!(o::SModel, w::AbstractWeights) = (o.weights[:] = w)

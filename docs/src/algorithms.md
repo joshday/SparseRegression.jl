@@ -38,3 +38,9 @@ Sweep
 ```@docs
 LinRegCholesky
 ```
+
+## LineSearch
+
+```@docs
+LineSearch
+```

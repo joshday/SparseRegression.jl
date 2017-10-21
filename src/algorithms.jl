@@ -13,12 +13,49 @@ function multiply_by_weights!(nvec, w)
     end
 end
 
-stepsize(o::SModel) = .1
-# stepsize(o::SModel{LogitDistLoss}) = .25 * length(o.y) / norm(o.x)
+# TODO: do something smarter than this
+stepsize(o::SModel) = 1.0
+
+#-----------------------------------------------------------------------# LineSearch
+"""
+    LineSearch(algorithm)
+
+Use a line search in the `update!` of `algorithm`.  Currently, [`ProxGrad`](@ref),
+[`Fista`](@ref), and [`GradientDescent`](@ref) are supported.
+
+# Example
+
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)
+    s = SModel(x, y, L2DistLoss())
+    strat = strategy(MaxIter(50), LineSearch(ProxGrad(s)))
+    learn!(s, strat)
+"""
+struct LineSearch{A <: Algorithm} <: Algorithm
+    alg::A
+    divisor::Float64
+    β::Vector{Float64}
+end
+function LineSearch(a::GradientAlgorithm, divisor::Float64 = 1.5) 
+    LineSearch(a, divisor, zeros(length(a.pvec)))
+end
+Base.show(io::IO, a::LineSearch) = print(io, "LineSearch: $(a.alg)")
+function update!(o::SModel, a::LineSearch{<: GradientAlgorithm})
+    l1 = value(o)
+    l2 = Inf
+    copy!(a.β, o.β)
+    firststep = a.alg.step
+    while l2 > l1
+        a.alg.step /= a.divisor
+        copy!(o.β, a.β)
+        update!(o, a.alg)
+        l2 = value(o)
+    end
+    a.alg.step = firststep
+end
 
 #-----------------------------------------------------------------------# Adaptive ProxGrad
 """
-    AdaptiveProxGrad(s, divisor = 1.5)
+    AdaptiveProxGrad(s, divisor = 1.5, init = 1.0)
 
 Proximal gradient method with adaptive step sizes.  AdaptiveProxGrad uses element-wise 
 learning rates.  Every time the sign of a coefficient switches, the step size for that
@@ -30,9 +67,9 @@ struct AdaptiveProxGrad <: GradientAlgorithm
     steps::Vector{Float64}
     divisor::Float64
 end
-function AdaptiveProxGrad(o::SModel, divisor::Float64 = 1.5) 
+function AdaptiveProxGrad(o::SModel, divisor::Float64 = 1.5, init::Float64 = 1.0) 
     n, p = size(o.x)
-    AdaptiveProxGrad(zeros(n), zeros(p), ones(p), divisor)
+    AdaptiveProxGrad(zeros(n), zeros(p), fill(init, p), divisor)
 end
 Base.show(io::IO, a::AdaptiveProxGrad) = print(io, "AdaptiveProxGrad")
 function update!(o::SModel, a::AdaptiveProxGrad)
@@ -61,7 +98,7 @@ Proximal gradient method with step size `step`.  Works for any loss and any pena
     strat = strategy(MaxIter(50), ProxGrad(s))
     learn!(s, strat)
 """
-struct ProxGrad <: GradientAlgorithm
+mutable struct ProxGrad <: GradientAlgorithm
     nvec::Vector{Float64}
     pvec::Vector{Float64}
     step::Float64
@@ -129,7 +166,7 @@ Gradient Descent.  Works for any loss and any penalty.
     strat = strategy(MaxIter(50), GradientDescent(s))
     learn!(s, strat)
 """
-struct GradientDescent <: GradientAlgorithm
+mutable struct GradientDescent <: GradientAlgorithm
     step::Float64
     nvec::Vector{Float64}
     pvec::Vector{Float64}
@@ -138,6 +175,7 @@ function GradientDescent(o::SModel, step::Float64 = stepsize(o))
     n, p = size(o.x)
     GradientDescent(step, zeros(n), zeros(p))
 end
+Base.show(io::IO, a::GradientDescent) = print(io, "GradientDescent")
 function update!(o::SModel, a::GradientDescent)
     gradient!(a, o)
     ∇ = a.pvec
