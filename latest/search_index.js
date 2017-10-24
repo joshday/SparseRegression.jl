@@ -53,7 +53,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Usage",
     "title": "SparseRegression.SModel",
     "category": "Type",
-    "text": "SModel(x, y, args...)\n\nCreate a SparseRegression model with predictor matrix x and response vector y.  Additional arguments can be given in any order.\n\nArguments\n\nloss::Loss = .5 * L2DistLoss()\npenalty::Penalty = L2Penalty()\nλ::Vector{Float64} = fill(size(x, 2), .1)\nw::Union{Void, AbstractWeights} = nothing\n\nExample\n\nx = randn(1000, 5)\ny = x * linspace(-1, 1, 5) + randn(1000)\ns = SModel(x, y)\nlearn!(s)\ns\n\n\n\n"
+    "text": "SModel(x, y, args...)\n\nCreate a SparseRegression model with predictor AbstractMatrix x and response AbstractVector y.  x must have the available methods: \n\nA_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})\nAt_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})\n\nThe additional arguments can be given in any order.\n\nArguments\n\nloss::Loss = .5 * L2DistLoss()\npenalty::Penalty = L2Penalty()\nλ::Vector{Float64} = fill(size(x, 2), .1)\nw::Union{Void, AbstractWeights} = nothing\n\nExample\n\nx = randn(1000, 5)\ny = x * linspace(-1, 1, 5) + randn(1000)\ns = SModel(x, y)\nlearn!(s)\ns\n\n\n\n"
 },
 
 {
