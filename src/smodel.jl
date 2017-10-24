@@ -2,7 +2,13 @@
 """
     SModel(x, y, args...)
 
-Create a SparseRegression model with predictor matrix `x` and response vector `y`.  Additional arguments can be given in any order.
+Create a SparseRegression model with predictor AbstractMatrix `x` and response
+AbstractVector `y`.  `x` must have the available methods: 
+
+- `A_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})`
+- `At_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})`
+
+The additional arguments can be given in any order.
 
 # Arguments
 
