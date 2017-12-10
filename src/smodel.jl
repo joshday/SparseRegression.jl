@@ -3,7 +3,7 @@
     SModel(x, y, args...)
 
 Create a SparseRegression model with predictor AbstractMatrix `x` and response
-AbstractVector `y`.  `x` must have the available methods: 
+AbstractVector `y`.  `x` must have methods: 
 
 - `A_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})`
 - `At_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})`
