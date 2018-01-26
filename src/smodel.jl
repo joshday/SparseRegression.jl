@@ -98,7 +98,7 @@ predict(o::SModel, x::AbstractMatrix) = x * o.β
 predict(o::SModel, x::AbstractVector) = x'o.β
 
 function value(o::SModel, x = o.x, y = o.y) 
-    value(o.loss, y, predict(o, x), AvgMode.Mean()) + value(o.penalty, o.β)
+    value(o.loss, y, predict(o, x), AvgMode.Mean()) + value(o.penalty, o.β, o.λ)
 end
 
 
