@@ -21,7 +21,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Introduction",
     "title": "Objective Function",
     "category": "section",
-    "text": "The objective function that SparseRegression can solve takes the form:frac1nsum_i=1^n w_i f(y_i x_i^Tbeta) + sum_j=1^p lambda_j J(beta_j)where f is a loss function, J is a penalty or regularization function, the w_i's are nonnegative observation weights and the lambda_j's are nonnegative element-wise regularization parameters.  Many models take this form:Model f(y_i x_i^Tbeta) g(beta_j)\nLasso Regression frac12(y_i - x_i^Tbeta)^2 beta_j\nRidge Regression frac12(y_i - x_i^Tbeta)^2 beta_j^2\nSVM max(0 1 - y_i x_i^Tbeta) beta_j^2"
+    "text": "The objective function that SparseRegression can solve takes the form:frac1nsum_i=1^n w_i f(y_i x_i^Tbeta) + sum_j=1^p lambda_j J(beta_j)where f is a loss function, J is a penalty or regularization function, the w_i\'s are nonnegative observation weights and the lambda_j\'s are nonnegative element-wise regularization parameters.  Many models take this form:Model f(y_i x_i^Tbeta) g(beta_j)\nLasso Regression frac12(y_i - x_i^Tbeta)^2 beta_j\nRidge Regression frac12(y_i - x_i^Tbeta)^2 beta_j^2\nSVM max(0 1 - y_i x_i^Tbeta) beta_j^2"
 },
 
 {
@@ -52,7 +52,7 @@ var documenterSearchIndex = {"docs": [
     "location": "usage.html#SparseRegression.SModel",
     "page": "Usage",
     "title": "SparseRegression.SModel",
-    "category": "Type",
+    "category": "type",
     "text": "SModel(x, y, args...)\n\nCreate a SparseRegression model with predictor AbstractMatrix x and response AbstractVector y.  x must have methods: \n\nA_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})\nAt_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})\n\nThe additional arguments can be given in any order.\n\nArguments\n\nloss::Loss = .5 * L2DistLoss()\npenalty::Penalty = L2Penalty()\nλ::Vector{Float64} = fill(size(x, 2), .1)\nw::Union{Void, AbstractWeights} = nothing\n\nExample\n\nx = randn(1000, 5)\ny = x * linspace(-1, 1, 5) + randn(1000)\ns = SModel(x, y)\nlearn!(s)\ns\n\n\n\n"
 },
 
@@ -85,14 +85,14 @@ var documenterSearchIndex = {"docs": [
     "page": "Algorithms",
     "title": "Algorithms",
     "category": "section",
-    "text": "The first argument of an Algorithm's constructor is an SModel.  This is to ensure storage buffers are the correct size."
+    "text": "The first argument of an Algorithm\'s constructor is an SModel.  This is to ensure storage buffers are the correct size."
 },
 
 {
     "location": "algorithms.html#SparseRegression.ProxGrad",
     "page": "Algorithms",
     "title": "SparseRegression.ProxGrad",
-    "category": "Type",
+    "category": "type",
     "text": "ProxGrad(model, step = 1.0)\n\nProximal gradient method with step size step.  Works for any loss and any penalty with a prox method.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), ProxGrad(s))\nlearn!(s, strat)\n\n\n\n"
 },
 
@@ -108,7 +108,7 @@ var documenterSearchIndex = {"docs": [
     "location": "algorithms.html#SparseRegression.Fista",
     "page": "Algorithms",
     "title": "SparseRegression.Fista",
-    "category": "Type",
+    "category": "type",
     "text": "Fista(model, step = 1.0)\n\nAccelerated proximal gradient method.  Works for any loss and any penalty with a prox method.\n\n\n\n"
 },
 
@@ -124,7 +124,7 @@ var documenterSearchIndex = {"docs": [
     "location": "algorithms.html#SparseRegression.AdaptiveProxGrad",
     "page": "Algorithms",
     "title": "SparseRegression.AdaptiveProxGrad",
-    "category": "Type",
+    "category": "type",
     "text": "AdaptiveProxGrad(s, divisor = 1.5, init = 1.0)\n\nProximal gradient method with adaptive step sizes.  AdaptiveProxGrad uses element-wise  learning rates.  Every time the sign of a coefficient switches, the step size for that coefficient is divided by divisor.\n\n\n\n"
 },
 
@@ -140,7 +140,7 @@ var documenterSearchIndex = {"docs": [
     "location": "algorithms.html#SparseRegression.GradientDescent",
     "page": "Algorithms",
     "title": "SparseRegression.GradientDescent",
-    "category": "Type",
+    "category": "type",
     "text": "GradientDescent(model, step = 1.0)\n\nGradient Descent.  Works for any loss and any penalty.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), GradientDescent(s))\nlearn!(s, strat)\n\n\n\n"
 },
 
@@ -156,8 +156,8 @@ var documenterSearchIndex = {"docs": [
     "location": "algorithms.html#SparseRegression.Sweep",
     "page": "Algorithms",
     "title": "SparseRegression.Sweep",
-    "category": "Type",
-    "text": "Sweep(model)\n\nLinear/ridge regression via sweep operator.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.  The Sweep algorithm has a closed form solution and is complete after one iteration.  It therefore doesn't need additional learning strategies such as MaxIter, Converged, etc.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nlearn!(s, Sweep(s))\n\n\n\n"
+    "category": "type",
+    "text": "Sweep(model)\n\nLinear/ridge regression via sweep operator.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.  The Sweep algorithm has a closed form solution and is complete after one iteration.  It therefore doesn\'t need additional learning strategies such as MaxIter, Converged, etc.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nlearn!(s, Sweep(s))\n\n\n\n"
 },
 
 {
@@ -172,8 +172,8 @@ var documenterSearchIndex = {"docs": [
     "location": "algorithms.html#SparseRegression.LinRegCholesky",
     "page": "Algorithms",
     "title": "SparseRegression.LinRegCholesky",
-    "category": "Type",
-    "text": "LinRegCholesky(model)\n\nLinear/ridge regression via cholesky decomposition.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.  The LinRegCholesky algorithm has a closed form solution  and is complete after one iteration.  It therefore doesn't need additional learning strategies such as MaxIter, Converged, etc.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nlearn!(s, Sweep(s))\n\n\n\n"
+    "category": "type",
+    "text": "LinRegCholesky(model)\n\nLinear/ridge regression via cholesky decomposition.  Works for (scaled) L2DistLoss with NoPenalty or L2Penalty.  The LinRegCholesky algorithm has a closed form solution  and is complete after one iteration.  It therefore doesn\'t need additional learning strategies such as MaxIter, Converged, etc.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nlearn!(s, Sweep(s))\n\n\n\n"
 },
 
 {
@@ -188,7 +188,7 @@ var documenterSearchIndex = {"docs": [
     "location": "algorithms.html#SparseRegression.LineSearch",
     "page": "Algorithms",
     "title": "SparseRegression.LineSearch",
-    "category": "Type",
+    "category": "type",
     "text": "LineSearch(algorithm)\n\nUse a line search in the update! of algorithm.  Currently, ProxGrad, Fista, and GradientDescent are supported.\n\nExample\n\nx, y, β = SparseRegression.fakedata(L2DistLoss(), 1000, 10)\ns = SModel(x, y, L2DistLoss())\nstrat = strategy(MaxIter(50), LineSearch(ProxGrad(s)))\nlearn!(s, strat)\n\n\n\n"
 },
 
