@@ -1,5 +1,6 @@
 module SparseRegression
 
+using Compat
 import SweepOperator: sweep!
 import LearnBase: learn!, ObsDim, value, predict
 import LearningStrategies: strategy, setup!, update!, finished, cleanup!
@@ -24,7 +25,8 @@ abstract type OneIterAlgorithm <: Algorithm end
 finished(a::OneIterAlgorithm, model, i) = true
 
 include("smodel.jl")
-include("algorithms.jl")
+include("algorithms/algorithms.jl")
+include("algorithms/cd.jl")
 
 #-----------------------------------------------------------------------# Auto learn!
 function learn!(o::SModel; verbose::Bool = true)

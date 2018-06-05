@@ -78,10 +78,17 @@ end
 
 
 #-----------------------------------------------------------------------# show
-const ticks = ['▁','▂','▃','▄','▅','▆','▇','█']
+const ticks = ['▁','▂','▃','▄','▅','▆','▇']
 function Base.show(io::IO, o::SModel)
-    println(io, "█ SModel")
-    println(io, "  > β        : ", o.β')
+    println(io, "SModel")
+    print(io, "  > abs.(β)  : ")
+    maxβ = max(maximum(abs, o.β), 1.0)
+    tickrange = (0:7) ./ 7
+    for βi in o.β
+        i = searchsortedfirst(tickrange, abs(βi) / maxβ) - 1
+        i == 0 ? print(io, ' ') : print(io, ticks[i])
+    end
+    println(io)
     println(io, "  > λ factor : ", o.λ')
     println(io, "  > Loss     : ", o.loss)
     println(io, "  > Penalty  : ", o.penalty)

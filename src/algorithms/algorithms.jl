@@ -15,6 +15,7 @@ end
 
 # TODO: do something smarter than this
 stepsize(o::SModel) = 1.0
+stepsize(o::SModel{LinearRegression}) = 1.0
 
 #-----------------------------------------------------------------------# LineSearch
 """
