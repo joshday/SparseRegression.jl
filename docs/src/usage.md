@@ -30,7 +30,7 @@ using SparseRegression
 
 # Make some fake data
 x = randn(1000, 10)
-y = x * linspace(-1, 1, 10) + randn(1000)
+y = x * range(-1, stop=1, length=10) + randn(1000)
 
 # Create an SModel
 s = SModel(x, y)

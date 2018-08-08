@@ -5,8 +5,8 @@
 Create a SparseRegression model with predictor AbstractMatrix `x` and response
 AbstractVector `y`.  `x` must have methods: 
 
-- `A_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})`
-- `At_mul_B!(::Matrix{Float64}, x, ::Vector{Float64})`
+- `mul!(::Vector{Float64}, x, ::Vector{Float64})`
+- `mul!(::Vector{Float64}, x', ::Vector{Float64})`
 
 The additional arguments can be given in any order.
 
@@ -15,19 +15,19 @@ The additional arguments can be given in any order.
 - `loss::Loss = .5 * L2DistLoss()`
 - `penalty::Penalty = L2Penalty()`
 - `λ::Vector{Float64} = fill(size(x, 2), .1)`
-- `w::Union{Void, AbstractWeights} = nothing`
+- `w::Union{Nothing, AbstractWeights} = nothing`
 
 # Example
 
     x = randn(1000, 5)
-    y = x * linspace(-1, 1, 5) + randn(1000)
+    y = x * range(-1, stop=1, length=5) + randn(1000)
     s = SModel(x, y)
     learn!(s)
     s
 """
 struct SModel{ # L P X Y W
         L <: Loss, P <: Penalty, X <: AbstractMatrix, Y <: AbstractVector,
-        W <: Union{Void, AbstractWeights}}
+        W <: Union{Nothing, AbstractWeights}}
     x::X
     y::Y
     w::W 
@@ -38,7 +38,7 @@ struct SModel{ # L P X Y W
 
     function SModel(x::X, y::Y, w::W, λ::Vector{Float64}, loss::L, penalty::P) where
             {L<:Loss, P<:Penalty, X<:AbstractMatrix, Y<:AbstractVector,
-                W<:Union{Void,AbstractWeights}}
+                W<:Union{Nothing,AbstractWeights}}
         n, p = size(x)
         length(y) == n || throw(DimensionMismatch("x and y have different nobs"))
         if w != nothing

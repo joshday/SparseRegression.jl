@@ -1,11 +1,11 @@
 #-----------------------------------------------------------------------# GradientAlgorithm
 function gradient!(a::GradientAlgorithm, o::SModel)
-    A_mul_B!(a.nvec, o.x, o.β)          # nvec ← x * β
+    mul!(a.nvec, o.x, o.β)          # nvec ← x * β
     deriv!(a.nvec, o.loss, o.y, a.nvec) # nvec ← deriv(L, y, x * β)
     multiply_by_weights!(a.nvec, o.w)   # nvec .*= w ./ n
-    At_mul_B!(a.pvec, o.x, a.nvec)      # pvec ← x'nvec
+    mul!(a.pvec, o.x', a.nvec)      # pvec ← x'nvec
 end
-multiply_by_weights!(nvec, w::Void) = scale!(nvec, 1 / length(nvec))
+multiply_by_weights!(nvec, w::Nothing) = rmul!(nvec, 1 / length(nvec))
 function multiply_by_weights!(nvec, w)
     wt = inv(length(nvec))
     for i in eachindex(nvec)
@@ -43,11 +43,11 @@ Base.show(io::IO, a::LineSearch) = print(io, "LineSearch: $(a.alg)")
 function update!(o::SModel, a::LineSearch{<: GradientAlgorithm})
     l1 = value(o)
     l2 = Inf
-    copy!(a.β, o.β)
+    copyto!(a.β, o.β)
     firststep = a.alg.step
     while l2 > l1
         a.alg.step /= a.divisor
-        copy!(o.β, a.β)
+        copyto!(o.β, a.β)
         update!(o, a.alg)
         l2 = value(o)
     end
@@ -136,8 +136,8 @@ function Fista(o::SModel, step::Float64 = stepsize(o))
 end
 setup!(a::Fista, o::SModel) = (a.t = 0)
 function update!(o::SModel, a::Fista)
-    copy!(a.β2, a.β1)
-    copy!(a.β1, o.β)
+    copyto!(a.β2, a.β1)
+    copyto!(a.β1, o.β)
     a.t += 1
     if a.t > 2
         γ = (a.t - 2) / (a.t + 1)
@@ -219,7 +219,7 @@ function make_A(o::SModel{L,P,X,Y,W}) where {L,P,X,Y,W<:AbstractWeights}
     a[end, end] = dot(o.y, Diagonal(o.w) * o.y) / n                                  # y'wy
     a
 end
-function make_A(o::SModel{L,P,X,Y,Void}) where {L,P,X,Y}
+function make_A(o::SModel{L,P,X,Y,Nothing}) where {L,P,X,Y}
     n, p = size(o.x)
     a = zeros(p + 1, p + 1)
     @views BLAS.syrk!('U', 'T', 1 / n, o.x, 0.0, a[1:p, 1:p])    # x'x
@@ -229,7 +229,7 @@ function make_A(o::SModel{L,P,X,Y,Void}) where {L,P,X,Y}
 end
 function update!(o::SModel, a::Sweep)
     n, p = size(o.x)
-    copy!(a.S, a.A)
+    copyto!(a.S, a.A)
     add_ridge!(o, a)
     sweep!(a.S, 1:p)
     for j in eachindex(o.β)
@@ -266,8 +266,8 @@ end
 LinRegCholesky(o::SModel) = (A = make_A(o); LinRegCholesky(A, similar(A)))
 Base.show(io::IO, a::LinRegCholesky) = print(io, "LinRegCholesky")
 function update!(o::SModel, a::LinRegCholesky)
-    copy!(a.S, a.A)
+    copyto!(a.S, a.A)
     add_ridge!(o, a)
-    cholfact!(Symmetric(a.S))
+    cholesky!(Symmetric(a.S), Val(false))
     @views o.β[:] = UpperTriangular(a.S[1:end-1, 1:end-1]) \ a.S[1:end-1, end]
 end

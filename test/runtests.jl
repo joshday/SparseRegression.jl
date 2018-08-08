@@ -1,14 +1,16 @@
 module SparseRegressionTest
-using SparseRegression, Base.Test
+using SparseRegression, Test
 include("datagenerator.jl")
 
 
 
 #-----------------------------------------------------------------------# Sanity Check and show
-n, p = 1000, 5
-x, y, β = SparseRegression.fakedata(L2DistLoss(), n, p)
-show(SModel(x, y))
-println("\n")
+@testset "Sanity Check" begin
+    n, p = 1000, 5
+    x, y, β = SparseRegression.fakedata(L2DistLoss(), n, p)
+    show(SModel(x, y))
+    println("\n")
+end
 
 name(o) = replace(string(typeof(o)), r"([a-zA-Z]*\.)", "")
 
@@ -30,7 +32,7 @@ end
 
 @testset "Sanity Check" begin
     for a in [ProxGrad, Fista, AdaptiveProxGrad, GradientDescent]
-        info(a)
+        @info(a)
         for l in [L2DistLoss(), .5*L2DistLoss(), HuberLoss(2.0), QuantileLoss(.7),
             LogitMarginLoss(), DWDMarginLoss(2.0), L2HingeLoss(), ExpLoss()]
             println("  > $l")

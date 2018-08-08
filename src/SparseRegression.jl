@@ -1,8 +1,8 @@
 module SparseRegression
 
-using Compat
+using LinearAlgebra
 import SweepOperator: sweep!
-import LearnBase: learn!, ObsDim, value, predict
+import LearnBase: learn!, ObsDim, value, predict, deriv!
 import LearningStrategies: strategy, setup!, update!, finished, cleanup!
 import StatsBase: coef, AbstractWeights, Weights
 
@@ -42,13 +42,13 @@ strategy(o::SModel{<:ScaledL2, <:Union{NoPenalty, L2Penalty}}) = Sweep(o)
 
 
 #-----------------------------------------------------------------------# Fake data
-function fakedata(::DistanceLoss, n, p; β = linspace(-1, 1, p))
+function fakedata(::DistanceLoss, n, p; β = range(-1, stop=1, length=p))
     x = randn(n, p)
     y = x*β + randn(n)
     x, y, collect(β)
 end
 
-function fakedata(::MarginLoss, n, p; β = linspace(-1, 1, p))
+function fakedata(::MarginLoss, n, p; β = range(-1, stop=1, length=p))
     x = randn(n, p)
     y = Float64[2 * (1 / (1+exp(-η)) > rand()) - 1 for η in x * β]
     x, y, collect(β)

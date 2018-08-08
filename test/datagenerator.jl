@@ -1,6 +1,6 @@
 module DataGenerator
 
-defaultβ(p) = collect(linspace(-1, 1, p))
+defaultβ(p) = collect(range(-1, stop=1, length=p))
 
 function linregdata(n, p; β = defaultβ(p), σ = 1.0)
 	x = randn(n, p)

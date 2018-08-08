@@ -12,7 +12,7 @@ This package relies on primitives defined in the [JuliaML](https://github.com/Ju
 using SparseRegression
 
 x = randn(10_000, 50)
-y = x * linspace(-1, 1, 50) + randn(10_000)
+y = x * range(-1, stop=1, length=50) + randn(10_000)
 
 s = SModel(x, y, L2DistLoss(), L2Penalty())
 @time learn!(s)
