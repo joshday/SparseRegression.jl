@@ -3,7 +3,7 @@
     SModel(x, y, args...)
 
 Create a SparseRegression model with predictor AbstractMatrix `x` and response
-AbstractVector `y`.  `x` must have methods: 
+AbstractVector `y`.  `x` must have methods:
 
 - `mul!(::Vector{Float64}, x, ::Vector{Float64})`
 - `mul!(::Vector{Float64}, x', ::Vector{Float64})`
@@ -30,7 +30,7 @@ struct SModel{ # L P X Y W
         W <: Union{Nothing, AbstractWeights}}
     x::X
     y::Y
-    w::W 
+    w::W
     β::Vector{Float64}
     λ::Vector{Float64}
     loss::L
@@ -104,8 +104,8 @@ coef(o::SModel) = o.β
 predict(o::SModel, x::AbstractMatrix) = x * o.β
 predict(o::SModel, x::AbstractVector) = x'o.β
 
-function value(o::SModel, x = o.x, y = o.y) 
-    value(o.loss, y, predict(o, x), AvgMode.Mean()) + value(o.penalty, o.β, o.λ)
+function value(o::SModel, x = o.x, y = o.y)
+    value(o.loss, y, predict(o, x), AggMode.Mean()) + value(o.penalty, o.β, o.λ)
 end
 
 
