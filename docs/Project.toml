@@ -1,3 +1,8 @@
+name = "SparseRegression"
+uuid = "24d921a7-6ad8-5465-9fb4-6c3990827f27"
+version = "0.3.0"
+
+
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 SparseRegression = "ca6142a6-a6a7-57f5-b674-4a8484b22e92"
