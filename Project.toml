@@ -5,6 +5,7 @@ version = "0.3.0"
 [deps]
 LearnBase = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
 LearningStrategies = "4e8a8231-0ba9-591b-8620-81c6740d7791"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 LossFunctions = "30fc2ffe-d236-52d8-8643-a9d8f7c094a7"
 PenaltyFunctions = "06bb1623-fdd5-5ca2-a01c-88eae3ea319e"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
