@@ -8,9 +8,10 @@
 
 This package relies on primitives defined in the [JuliaML](https://github.com/JuliaML) ecosystem to implement high-performance algorithms for linear models which often produce sparsity in the coefficients.
 
-- Install with `Pkg.clone("https://github.com/joshday/SparseRegression.jl")`
-
+## Quickstart
 ```julia
+using Pkg
+Pkg.add("SparseRegression")
 using SparseRegression
 
 x = randn(10_000, 50)
