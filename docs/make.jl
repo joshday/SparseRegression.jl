@@ -1,7 +1,7 @@
 using Documenter, SparseRegression
 
 makedocs(
-    format = :html,
+    format = Documenter.HTML(),
     sitename = "SparseRegression.jl",
     authors = "Josh Day",
     clean = true,
