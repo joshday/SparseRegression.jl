@@ -14,9 +14,4 @@ makedocs(
 
 deploydocs(
     repo   = "github.com/joshday/SparseRegression.jl.git",
-    target = "build",
-    osname = "linux",
-    julia  = "0.6",
-    deps   = nothing,
-    make   = nothing
 )
