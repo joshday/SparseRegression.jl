@@ -14,6 +14,12 @@ SweepOperator = "7522ee7d-7047-56d0-94d9-4bc626e7058d"
 
 [compat]
 SweepOperator = "0.3"
+LossFunctions = "0.5"
+RecipesBase = "0.7"
+PenaltyFunctions = "0.1"
+LearningStrategies = "0.4"
+LearnBase = "0.2"
+StatsBase = "0.32"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
