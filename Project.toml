@@ -1,5 +1,5 @@
 name = "SparseRegression"
-uuid = "24d921a7-6ad8-5465-9fb4-6c3990827f27"
+uuid = "ca6142a6-a6a7-57f5-b674-4a8484b22e92"
 version = "0.3.1"
 
 [deps]
