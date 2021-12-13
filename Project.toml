@@ -1,6 +1,6 @@
 name = "SparseRegression"
 uuid = "ca6142a6-a6a7-57f5-b674-4a8484b22e92"
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 LearnBase = "7f8f8fb0-2700-5f03-b4bd-41f8cfc144b6"
