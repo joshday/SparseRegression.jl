@@ -268,6 +268,6 @@ Base.show(io::IO, a::LinRegCholesky) = print(io, "LinRegCholesky")
 function update!(o::SModel, a::LinRegCholesky)
     copyto!(a.S, a.A)
     add_ridge!(o, a)
-    cholesky!(Symmetric(a.S), Val(false))
+    cholesky!(Symmetric(a.S))
     @views o.β[:] = UpperTriangular(a.S[1:end-1, 1:end-1]) \ a.S[1:end-1, end]
 end
