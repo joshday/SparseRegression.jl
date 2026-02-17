@@ -1,3 +1,8 @@
+[![CI](https://github.com/joshday/SparseRegression.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/joshday/SparseRegression.jl/actions/workflows/CI.yml)
+[![Docs Build](https://github.com/joshday/SparseRegression.jl/actions/workflows/Docs.yml/badge.svg)](https://github.com/joshday/SparseRegression.jl/actions/workflows/Docs.yml)
+[![Stable Docs](https://img.shields.io/badge/docs-stable-blue)](https://joshday.github.io/SparseRegression.jl/stable/)
+[![Dev Docs](https://img.shields.io/badge/docs-dev-blue)](https://joshday.github.io/SparseRegression.jl/dev/)
+
 # SparseRegression
 
 | Documentation | Master Build | Test Coverage |

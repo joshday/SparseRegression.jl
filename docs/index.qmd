@@ -1,0 +1,23 @@
+---
+title: "SparseRegression.jl"
+engine: julia
+---
+
+Welcome to the documentation for **SparseRegression.jl**.
+
+## Overview
+
+SparseRegression.jl is a Julia package that ...
+
+## Installation
+
+```julia
+using Pkg
+Pkg.add("SparseRegression")
+```
+
+## Quickstart
+
+```{julia}
+println("Hello, World!")
+```
